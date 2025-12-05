@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import type { FormRules } from "element-plus"
-import type { LoginRequestData } from "./apis/type"
+import type { LoginRequestData } from "@/common/apis/login/type"
+import { getCaptchaApi, loginApi } from "@@/apis/login"
 import ThemeSwitch from "@@/components/ThemeSwitch/index.vue"
 import { Key, Loading, Lock, Picture, User } from "@element-plus/icons-vue"
 import { useSettingsStore } from "@/pinia/stores/settings"
 import { useUserStore } from "@/pinia/stores/user"
-import { getCaptchaApi, loginApi } from "./apis"
 import Owl from "./components/Owl.vue"
 import { useFocus } from "./composables/useFocus"
 
@@ -26,11 +26,14 @@ const loading = ref(false)
 /** 验证码图片 URL */
 const codeUrl = ref("")
 
+const captchaEnabled = ref(false)
+
 /** 登录表单数据 */
 const loginFormData: LoginRequestData = reactive({
   username: "admin",
-  password: "12345678",
-  code: ""
+  password: "admin123",
+  code: "",
+  uuid: ""
 })
 
 /** 登录表单校验规则 */
@@ -43,7 +46,7 @@ const loginFormRules: FormRules = {
     { min: 8, max: 16, message: "长度在 8 到 16 个字符", trigger: "blur" }
   ],
   code: [
-    { required: true, message: "请输入验证码", trigger: "blur" }
+    { required: captchaEnabled.value, message: "请输入验证码", trigger: "blur" }
   ]
 }
 
@@ -56,8 +59,11 @@ function handleLogin() {
     }
     loading.value = true
     loginApi(loginFormData).then(({ data }) => {
-      userStore.setToken(data.token)
-      router.push("/")
+      if (data.access_token) {
+        userStore.setToken(data.access_token)
+        console.log(userStore.token)
+        router.push("/admin/dashboard")
+      }
     }).catch(() => {
       createCode()
       loginFormData.password = ""
@@ -75,12 +81,18 @@ function createCode() {
   codeUrl.value = ""
   // 获取验证码图片
   getCaptchaApi().then((res) => {
-    codeUrl.value = res.data
+    codeUrl.value = `data:image/gif;base64,${res.data.img}`
+    captchaEnabled.value = res.data.captchaEnabled
+    loginFormData.uuid = res.data.uuid
   })
 }
 
 // 初始化验证码
 createCode()
+
+function test() {
+  userStore.setToken("userStore.setToken(data.access_token)")
+}
 </script>
 
 <template>
@@ -146,6 +158,9 @@ createCode()
           </el-form-item>
           <el-button :loading="loading" type="primary" size="large" @click.prevent="handleLogin">
             登 录
+          </el-button>
+          <el-button @click="test">
+            测试
           </el-button>
         </el-form>
       </div>

@@ -1,4 +1,3 @@
-import { getCurrentUserApi } from "@@/apis/users"
 import { setToken as _setToken, getToken, removeToken } from "@@/utils/cache/cookies"
 import { pinia } from "@/pinia"
 import { resetRouter } from "@/router"
@@ -25,10 +24,10 @@ export const useUserStore = defineStore("user", () => {
 
   // 获取用户详情
   const getInfo = async () => {
-    const { data } = await getCurrentUserApi()
-    username.value = data.username
+    // const { data } = await getCurrentUserApi()
+    username.value = "data.username"
     // 验证返回的 roles 是否为一个非空数组，否则塞入一个没有任何作用的默认角色，防止路由守卫逻辑进入无限循环
-    roles.value = data.roles?.length > 0 ? data.roles : routerConfig.defaultRoles
+    roles.value = routerConfig.defaultRoles
   }
 
   // 模拟角色变化

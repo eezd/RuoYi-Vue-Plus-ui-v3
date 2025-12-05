@@ -38,11 +38,12 @@ export default defineConfig(({ mode }) => {
       // 反向代理
       proxy: {
         "/api/v1": {
-          target: "http://localhost:8080/",
+          target: "http://localhost:8080",
           // 是否为 WebSocket
           ws: false,
           // 是否允许跨域
-          changeOrigin: true
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/api\/v1/, "")
         }
       },
       // 是否允许跨域

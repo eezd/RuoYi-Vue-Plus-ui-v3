@@ -10,6 +10,9 @@ function logout() {
   location.reload()
 }
 
+axios.defaults.headers["Content-Type"] = "application/json;charset=utf-8"
+axios.defaults.headers.clientid = import.meta.env.VITE_APP_CLIENT_ID
+
 /** 创建请求实例 */
 function createInstance() {
   // 创建一个 axios 实例命名为 instance
@@ -37,22 +40,22 @@ function createInstance() {
         return Promise.reject(new Error("非本系统的接口"))
       }
       switch (code) {
-        case 0:
-          // 本系统采用 code === 0 来表示没有业务错误
+        case 200:
+          // 本系统采用 code === 200 来表示没有业务错误
           return apiData
         case 401:
           // Token 过期时
           return logout()
         default:
           // 不是正确的 code
-          ElMessage.error(apiData.message || "Error")
+          ElMessage.error(apiData.msg || "Error")
           return Promise.reject(new Error("Error"))
       }
     },
     (error) => {
       // status 是 HTTP 状态码
       const status = get(error, "response.status")
-      const message = get(error, "response.data.message")
+      const message = get(error, "response.data.msg")
       switch (status) {
         case 400:
           error.message = "请求错误"
