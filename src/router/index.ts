@@ -12,6 +12,10 @@ const Layouts = () => import("@/layouts/index.vue")
  */
 export const constantRoutes: RouteRecordRaw[] = [
   {
+    path: "/",
+    redirect: "/admin"
+  },
+  {
     path: "/redirect",
     component: Layouts,
     meta: {
@@ -60,6 +64,20 @@ export const constantRoutes: RouteRecordRaw[] = [
           svgIcon: "dashboard",
           affix: true
         }
+      },
+      {
+        path: "/dict",
+        children: [
+          {
+            path: "",
+            component: () => import("@/pages/admin/dict/index.vue"),
+            name: "Dict",
+            meta: {
+              title: "字典管理",
+              svgIcon: "dashboard"
+            }
+          }
+        ]
       }
     ]
   }

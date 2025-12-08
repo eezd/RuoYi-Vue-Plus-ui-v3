@@ -2,7 +2,14 @@ import type { AxiosInstance, AxiosRequestConfig } from "axios"
 import { getToken } from "@@/utils/cache/cookies"
 import axios from "axios"
 import { get, merge } from "lodash-es"
+import { getLanguage } from "@/common/lang"
+import { tansParams } from "@/common/utils"
+import cache from "@/common/utils/cache"
+import { encryptBase64, encryptWithAes, generateAesKey } from "@/common/utils/crypto"
+import { encrypt } from "@/common/utils/jsencrypt"
 import { useUserStore } from "@/pinia/stores/user"
+
+const encryptHeader = "encrypt-key"
 
 /** 退出登录并强制刷新页面（会重定向到登录页） */
 function logout() {
@@ -20,7 +27,68 @@ function createInstance() {
   // 请求拦截器
   instance.interceptors.request.use(
     // 发送之前
-    config => config,
+    (config) => {
+      // 对应国际化资源文件后缀
+      config.headers["Content-Language"] = getLanguage()
+
+      const isToken = config.headers?.isToken === false
+      // 是否需要防止数据重复提交
+      const isRepeatSubmit = config.headers?.repeatSubmit === false
+      // 是否需要加密
+      const isEncrypt = config.headers?.isEncrypt === "true"
+
+      if (getToken() && !isToken) {
+        config.headers.Authorization = `Bearer ${getToken()}` // 让每个请求携带自定义token 请根据实际情况自行修改
+      }
+
+      // get请求映射params参数
+      if (config.method === "get" && config.params) {
+        let url = `${config.url}?${tansParams(config.params)}`
+        url = url.slice(0, -1)
+        config.params = {}
+        config.url = url
+      }
+
+      if (!isRepeatSubmit && (config.method === "post" || config.method === "put")) {
+        const requestObj = {
+          url: config.url,
+          data: typeof config.data === "object" ? JSON.stringify(config.data) : config.data,
+          time: new Date().getTime()
+        }
+        const sessionObj = cache.session.getJSON("sessionObj")
+        if (sessionObj === undefined || sessionObj === null || sessionObj === "") {
+          cache.session.setJSON("sessionObj", requestObj)
+        } else {
+          const s_url = sessionObj.url // 请求地址
+          const s_data = sessionObj.data // 请求数据
+          const s_time = sessionObj.time // 请求时间
+          const interval = 500 // 间隔时间(ms)，小于此时间视为重复提交
+          if (s_data === requestObj.data && requestObj.time - s_time < interval && s_url === requestObj.url) {
+            const message = "数据正在处理，请勿重复提交"
+            console.warn(`[${s_url}]: ${message}`)
+            return Promise.reject(new Error(message))
+          } else {
+            cache.session.setJSON("sessionObj", requestObj)
+          }
+        }
+      }
+
+      if (import.meta.env.VITE_APP_ENCRYPT === "true") {
+      // 当开启参数加密
+        if (isEncrypt && (config.method === "post" || config.method === "put")) {
+        // 生成一个 AES 密钥
+          const aesKey = generateAesKey()
+          config.headers[encryptHeader] = encrypt(encryptBase64(aesKey))
+          config.data = typeof config.data === "object" ? encryptWithAes(JSON.stringify(config.data), aesKey) : encryptWithAes(config.data, aesKey)
+        }
+      }
+
+      // FormData数据去请求头Content-Type
+      if (config.data instanceof FormData) {
+        delete config.headers["Content-Type"]
+      }
+      return config
+    },
     // 发送失败
     error => Promise.reject(error)
   )
@@ -103,7 +171,7 @@ function createInstance() {
 /** 创建请求方法 */
 function createRequest(instance: AxiosInstance) {
   return <T>(config: AxiosRequestConfig): Promise<T> => {
-    const token = getToken()
+    // const token = getToken()
     // 默认配置
     const defaultConfig: AxiosRequestConfig = {
       // 接口地址
@@ -111,7 +179,7 @@ function createRequest(instance: AxiosInstance) {
       // 请求头
       headers: {
         // 携带 Token
-        "Authorization": token ? `Bearer ${token}` : undefined,
+        // "Authorization": token ? `Bearer ${token}` : undefined,
         "Content-Type": "application/json"
       },
       // 请求体

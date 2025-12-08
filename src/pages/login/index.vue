@@ -33,7 +33,9 @@ const loginFormData: LoginRequestData = reactive({
   username: "admin",
   password: "admin123",
   code: "",
-  uuid: ""
+  uuid: "",
+  clientId: import.meta.env.VITE_APP_CLIENT_ID,
+  grantType: "password"
 })
 
 /** 登录表单校验规则 */

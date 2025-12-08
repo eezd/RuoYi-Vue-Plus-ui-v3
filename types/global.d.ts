@@ -1,5 +1,5 @@
 import type { LanguageEnum } from "@@/enums/LanguageEnum"
-import type { ComponentInternalInstance as ComponentInstance, PropType as VuePropType } from "vue"
+import type { ComponentInternalInstance as ComponentInstance } from "vue"
 
 declare global {
   /** vue Instance */
@@ -65,7 +65,6 @@ declare global {
   }
 
   declare interface BaseEntity {
-    createBy?: any
     createDept?: any
     createTime?: string
     updateBy?: any
@@ -89,6 +88,7 @@ declare global {
     pageNum: number
     pageSize: number
   }
+
   declare interface LayoutSetting {
     /**
      * 是否显示顶部导航

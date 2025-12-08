@@ -1,4 +1,4 @@
-interface PaginationData {
+export interface PaginationData {
   total?: number
   currentPage?: number
   pageSizes?: number[]
