@@ -1,7 +1,7 @@
 import { setToken as _setToken, getToken, removeToken } from "@@/utils/cache/cookies"
+import { getInfoApi } from "@/common/apis/admin/user"
 import { pinia } from "@/pinia"
 import { resetRouter } from "@/router"
-import { routerConfig } from "@/router/config"
 import { useSettingsStore } from "./settings"
 import { useTagsViewStore } from "./tags-view"
 
@@ -10,7 +10,11 @@ export const useUserStore = defineStore("user", () => {
 
   const roles = ref<string[]>([])
 
+  const permissions = ref<string[]>([])
+
   const username = ref<string>("")
+
+  const nickname = ref<string>("")
 
   const tagsViewStore = useTagsViewStore()
 
@@ -24,10 +28,13 @@ export const useUserStore = defineStore("user", () => {
 
   // 获取用户详情
   const getInfo = async () => {
-    // const { data } = await getCurrentUserApi()
-    username.value = "data.username"
+    const { data } = await getInfoApi()
+    console.log(data)
+    username.value = data.user.userName
+    nickname.value = data.user.nickName
     // 验证返回的 roles 是否为一个非空数组，否则塞入一个没有任何作用的默认角色，防止路由守卫逻辑进入无限循环
-    roles.value = routerConfig.defaultRoles
+    roles.value = data.roles || ["default"]
+    permissions.value = data.permissions || []
   }
 
   // 模拟角色变化
@@ -42,8 +49,11 @@ export const useUserStore = defineStore("user", () => {
   // 登出
   const logout = () => {
     removeToken()
+    username.value = ""
+    nickname.value = ""
     token.value = ""
     roles.value = []
+    permissions.value = []
     resetRouter()
     resetTagsView()
   }
@@ -51,8 +61,11 @@ export const useUserStore = defineStore("user", () => {
   // 重置 Token
   const resetToken = () => {
     removeToken()
+    username.value = ""
+    nickname.value = ""
     token.value = ""
     roles.value = []
+    permissions.value = []
   }
 
   // 重置 Visited Views 和 Cached Views
@@ -63,7 +76,7 @@ export const useUserStore = defineStore("user", () => {
     }
   }
 
-  return { token, roles, username, setToken, getInfo, changeRoles, logout, resetToken }
+  return { token, roles, permissions, username, nickname, setToken, getInfo, changeRoles, logout, resetToken }
 })
 
 /**

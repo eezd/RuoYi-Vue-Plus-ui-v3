@@ -45,7 +45,7 @@ const loginFormRules: FormRules = {
   ],
   password: [
     { required: true, message: "请输入密码", trigger: "blur" },
-    { min: 8, max: 16, message: "长度在 8 到 16 个字符", trigger: "blur" }
+    { min: 4, max: 16, message: "长度在 48 到 16 个字符", trigger: "blur" }
   ],
   code: [
     { required: captchaEnabled.value, message: "请输入验证码", trigger: "blur" }
@@ -63,7 +63,6 @@ function handleLogin() {
     loginApi(loginFormData).then(({ data }) => {
       if (data.access_token) {
         userStore.setToken(data.access_token)
-        console.log(userStore.token)
         router.push("/admin/dashboard")
       }
     }).catch(() => {
@@ -91,10 +90,6 @@ function createCode() {
 
 // 初始化验证码
 createCode()
-
-function test() {
-  userStore.setToken("userStore.setToken(data.access_token)")
-}
 </script>
 
 <template>
@@ -160,9 +155,6 @@ function test() {
           </el-form-item>
           <el-button :loading="loading" type="primary" size="large" @click.prevent="handleLogin">
             登 录
-          </el-button>
-          <el-button @click="test">
-            测试
           </el-button>
         </el-form>
       </div>
