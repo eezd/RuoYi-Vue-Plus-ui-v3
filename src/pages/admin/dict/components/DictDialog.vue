@@ -99,7 +99,7 @@ function resetForm() {
 </script>
 
 <template>
-  <el-dialog v-model="dialogVisible" :title="title" @closed="resetForm" :width="isMobile ? '80%' : '40%'">
+  <el-dialog v-model="dialogVisible" :title="title" @closed="resetForm" :width="isMobile ? '90%' : '40%'">
     <el-form ref="formRef" label-width="80px" :model="formData" :rules="formRules" label-position="left">
       <el-form-item prop="dictName" label="字典名称">
         <el-input v-model="formData.dictName" placeholder="请输入字典名称" :disabled="!isEditable" />

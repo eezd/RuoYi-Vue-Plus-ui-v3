@@ -21,7 +21,7 @@ defineOptions({
 const route = useRoute()
 // console.log(route.params.dictId)
 
-const loading = ref(false)
+const loading = ref(true)
 // 表格数据
 const tableData = ref<DictDataForm[]>([])
 // 表单数据
@@ -36,6 +36,7 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 
 // 保存初始的字典类型, 防止重置时清空
 const defaultDictType = ref("")
+// const DEFAULT_FORM_DATA = { dictType: defaultDictType.value, dictSort: 0 }
 
 // #region 搜索栏
 // 搜索
@@ -56,6 +57,7 @@ async function getTypeList() {
 }
 function resetSearch() {
   searchFormRef.value?.resetFields()
+  searchData.dictType = defaultDictType.value
   getTableData()
 }
 // #endregion
@@ -67,10 +69,6 @@ function resetSearch() {
 async function getTableData(): Promise<void> {
   try {
     loading.value = true
-    const { data } = await getSysDictTypeApi(route.params && (route.params.dictId as string))
-    searchData.dictType = data.dictType
-    defaultDictType.value = data.dictType
-
     const { rows, total } = await getSysDictDataListApi({
       ...searchData,
       pageNum: paginationData.currentPage,
@@ -81,7 +79,6 @@ async function getTableData(): Promise<void> {
   } catch {
     tableData.value = []
     searchData.dictType = ""
-    defaultDictType.value = ""
   } finally {
     loading.value = false
   }
@@ -171,7 +168,11 @@ watch(
 
 onMounted(async () => {
   await getTypeList()
+  const { data } = await getSysDictTypeApi(route.params && (route.params.dictId as string))
+  searchData.dictType = data.dictType
+  defaultDictType.value = data.dictType
   await getTableData()
+  loading.value = false
 })
 </script>
 

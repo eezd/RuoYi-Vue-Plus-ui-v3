@@ -61,9 +61,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
   {
     path: "/admin",
     component: Layouts,
-    redirect: "/admin/dashboard",
     meta: {
-      title: "系统管理"
+      title: "后台系统"
     },
     children: [
       {
@@ -77,32 +76,44 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         }
       },
       {
-        path: "dict",
-        component: () => import("@/pages/admin/dict/index.vue"),
-        name: "AdminSysDict",
+        path: "system",
+        redirect: "/admin/system/dashboard",
         meta: {
-          title: "字典管理",
-          svgIcon: "dict"
-        }
-      },
-      {
-        path: "dict-data/:dictId",
-        component: () => import("@/pages/admin/dict/data/index.vue"),
-        name: "AdminSysDictData",
-        meta: {
-          title: "字典数据",
-          hidden: true
-        }
-      },
-      {
-        path: "menu",
-        component: () => import("@/pages/admin/menu/index.vue"),
-        name: "AdminSysMenu",
-        meta: {
-          title: "菜单权限管理",
-          svgIcon: "tree-table"
-        }
+          title: "系统管理",
+          svgIcon: "system"
+        },
+        children: [
+
+          {
+            path: "dict",
+            component: () => import("@/pages/admin/dict/index.vue"),
+            name: "AdminSysDict",
+            meta: {
+              title: "字典管理",
+              svgIcon: "dict"
+            }
+          },
+          {
+            path: "dict-data/:dictId",
+            component: () => import("@/pages/admin/dict/data/index.vue"),
+            name: "AdminSysDictData",
+            meta: {
+              title: "字典数据",
+              hidden: true
+            }
+          },
+          {
+            path: "menu",
+            component: () => import("@/pages/admin/menu/index.vue"),
+            name: "AdminSysMenu",
+            meta: {
+              title: "菜单权限管理",
+              svgIcon: "tree-table"
+            }
+          }
+        ]
       }
+
     ]
   }
 ]

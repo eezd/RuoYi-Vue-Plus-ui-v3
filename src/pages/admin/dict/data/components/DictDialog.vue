@@ -115,7 +115,7 @@ function resetForm() {
 </script>
 
 <template>
-  <el-dialog v-model="dialogVisible" :title="title" @closed="resetForm" :width="isMobile ? '80%' : '40%'">
+  <el-dialog v-model="dialogVisible" :title="title" @closed="resetForm" :width="isMobile ? '90%' : '40%'">
     <el-form ref="formRef" label-width="80px" :model="formData" :rules="formRules" label-position="left">
       <el-form-item prop="dictType" label="字典类型">
         <el-input v-model="formData.dictType" placeholder="请输入字典类型" :disabled="true" />
@@ -130,10 +130,10 @@ function resetForm() {
         <el-input v-model="formData.cssClass" placeholder="请输入样式属性" :disabled="!isEditable" />
       </el-form-item>
       <el-form-item prop="dictSort" label="显示排序">
-        <el-input-number v-model="formData.dictSort" controls-position="right" :min="0" />
+        <el-input-number v-model="formData.dictSort" controls-position="right" :min="0" :disabled="!isEditable" />
       </el-form-item>
       <el-form-item prop="listClass" label="回显样式">
-        <el-select v-model="formData.listClass">
+        <el-select v-model="formData.listClass" :disabled="!isEditable">
           <el-option
             v-for="item in listClassOptions"
             :key="item.value"

@@ -4,9 +4,11 @@ import type { MenuForm, MenuQuery, MenuVO } from "@/common/apis/admin/menu/types
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
-import { delSysMenuApi, getSysMenuListApi } from "@/common/apis/admin/menu"
+import { delSysMenuApi, getSysMenuApi, getSysMenuListApi } from "@/common/apis/admin/menu"
+import { useDict } from "@/common/composables/useDict"
+import { MenuTypeEnum } from "@/common/enums/MenuTypeEnum"
 import { handleTree } from "@/common/utils"
-import { download } from "@/common/utils/test"
+import MenuCascadeDeleteDialog from "./components/MenuCascadeDeleteDialog.vue"
 import DictDataDialog from "./components/MenuDialog.vue"
 import DictTable from "./components/MenuTable.vue"
 
@@ -14,24 +16,45 @@ defineOptions({
   name: "AdminSysMenu"
 })
 
+export interface MenuTableRow extends MenuVO {
+  /** 是否有子菜单（用于 el-table 懒加载） */
+  hasChildren?: boolean
+}
+/** 菜单子列表映射类型 */
+interface MenuChildrenMap {
+  [parentId: string | number]: MenuTableRow[]
+}
+/** 菜单展开状态信息 */
+interface MenuExpandInfo {
+  row: MenuTableRow
+  treeNode: unknown
+  resolve: (data: MenuTableRow[]) => void
+}
+/** 菜单展开映射类型 */
+interface MenuExpandMap {
+  [menuId: string | number]: MenuExpandInfo | undefined
+}
 export interface MenuOptionsType {
-  menuId: number
+  menuId: number | string
   menuName: string
   children: MenuOptionsType[] | undefined
 }
 
-const loading = ref(false)
+const loading = ref(true)
+
+const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 
 const menuTableRef = ref<ElTableInstance | null>(null)
 
 // 表格数据
-const tableData = ref<MenuVO[]>([])
-const menuChildrenListMap = ref<any>({})
-const menuExpandMap = ref<any>({})
+const tableData = ref<MenuTableRow[]>([])
+const menuChildrenListMap = ref<MenuChildrenMap>({})
+const menuExpandMap = ref<MenuExpandMap>({})
 const menuOptions = ref<MenuOptionsType[]>([])
 
+const DEFAULT_FORM_DATA = { orderNum: 1, menuType: MenuTypeEnum.M }
 // 表单数据
-const formData = ref<Partial<MenuForm>>(cloneDeep({}))
+const formData = ref<Partial<MenuForm>>(cloneDeep(DEFAULT_FORM_DATA))
 // 数据弹窗
 const dataDialogVisible = ref<boolean>(false)
 // 数据弹窗的数据是否可编辑
@@ -59,7 +82,8 @@ async function getTableData(): Promise<void> {
     loading.value = true
     const res = await getSysMenuListApi(searchData)
 
-    const tempMap = {} as any
+    const tempMap: MenuChildrenMap = {}
+
     // 存储 父菜单:子菜单列表
     for (const menu of res.data) {
       const parentId = menu.parentId
@@ -69,9 +93,9 @@ async function getTableData(): Promise<void> {
       tempMap[parentId].push(menu)
     }
     // 创建一个当前所有 menuId 的 Set，用于查找父菜单是否存在于当前数据中
-    const menuIdSet = new Set()
+    const menuIdSet = new Set<string | number>()
     // 设置有没有子菜单
-    for (const menu of res.data as any) {
+    for (const menu of res.data as MenuTableRow[]) {
       menu.hasChildren = tempMap[menu.menuId]?.length > 0
       menuIdSet.add(menu.menuId)
     }
@@ -81,6 +105,7 @@ async function getTableData(): Promise<void> {
     // 根据新数据重新加载子菜单数据
     refreshAllExpandMenuData()
 
+    // 更新菜单下拉树数据
     await getTreeselect()
   } catch {
     tableData.value = []
@@ -89,31 +114,32 @@ async function getTableData(): Promise<void> {
   }
 }
 /** 获取子菜单列表 */
-async function getChildrenList(row: any, treeNode: unknown, resolve: (data: any[]) => void) {
+async function getChildrenList(row: MenuTableRow, treeNode: unknown, resolve: (data: MenuTableRow[]) => void) {
   menuExpandMap.value[row.menuId] = { row, treeNode, resolve }
   const children = menuChildrenListMap.value[row.menuId] || []
   // 菜单的子菜单清空后关闭展开
   if (children.length === 0) {
     // fix: 处理当菜单只有一个子菜单并被删除，需要将父菜单的展开状态关闭
-    menuTableRef.value?.updateKeyChildren(row.menuId, children)
+    menuTableRef.value?.updateKeyChildren(row.menuId.toString(), children)
   }
   resolve(children)
 }
 /** 收起菜单时从menuExpandMap中删除对应菜单id数据 */
-async function expandMenuHandle(row: any, expanded: boolean) {
+async function expandMenuHandle(row: MenuTableRow, expanded: boolean) {
   if (!expanded) {
     menuExpandMap.value[row.menuId] = undefined
   }
 }
-
 /** 刷新展开的菜单数据 */
 function refreshLoadTree(parentId: string | number) {
-  if (menuExpandMap.value[parentId]) {
-    const { row, treeNode, resolve } = menuExpandMap.value[parentId]
+  const expandInfo = menuExpandMap.value[parentId]
+  if (expandInfo) {
+    const { row, treeNode, resolve } = expandInfo
     if (row) {
       getChildrenList(row, treeNode, resolve)
       if (row.parentId) {
         const grandpaMenu = menuExpandMap.value[row.parentId]
+        if (!grandpaMenu) return
         getChildrenList(grandpaMenu.row, grandpaMenu.treeNode, grandpaMenu.resolve)
       }
     }
@@ -160,22 +186,10 @@ async function handleDelete(row: MenuForm) {
 }
 
 /**
- * 导出
- */
-function handleExport() {
-  const timestamp = new Date().getTime()
-  download(
-    "/system/dict/type/export",
-    { ...searchData },
-    `dict_${timestamp}.xlsx`
-  )
-}
-
-/**
  * 打开添加弹窗
  */
 function openAddDialog() {
-  formData.value = cloneDeep({})
+  formData.value = cloneDeep(DEFAULT_FORM_DATA)
   isDataDialogEditable.value = true
   dataDialogVisible.value = true
 }
@@ -185,8 +199,11 @@ function openAddDialog() {
  *
  * @param row
  */
-function openUpdateDialog(row: MenuForm) {
-  formData.value = cloneDeep(row)
+async function openUpdateDialog(row: MenuForm) {
+  if (row.menuId) {
+    const { data } = await getSysMenuApi(row.menuId)
+    formData.value = data as MenuForm
+  }
   isDataDialogEditable.value = true
   dataDialogVisible.value = true
 }
@@ -196,15 +213,31 @@ function openUpdateDialog(row: MenuForm) {
  *
  * @param row
  */
-function openShowDialog(row: MenuForm) {
-  formData.value = cloneDeep(row)
+async function openShowDialog(row: MenuForm) {
+  if (row.menuId) {
+    const { data } = await getSysMenuApi(row.menuId)
+    formData.value = data as MenuForm
+  }
   isDataDialogEditable.value = false
   dataDialogVisible.value = true
 }
 // #endregion
 
-onMounted(() => {
-  getTableData()
+// #region 联删除
+const menuTreeRef = ref<ElTreeInstance | null>(null)
+// 级连删除弹窗
+const cascadeDeleteDialogVisible = ref<boolean>(false)
+/**
+ * 打开级联删除弹窗
+ */
+async function openCascadeDeleteDialog() {
+  cascadeDeleteDialogVisible.value = true
+}
+// #endregion
+
+onMounted(async () => {
+  await getTableData()
+  loading.value = false
 })
 </script>
 
@@ -217,7 +250,9 @@ onMounted(() => {
           <el-input v-model="searchData.menuName" placeholder="请输入菜单名称" @keyup.enter="getTableData" />
         </el-form-item>
         <el-form-item prop="status" label="状态">
-          <el-input v-model="searchData.status" placeholder="请输入菜单状态" @keyup.enter="getTableData" />
+          <el-select class="min-w-[150px]" v-model="searchData.status" placeholder="请输入菜单状态" clearable>
+            <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="getTableData">
@@ -236,11 +271,11 @@ onMounted(() => {
       v-model:loading="loading"
       v-model:table-data="tableData"
       @open-add-dialog="openAddDialog"
+      @open-cascade-delete-dialog="openCascadeDeleteDialog"
       @get-table-data="getTableData"
       @get-children-list="getChildrenList"
       @expand-menu-handle="expandMenuHandle"
       @handle-delete="handleDelete"
-      @handle-export="handleExport"
     >
       <template #operation="{ scope }">
         <div style="display: flex; align-items: center; gap: 10px">
@@ -285,6 +320,15 @@ onMounted(() => {
       v-model:data-dialog-visible="dataDialogVisible"
       v-model:is-editable="isDataDialogEditable"
       v-model:form-data="formData"
+      v-model:menu-options="menuOptions"
+      @get-table-data="getTableData"
+    />
+
+    <!-- 数据弹窗 -->
+    <MenuCascadeDeleteDialog
+      v-model:menu-tree-ref="menuTreeRef"
+      v-model:loading="loading"
+      v-model:data-dialog-visible="cascadeDeleteDialogVisible"
       v-model:menu-options="menuOptions"
       @get-table-data="getTableData"
     />

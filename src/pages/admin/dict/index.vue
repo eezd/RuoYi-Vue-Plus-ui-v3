@@ -15,7 +15,7 @@ defineOptions({
   name: "AdminSysDict"
 })
 
-const loading = ref(false)
+const loading = ref(true)
 // 表格数据
 const tableData = ref<DictTypeForm[]>([])
 // 表单数据
@@ -156,8 +156,9 @@ watch(
 )
 // #endregion
 
-onMounted(() => {
-  getTableData()
+onMounted(async () => {
+  await getTableData()
+  loading.value = false
 })
 </script>
 

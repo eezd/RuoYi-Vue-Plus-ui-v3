@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import type { MenuForm, MenuQuery } from "@/common/apis/admin/menu/types"
+import type { MenuTableRow } from "../index.vue"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice"
 import { formatDateTime } from "@@/utils/index"
-import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
+import { CirclePlus, Delete, RefreshRight } from "@element-plus/icons-vue"
 import { useDict } from "@/common/composables/useDict"
 
 const emit = defineEmits<EmitEvents>()
@@ -11,7 +11,7 @@ const emit = defineEmits<EmitEvents>()
  * defineModel
  */
 // #region defineModel
-const tableData = defineModel<MenuForm[]>("tableData", { required: true })
+const tableData = defineModel<MenuTableRow[]>("tableData", { required: true })
 const loading = defineModel<boolean>("loading", { required: true })
 const menuTableRef = defineModel<ElTableInstance | null>("menuTableRef", { required: true })
 // #endregion
@@ -22,13 +22,13 @@ const menuTableRef = defineModel<ElTableInstance | null>("menuTableRef", { requi
 // #region EmitEvents
 export interface EmitEvents {
   openAddDialog: []
-  handleExport: []
-  getTableData: [params?: MenuQuery]
-  getChildrenList: [row: any, treeNode: unknown, resolve: (data: any[]) => void]
-  expandMenuHandle: [row: any, expanded: boolean]
+  openCascadeDeleteDialog: []
+  getTableData: []
+  getChildrenList: [row: MenuTableRow, treeNode: unknown, resolve: (data: MenuTableRow[]) => void]
+  expandMenuHandle: [row: MenuTableRow, expanded: boolean]
 }
 const openAddDialog = () => emit("openAddDialog")
-const handleExport = () => emit("handleExport")
+const openCascadeDeleteDialog = () => emit("openCascadeDeleteDialog")
 const getTableData = () => emit("getTableData")
 // #endregion
 
@@ -49,10 +49,11 @@ const { sys_normal_disable } = toRefs<any>(useDict("sys_show_hide", "sys_normal_
           新增菜单
         </el-button>
         <el-button
-          type="warning" plain icon="Download"
-          @click="handleExport()"
+          type="danger"
+          :icon="Delete"
+          @click="openCascadeDeleteDialog()"
         >
-          导出
+          级联删除
         </el-button>
       </div>
       <div>
@@ -64,7 +65,6 @@ const { sys_normal_disable } = toRefs<any>(useDict("sys_show_hide", "sys_normal_
     <div class="table-wrapper">
       <el-table
         ref="menuTableRef"
-        v-loading="loading"
         :data="tableData"
         row-key="menuId"
         border
@@ -74,15 +74,15 @@ const { sys_normal_disable } = toRefs<any>(useDict("sys_show_hide", "sys_normal_
         :load="(row, treeNode, resolve) => emit('getChildrenList', row, treeNode, resolve)"
         :expand-change="(row: any, expanded: boolean) => emit('expandMenuHandle', row, expanded)"
       >
-        <el-table-column prop="menuName" label="菜单名称" />
-        <el-table-column prop="orderNum" label="排序" align="center" />
-        <el-table-column prop="perms" label="权限标识" align="center" />
-        <el-table-column prop="status" label="状态" width="80">
+        <el-table-column prop="menuName" label="菜单名称" min-width="200" />
+        <el-table-column prop="orderNum" label="排序" align="center" min-width="80" />
+        <el-table-column prop="perms" label="权限标识" align="center" min-width="200" :show-overflow-tooltip="true" />
+        <el-table-column prop="status" label="状态" min-width="80" align="center">
           <template #default="scope">
             <DictTag :options="sys_normal_disable" :value="scope.row.status" />
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+        <el-table-column label="创建时间" align="center" prop="createTime" min-width="180">
           <template #default="scope">
             <span>{{ formatDateTime(scope.row.createTime) }}</span>
           </template>

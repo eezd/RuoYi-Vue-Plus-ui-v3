@@ -6,7 +6,7 @@ import { useDevice } from "@@/composables/useDevice"
 import { ElMessage } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { computed, ref } from "vue"
-import { addSysDictTypeApi, updateSysDictTypeApi } from "@/common/apis/admin/dict/type"
+import { addSysMenuApi, updateSysMenuApi } from "@/common/apis/admin/menu"
 import { useDict } from "@/common/composables/useDict"
 
 const emit = defineEmits<EmitEvents>()
@@ -81,12 +81,11 @@ function handleCreateOrUpdate() {
         loading.value = true
         const isCreating = formData.value.menuId === undefined
         if (isCreating) {
-          const res = await addSysDictTypeApi(formData.value as any)
+          const res = await addSysMenuApi(formData.value as any)
           ElMessage.success(res.msg)
         } else {
-          const res = await updateSysDictTypeApi(formData.value as any)
+          const res = await updateSysMenuApi(formData.value as any)
           ElMessage.success(res.msg)
-          ElMessage.success("操作成功")
         }
       } finally {
         // 新增/修改操作后刷新表格
@@ -109,7 +108,7 @@ function resetForm() {
 </script>
 
 <template>
-  <el-dialog v-model="dialogVisible" :title="title" @closed="resetForm" :width="isMobile ? '80%' : '50%'">
+  <el-dialog v-model="dialogVisible" :title="title" @closed="resetForm" :width="isMobile ? '90%' : '50%'">
     <el-form ref="formRef" label-width="100px" :model="formData" :rules="formRules" label-position="left">
       <el-row>
         <el-col :span="24">
@@ -139,17 +138,17 @@ function resetForm() {
             </el-radio-group>
           </el-form-item>
         </el-col>
-        <el-col :span="12">
+        <el-col :span="isMobile ? 24 : 12">
           <el-form-item label="菜单名称" prop="menuName">
             <el-input v-model="formData.menuName" placeholder="请输入菜单名称" />
           </el-form-item>
         </el-col>
-        <el-col :span="12">
+        <el-col :span="isMobile ? 24 : 12">
           <el-form-item label="显示排序" prop="orderNum">
             <el-input-number v-model="formData.orderNum" controls-position="right" :min="0" />
           </el-form-item>
         </el-col>
-        <el-col v-if="formData.menuType !== 'M'" :span="12">
+        <el-col v-if="formData.menuType !== 'M'" :span="isMobile ? 24 : 12">
           <el-form-item>
             <el-input v-model="formData.perms" placeholder="请输入权限标识" maxlength="100" />
             <template #label>
@@ -164,7 +163,7 @@ function resetForm() {
             </template>
           </el-form-item>
         </el-col>
-        <el-col v-if="formData.menuType !== 'F'" :span="12">
+        <el-col v-if="formData.menuType !== 'F'" :span="isMobile ? 24 : 12">
           <el-form-item>
             <template #label>
               <span>
