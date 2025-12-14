@@ -83,7 +83,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           svgIcon: "system"
         },
         children: [
-
+          {
+            path: "role",
+            component: () => import("@/pages/admin/role/index.vue"),
+            name: "AdminSysRole",
+            meta: {
+              title: "角色管理",
+              svgIcon: "peoples"
+            }
+          },
           {
             path: "dict",
             component: () => import("@/pages/admin/dict/index.vue"),

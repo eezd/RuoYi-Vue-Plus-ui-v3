@@ -19,7 +19,7 @@ export function getSysMenuApi(menuId: string | number) {
 
 // 查询菜单下拉树结构
 export function treeselectApi() {
-  return request<ApiResponseData<MenuTreeOption>>({
+  return request<ApiResponseData<MenuTreeOption[]>>({
     url: "/system/menu/treeselect",
     method: "get"
   })

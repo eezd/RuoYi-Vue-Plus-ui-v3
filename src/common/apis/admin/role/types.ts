@@ -6,9 +6,9 @@ export interface RoleVO extends BaseEntity {
   menuCheckStrictly: boolean
   status: string
   delFlag: string
-  remark?: any
+  remark: any
   flag: boolean
-  menuIds?: Array<string | number>
+  menuIds: Array<string | number>
   admin: boolean
 }
 
@@ -16,10 +16,14 @@ export interface RoleQuery extends PageQuery {
   roleName: string
   roleKey: string
   status: string
+  params?: {
+    beginTime?: string
+    endTime?: string
+  }
 }
 
 export interface RoleForm {
-  roleId: string | undefined
+  roleId: string | number
   roleName: string
   roleKey: string
   roleSort: number
