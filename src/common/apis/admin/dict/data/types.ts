@@ -1,27 +1,81 @@
 export interface DictDataQuery extends PageQuery {
+  /**
+   * 字典名称
+   */
   dictName: string
+  /**
+   * 字典类型
+   */
   dictType: string
+  /**
+   * 字典标签
+   */
   dictLabel: string
-
 }
 
 export interface DictDataVO extends BaseEntity {
-  dictCode: string
-  dictLabel: string
-  dictValue: string
+  /**
+   * 样式属性（其他样式扩展）
+   */
   cssClass: string
-  listClass: ElTagType
+  /**
+   * 字典编码
+   */
+  dictCode: number
+  /**
+   * 字典标签
+   */
+  dictLabel: string
+  /**
+   * 字典排序
+   */
   dictSort: number
+  /**
+   * 字典类型
+   */
+  dictType: string
+  /**
+   * 字典键值
+   */
+  dictValue: string
+  /**
+   * 表格回显样式
+   */
+  listClass: ElTagType
+  /**
+   * 备注
+   */
   remark: string
 }
 
 export interface DictDataForm {
-  dictType?: string
+  /**
+   * 字典编码
+   */
   dictCode: number | string
+  /**
+   * 字典标签
+   */
   dictLabel: string
-  dictValue: string
-  cssClass: string
-  listClass: ElTagType
+  /**
+   * 字典排序
+   */
   dictSort: number
+  /**
+   * 字典类型
+   */
+  dictType: string
+  /**
+   * 字典键值
+   */
+  dictValue: string
+  /**
+   * 样式属性（其他样式扩展）
+   */
+  cssClass: string
+  /**
+   * 表格回显样式
+   */
+  listClass: ElTagType
   remark: string
 }

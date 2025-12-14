@@ -1,4 +1,3 @@
-import type { PostVO } from "../post/types"
 import type { RoleVO } from "../role/types"
 
 /**
@@ -26,23 +25,70 @@ export interface UserQuery extends PageQuery {
  * 用户返回对象
  */
 export interface UserVO extends BaseEntity {
+  /**
+   * 用户ID
+   */
   userId: string | number
+  /**
+   * 用户账号
+   */
   userName: string
+  /**
+   * 用户昵称
+   */
   nickName: string
+  /**
+   * 用户类型（sys_user系统用户）
+   */
   userType: string
+  /**
+   * 用户邮箱
+   */
   email: string
+  /**
+   * 手机号码
+   */
   phonenumber: string
+  /**
+   * 用户性别（0男 1女 2未知）
+   */
   sex: string
+  /**
+   * 头像地址
+   */
   avatar: string
+  /**
+   * 帐号状态（0正常 1停用）
+   */
   status: string
   delFlag: string
+  /**
+   * 最后登录IP
+   */
   loginIp: string
+  /**
+   * 最后登录时间
+   */
   loginDate: string
+  /**
+   * 备注
+   */
   remark: string
-  deptName: string
+  /**
+   * 角色对象
+   */
   roles: RoleVO[]
+  /**
+   * 角色组
+   */
   roleIds: any
+  /**
+   * 岗位组
+   */
   postIds: any
+  /**
+   * 数据权限 当前角色ID
+   */
   roleId: any
   admin: boolean
 }
@@ -68,11 +114,7 @@ export interface UserForm {
 export interface UserInfoVO {
   user: UserVO
   roles: RoleVO[]
-  roleIds: string[]
-  posts: PostVO[]
-  postIds: string[]
-  roleGroup: string
-  postGroup: string
+  permissions: string[]
 }
 
 export interface ResetPwdForm {

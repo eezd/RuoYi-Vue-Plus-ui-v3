@@ -8,7 +8,7 @@ export interface MenuTreeOption {
   label: string
   parentId: string | number
   weight: number
-  children?: MenuTreeOption[]
+  children: MenuTreeOption[]
 }
 
 export interface RoleMenuTree {
@@ -20,9 +20,9 @@ export interface RoleMenuTree {
  * 菜单查询参数类型
  */
 export interface MenuQuery {
-  keywords?: string
-  menuName?: string
-  status?: string
+  keywords: string
+  menuName: string
+  status: string
 }
 
 /**
@@ -32,7 +32,7 @@ export interface MenuVO extends BaseEntity {
   /**
    * 子菜单
    */
-  children?: MenuVO[]
+  children: MenuVO[]
   /**
    * 菜单ID
    */
@@ -72,7 +72,7 @@ export interface MenuVO extends BaseEntity {
 }
 
 export interface MenuForm {
-  // children?: MenuForm[] | undefined
+  // children: MenuForm[] | undefined
 
   /**
    * 创建者
@@ -85,7 +85,7 @@ export interface MenuForm {
   /**
    * 菜单ID
    */
-  menuId?: number | string
+  menuId: number | string
   /**
    * 菜单名称
    */
@@ -101,29 +101,29 @@ export interface MenuForm {
   /**
    * 父菜单ID
    */
-  parentId?: number
+  parentId: number
   /**
    * 权限标识
    */
-  perms?: string
+  perms: string
   /**
    * 备注
    */
-  remark?: string
+  remark: string
   /**
    * 菜单状态（0正常 1停用）
    */
-  status?: string
+  status: string
   /**
    * 更新者
    */
-  updateBy?: number
+  updateBy: number
   /**
    * 更新时间
    */
-  updateTime?: Date
+  updateTime: Date
   /**
    * 显示状态（0显示 1隐藏）
    */
-  visible?: string
+  visible: string
 }
