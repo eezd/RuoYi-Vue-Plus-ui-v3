@@ -46,7 +46,7 @@ const title = computed(() => {
 
 const { isMobile } = useDevice()
 
-const { sys_normal_disable } = toRefs<any>(useDict("sys_show_hide", "sys_normal_disable"))
+const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 
 const menuExpand = ref(false)
 const menuNodeAll = ref(false)

@@ -19,6 +19,10 @@ export interface UserQuery extends PageQuery {
   status?: string
   roleId?: string | number
   userIds?: string | number | (string | number)[] | undefined
+  params?: {
+    beginTime?: string
+    endTime?: string
+  }
 }
 
 /**
@@ -97,16 +101,16 @@ export interface UserVO extends BaseEntity {
  * 用户表单类型
  */
 export interface UserForm {
-  id?: string
-  userId?: string
+  id: string
+  userId: string
   userName: string
-  nickName?: string
+  nickName: string
   password: string
-  phonenumber?: string
-  email?: string
-  sex?: string
+  phonenumber: string
+  email: string
+  sex: string
   status: string
-  remark?: string
+  remark: string
   postIds: string[]
   roleIds: string[]
 }
@@ -115,6 +119,8 @@ export interface UserInfoVO {
   user: UserVO
   roles: RoleVO[]
   permissions: string[]
+  roleIds: string[]
+  roleGroup: string
 }
 
 export interface ResetPwdForm {

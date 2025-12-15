@@ -1,4 +1,5 @@
-import type { CaptchaInfo, LoginInfo, LoginRequestData } from "./type"
+import type { AxiosPromise } from "axios"
+import type { CaptchaInfo, LoginData, LoginInfo, LoginRequestData } from "./type"
 import { request } from "@/http/axios"
 
 const clientId = import.meta.env.VITE_APP_CLIENT_ID
@@ -31,5 +32,56 @@ export function loginApi(data: LoginRequestData) {
     },
     method: "post",
     data: params
+  })
+}
+
+/**
+ * 第三方登录
+ */
+export function callback(data: LoginData): AxiosPromise<any> {
+  const LoginData = {
+    ...data,
+    clientId,
+    grantType: "social"
+  }
+  return request({
+    url: "/auth/social/callback",
+    method: "post",
+    data: LoginData
+  })
+}
+
+// 注册方法
+export function register(data: any) {
+  const params = {
+    ...data,
+    clientId,
+    grantType: "password"
+  }
+  return request({
+    url: "/auth/register",
+    headers: {
+      isToken: false,
+      isEncrypt: true,
+      repeatSubmit: false
+    },
+    method: "post",
+    data: params
+  })
+}
+
+/**
+ * 注销
+ */
+export function logout() {
+  if (import.meta.env.VITE_APP_SSE === "true") {
+    request({
+      url: "/resource/sse/close",
+      method: "get"
+    })
+  }
+  return request({
+    url: "/auth/logout",
+    method: "post"
   })
 }

@@ -1,21 +1,21 @@
 <script lang="ts" setup>
 import type { FormInstance } from "element-plus"
-import type { MenuTreeOption } from "@/common/apis/admin/menu/types"
-import type { RoleForm, RoleQuery } from "@/common/apis/admin/role/types"
+import type { RoleVO } from "@/common/apis/admin/role/types"
+import type { UserForm, UserQuery, UserVO } from "@/common/apis/admin/user/types"
 import { usePagination } from "@@/composables/usePagination"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref, watch } from "vue"
-import { treeselectApi } from "@/common/apis/admin/menu"
-import { delSysRoleApi, getSysRoleApi, getSysRolelistApi } from "@/common/apis/admin/role"
+import { getSysConfigKeyApi } from "@/common/apis/admin/config"
+import { delSysUserApi, getSysUserApi, getSysUserListApi } from "@/common/apis/admin/user"
 import { useDict } from "@/common/composables/useDict"
 import { download } from "@/common/utils/test"
-import RoleDialog from "./components/RoleDialog.vue"
-import RoleTable from "./components/RoleTable.vue"
+import UserDialog from "./components/UserDialog.vue"
+import UserTable from "./components/UserTable.vue"
 
 defineOptions({
-  name: "AdminSysRole"
+  name: "AdminSysUser"
 })
 
 const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
@@ -23,31 +23,33 @@ const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 const loading = ref(true)
 
 // 表格数据
-const tableData = ref<RoleForm[]>([])
-const DEFAULT_FORM_DATA = { status: "0", menuCheckStrictly: true }
+const tableData = ref<UserVO[]>([])
+
+const DEFAULT_FORM_DATA = { status: "0" }
 // 表单数据
-const formData = ref<Partial<RoleForm>>(cloneDeep(DEFAULT_FORM_DATA))
+const formData = ref<Partial<UserForm>>(cloneDeep(DEFAULT_FORM_DATA))
 // 数据弹窗
 const dataDialogVisible = ref<boolean>(false)
 // 数据弹窗的数据是否可编辑
 const isDataDialogEditable = ref<boolean>(true)
 
-const menuRef = ref<ElTreeInstance | null>(null)
-const menuOptions = ref<MenuTreeOption[]>([])
+const roleOptions = ref<RoleVO[]>([])
+const initPassword = ref<string>("")
 
 // 分页
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
 // #region 搜索栏
 const searchData = reactive({
-  roleName: "",
-  roleKey: "",
+  userName: "",
+  phonenumber: "",
   status: "",
+  roleId: "",
   params: {
     beginTime: "",
     endTime: ""
   }
-} as RoleQuery)
+} as UserQuery)
 const searchFormRef = ref<FormInstance | null>(null)
 
 const dateRange = ref<[DateModelType, DateModelType]>(["", ""])
@@ -71,7 +73,7 @@ function resetSearch() {
 async function getTableData(): Promise<void> {
   try {
     loading.value = true
-    const { rows, total } = await getSysRolelistApi({
+    const { rows, total } = await getSysUserListApi({
       ...searchData,
       pageNum: paginationData.currentPage,
       pageSize: paginationData.pageSize
@@ -88,12 +90,12 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: RoleForm | RoleForm[]) {
+async function handleDelete(row: UserForm | UserForm[]) {
   const items = Array.isArray(row) ? row : [row]
-  const deleteIds = items.map(item => item.roleId)
+  const deleteIds = items.map(item => item.userId)
   const message = Array.isArray(row)
     ? `正在删除 ${row.length} 条数据，确认删除？`
-    : `正在删除：${row.roleName}，确认删除？`
+    : `正在删除：${row.userName}，确认删除？`
 
   try {
     await ElMessageBox.confirm(message, "提示", {
@@ -102,7 +104,7 @@ async function handleDelete(row: RoleForm | RoleForm[]) {
       type: "warning"
     })
     loading.value = true
-    const res = await delSysRoleApi(deleteIds)
+    const res = await delSysUserApi(deleteIds)
     ElMessage.success(res.msg)
     await getTableData()
   } catch {
@@ -117,43 +119,63 @@ async function handleDelete(row: RoleForm | RoleForm[]) {
 function handleExport() {
   const timestamp = new Date().getTime()
   download(
-    "/system/Role/type/export",
+    "/system/User/type/export",
     { ...searchData },
-    `Role_${timestamp}.xlsx`
+    `User_${timestamp}.xlsx`
   )
 }
 
 /**
  * 打开添加弹窗
  */
-function openAddDialog() {
-  formData.value = cloneDeep(DEFAULT_FORM_DATA)
+async function openAddDialog() {
+  formData.value = cloneDeep({})
+
+  const { data } = await getSysUserApi()
+  roleOptions.value = data.roles
+  formData.value.password = initPassword.value.toString()
+
   isDataDialogEditable.value = true
   dataDialogVisible.value = true
+  loading.value = false
 }
 
 /**
  * 打开修改弹窗
  */
-async function openUpdateDialog(row: RoleForm) {
+async function openUpdateDialog(row: UserForm) {
   loading.value = true
-  formData.value = cloneDeep({})
-  const roleId = row?.roleId
-  const { data } = await getSysRoleApi(roleId)
-  Object.assign(formData.value, data)
-  formData.value.roleSort = Number(formData.value.roleSort)
   isDataDialogEditable.value = true
   dataDialogVisible.value = true
+  formData.value = cloneDeep({})
+  const userId = row?.userId
+  const { data } = await getSysUserApi(userId)
+  Object.assign(formData.value, data.user)
+  roleOptions.value = Array.from(
+    new Map([...data.roles, ...data.user.roles].map(role => [role.roleId, role])).values()
+  )
+  formData.value.roleIds = data.roleIds
+  formData.value.password = ""
+  loading.value = false
 }
 
 /**
  * 打开查看弹窗
  */
-async function openShowDialog(row: RoleForm) {
+async function openShowDialog(row: UserForm) {
   loading.value = true
-  formData.value = cloneDeep(row)
   isDataDialogEditable.value = false
   dataDialogVisible.value = true
+  formData.value = cloneDeep({})
+  const userId = row?.userId
+  const { data } = await getSysUserApi(userId)
+  Object.assign(formData.value, data.user)
+  roleOptions.value = Array.from(
+    new Map([...data.roles, ...data.user.roles].map(role => [role.roleId, role])).values()
+  )
+  formData.value.roleIds = data.roleIds
+  formData.value.password = ""
+  loading.value = false
 }
 // #endregion
 
@@ -169,14 +191,11 @@ watch(
 )
 // #endregion
 
-async function getMenuTreeselect() {
-  const res = await treeselectApi()
-  menuOptions.value = res.data
-}
-
 onMounted(async () => {
   await getTableData()
-  await getMenuTreeselect()
+  await getSysConfigKeyApi("sys.user.initPassword").then((response) => {
+    initPassword.value = response.data
+  })
   loading.value = false
 })
 </script>
@@ -186,11 +205,14 @@ onMounted(async () => {
     <!-- 查询表单 -->
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
       <el-form ref="searchFormRef" :inline="true" :model="searchData">
-        <el-form-item prop="roleName" label="角色名称">
-          <el-input v-model="searchData.roleName" placeholder="请输入角色名称" @keyup.enter="getTableData" />
+        <el-form-item prop="userName" label="用户名称">
+          <el-input v-model="searchData.userName" placeholder="请输入用户名称" @keyup.enter="getTableData" />
         </el-form-item>
-        <el-form-item prop="roleKey" label="权限字符">
-          <el-input v-model="searchData.roleKey" placeholder="请输入权限字符" @keyup.enter="getTableData" />
+        <el-form-item prop="nickName" label="用户昵称">
+          <el-input v-model="searchData.nickName" placeholder="请输入用户昵称" @keyup.enter="getTableData" />
+        </el-form-item>
+        <el-form-item prop="phonenumber" label="手机号码">
+          <el-input v-model="searchData.phonenumber" placeholder="请输入手机号码" @keyup.enter="getTableData" />
         </el-form-item>
         <el-form-item prop="status" label="状态">
           <el-select class="min-w-[100px]" v-model="searchData.status" placeholder="角色状态" clearable>
@@ -220,7 +242,7 @@ onMounted(async () => {
     </el-card>
 
     <!-- 表格 -->
-    <RoleTable
+    <UserTable
       v-model:loading="loading"
       v-model:table-data="tableData"
       v-model:pagination-data="paginationData"
@@ -266,16 +288,15 @@ onMounted(async () => {
           </el-dropdown>
         </div>
       </template>
-    </RoleTable>
+    </UserTable>
 
     <!-- 数据弹窗 -->
-    <RoleDialog
-      v-model:menu-ref="menuRef"
+    <UserDialog
       v-model:loading="loading"
       v-model:data-dialog-visible="dataDialogVisible"
       v-model:is-editable="isDataDialogEditable"
       v-model:form-data="formData"
-      v-model:menu-options="menuOptions"
+      v-model:role-options="roleOptions"
       @get-table-data="getTableData"
     />
   </div>

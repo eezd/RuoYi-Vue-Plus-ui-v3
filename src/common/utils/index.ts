@@ -216,3 +216,11 @@ export function handleTree<T>(data: any[], id?: string, parentId?: string, child
 
   return sortTree(tree)
 }
+
+// 转换字符串，undefined,null等转化为""
+export function parseStrEmpty(str: any) {
+  if (!str || str === "undefined" || str === "null") {
+    return ""
+  }
+  return str
+}
