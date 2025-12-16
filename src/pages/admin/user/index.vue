@@ -8,7 +8,7 @@ import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref, watch } from "vue"
 import { getSysConfigKeyApi } from "@/common/apis/admin/config"
-import { delSysUserApi, getSysUserApi, getSysUserListApi } from "@/common/apis/admin/user"
+import { delSysUserApi, getSysUserApi, getSysUserListApi, resetSysUserPwdApi } from "@/common/apis/admin/user"
 import { useDict } from "@/common/composables/useDict"
 import { download } from "@/common/utils/test"
 import UserDialog from "./components/UserDialog.vue"
@@ -17,6 +17,8 @@ import UserTable from "./components/UserTable.vue"
 defineOptions({
   name: "AdminSysUser"
 })
+
+const router = useRouter()
 
 const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 
@@ -177,6 +179,36 @@ async function openShowDialog(row: UserForm) {
   formData.value.password = ""
   loading.value = false
 }
+
+/** 重置密码按钮操作 */
+async function handleResetPwd(row: UserVO) {
+  try {
+    const { value } = await ElMessageBox.prompt(`请输入"${row.userName}"的新密码`, "提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      closeOnClickModal: false,
+      inputPattern: /^.{5,20}$/,
+      inputErrorMessage: "用户密码长度必须介于 5 和 20 之间",
+      inputValidator: (value) => {
+        if (/[<>"'|\\]/.test(value)) {
+          return "不能包含非法字符：< > \" ' \\ |"
+        }
+        return true // 需要返回一个布尔值或者字符串
+      }
+    })
+    await resetSysUserPwdApi(row.userId, value)
+    ElMessage.success(`修改成功，新密码是：${value}`)
+  } catch (err) {
+    // 如果用户取消了输入，err 会是一个取消标识
+    console.log("密码重置操作被取消或发生错误:", err)
+  }
+}
+/** 跳转角色分配 */
+function handleAuthRole(row: UserVO) {
+  const userId = row.userId
+  router.push(`/admin/system/user-auth-role/${userId}`)
+}
+
 // #endregion
 
 // #region 监听
@@ -276,6 +308,18 @@ onMounted(async () => {
                     <edit />
                   </el-icon>
                   修改
+                </el-dropdown-item>
+                <el-dropdown-item @click="handleResetPwd(scope.row)">
+                  <el-icon color="#409EFF">
+                    <Key />
+                  </el-icon>
+                  重置密码
+                </el-dropdown-item>
+                <el-dropdown-item @click="handleAuthRole(scope.row)">
+                  <el-icon color="#409EFF">
+                    <CircleCheck />
+                  </el-icon>
+                  分配角色
                 </el-dropdown-item>
                 <el-dropdown-item @click="handleDelete(scope.row)">
                   <el-icon color="#F56C6C">

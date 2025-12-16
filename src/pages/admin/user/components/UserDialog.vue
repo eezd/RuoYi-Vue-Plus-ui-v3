@@ -6,6 +6,7 @@ import { useDevice } from "@@/composables/useDevice"
 import { ElInput } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { computed, ref } from "vue"
+import { addSysUserApi, updateSysUserApi } from "@/common/apis/admin/user"
 import { useDict } from "@/common/composables/useDict"
 
 const emit = defineEmits<EmitEvents>()
@@ -37,8 +38,8 @@ const getTableData = () => emit("getTableData")
 // #endregion
 
 const title = computed(() => {
-  if (!isEditable.value) return "查看角色"
-  return formData.value.userId === undefined ? "新增角色" : "编辑角色"
+  if (!isEditable.value) return "查看用户"
+  return formData.value.userId === undefined ? "新增用户" : "编辑用户"
 })
 
 const { isMobile } = useDevice()
@@ -52,7 +53,7 @@ const formRules: FormRules<UserForm> = {
     {
       required: true,
       trigger: "blur",
-      message: "角色名称必填"
+      message: "用户名称必填"
     }
   ]
 }
@@ -68,11 +69,11 @@ function handleCreateOrUpdate() {
         loading.value = true
         const isCreating = formData.value.userId === undefined
         if (isCreating) {
-          // const res = await addSysUserApi(formData.value as UserForm)
-          // ElMessage.success(res.msg)
+          const res = await addSysUserApi(formData.value as UserForm)
+          ElMessage.success(res.msg)
         } else {
-          // const res = await updateSysUserApi(formData.value as UserForm)
-          // ElMessage.success(res.msg)
+          const res = await updateSysUserApi(formData.value as UserForm)
+          ElMessage.success(res.msg)
         }
       } finally {
         // 新增/修改操作后刷新表格
@@ -97,6 +98,9 @@ function resetForm() {
 <template>
   <el-dialog v-model="dialogVisible" :title="title" @closed="resetForm" :width="isMobile ? '90%' : '500px'">
     <el-form ref="formRef" v-loading="loading" label-width="80px" :model="formData" :rules="formRules" label-position="left">
+      <el-form-item prop="userName" label="用户名称">
+        <ElInput v-model="formData.userName" placeholder="请输入用户名称" :disabled="!isEditable" />
+      </el-form-item>
       <el-form-item prop="nickName" label="用户昵称">
         <ElInput v-model="formData.nickName" placeholder="请输入用户昵称" :disabled="!isEditable" />
       </el-form-item>
@@ -107,10 +111,14 @@ function resetForm() {
         <ElInput v-model="formData.email" placeholder="请输入邮箱" :disabled="!isEditable" />
       </el-form-item>
 
-      <el-form-item prop="sex" label="权限字符">
-        <el-select v-model="formData.sex" placeholder="请选择">
+      <el-form-item prop="sex" label="性别">
+        <el-select v-model="formData.sex" placeholder="请选择" :disabled="!isEditable">
           <el-option v-for="dict in sys_user_sex" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
+      </el-form-item>
+
+      <el-form-item prop="password" label="用户密码" v-if="formData.userId === undefined">
+        <ElInput v-model="formData.password" placeholder="请输入用户密码" type="password" maxlength="40" show-password :disabled="!isEditable" />
       </el-form-item>
 
       <el-form-item prop="status" label="状态">
@@ -121,8 +129,8 @@ function resetForm() {
         </el-radio-group>
       </el-form-item>
 
-      <el-form-item prop="roleIds" label="角色">
-        <el-select v-model="formData.roleIds" filterable multiple placeholder="请选择角色" :disabled="!isEditable">
+      <el-form-item prop="roleIds" label="用户">
+        <el-select v-model="formData.roleIds" filterable multiple placeholder="请选择用户" :disabled="!isEditable">
           <el-option
             v-for="item in roleOptions"
             :key="item.roleId"

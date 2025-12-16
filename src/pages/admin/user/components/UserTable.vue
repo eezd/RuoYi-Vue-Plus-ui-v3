@@ -4,7 +4,9 @@ import type { UserForm, UserVO } from "@/common/apis/admin/user/types"
 import { useDevice } from "@@/composables/useDevice"
 import { formatDateTime } from "@@/utils/index"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
+import { ElMessage } from "element-plus"
 import { ref } from "vue"
+import { changeSysUserStatusApi } from "@/common/apis/admin/user"
 
 const emit = defineEmits<EmitEvents>()
 /**
@@ -50,8 +52,8 @@ async function handleStatusChange(row: UserForm) {
       cancelButtonText: "取消",
       type: "warning"
     })
-    // await changeSysUserStatusApi(row.userId, row.status)
-    // ElMessage.success(`${text}成功`)
+    await changeSysUserStatusApi(row.userId, row.status)
+    ElMessage.success(`${text}成功`)
   } catch {
     row.status = row.status === "0" ? "1" : "0"
   }
