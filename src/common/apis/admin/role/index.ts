@@ -94,7 +94,7 @@ export function delSysRoleApi(roleId: Array<string | number> | string | number) 
  * 查询角色已授权用户列表
  */
 export function allocatedSysUserListApi(query: UserQuery) {
-  return request<ApiResponseData<UserVO[]>>({
+  return request<ApiResponsePageData<UserVO[]>>({
     url: "/system/role/authUser/allocatedList",
     method: "get",
     params: query
@@ -105,7 +105,7 @@ export function allocatedSysUserListApi(query: UserQuery) {
  * 查询角色未授权用户列表
  */
 export function unallocatedSysUserListApi(query: UserQuery) {
-  return request<ApiResponseData<UserVO[]>>({
+  return request<ApiResponsePageData<UserVO[]>>({
     url: "/system/role/authUser/unallocatedList",
     method: "get",
     params: query

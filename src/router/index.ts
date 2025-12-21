@@ -108,12 +108,26 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           },
           {
             path: "role",
-            component: () => import("@/pages/admin/role/index.vue"),
-            name: "AdminSysRole",
-            meta: {
-              title: "角色管理",
-              svgIcon: "peoples"
-            }
+            children: [
+              {
+                path: "",
+                component: () => import("@/pages/admin/role/index.vue"),
+                name: "AdminSysRole",
+                meta: {
+                  title: "角色管理",
+                  svgIcon: "peoples"
+                }
+              },
+              {
+                path: "auth-user/:roleId",
+                component: () => import("@/pages/admin/role/auth-user/index.vue"),
+                name: "AdminSysRoleAuthUser",
+                meta: {
+                  title: "分配用户",
+                  hidden: true
+                }
+              }
+            ]
           },
           {
             path: "dict",

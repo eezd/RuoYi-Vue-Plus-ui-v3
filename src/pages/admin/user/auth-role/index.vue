@@ -172,7 +172,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-2">
+  <div class="app-container">
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
       <el-form :inline="true" :model="formData">
         <el-form-item label="用户昵称">

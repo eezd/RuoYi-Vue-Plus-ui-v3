@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { FormInstance } from "element-plus"
 import type { MenuTreeOption } from "@/common/apis/admin/menu/types"
-import type { RoleForm, RoleQuery } from "@/common/apis/admin/role/types"
+import type { RoleForm, RoleQuery, RoleVO } from "@/common/apis/admin/role/types"
 import { usePagination } from "@@/composables/usePagination"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
@@ -18,6 +18,7 @@ defineOptions({
   name: "AdminSysRole"
 })
 
+const router = useRouter()
 const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 
 const loading = ref(true)
@@ -109,6 +110,11 @@ async function handleDelete(row: RoleForm | RoleForm[]) {
   } finally {
     loading.value = false
   }
+}
+
+/** 分配用户 */
+function handleAuthUser(row: RoleVO) {
+  router.push(`/admin/system/role/auth-user/${row.roleId}`)
 }
 
 /**
@@ -254,6 +260,12 @@ onMounted(async () => {
                     <edit />
                   </el-icon>
                   修改
+                </el-dropdown-item>
+                <el-dropdown-item @click="handleAuthUser(scope.row)">
+                  <el-icon color="#F56C6C">
+                    <User />
+                  </el-icon>
+                  分配用户
                 </el-dropdown-item>
                 <el-dropdown-item @click="handleDelete(scope.row)">
                   <el-icon color="#F56C6C">
