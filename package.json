@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "2.3.1",
+    "@vueup/vue-quill": "1.2.0",
     "@vueuse/core": "14.1.0",
     "axios": "1.10.0",
     "crypto-js": "4.2.0",

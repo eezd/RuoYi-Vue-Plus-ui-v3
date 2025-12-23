@@ -164,6 +164,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
               title: "参数设置",
               svgIcon: "edit"
             }
+          },
+          {
+            path: "notice",
+            component: () => import("@/pages/admin/notice/index.vue"),
+            name: "AdminSysNotice",
+            meta: {
+              title: "通知公告",
+              svgIcon: "message"
+            }
           }
         ]
       }

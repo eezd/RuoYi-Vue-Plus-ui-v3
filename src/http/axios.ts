@@ -19,6 +19,13 @@ function logout() {
   location.reload()
 }
 
+export function globalHeaders() {
+  return {
+    Authorization: `Bearer ${getToken()}`,
+    clientid: import.meta.env.VITE_APP_CLIENT_ID
+  }
+}
+
 /** 检查是否为重复提交 */
 function checkRepeatSubmit(config: AxiosRequestConfig) {
   const requestObj = {
