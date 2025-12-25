@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import type { FormInstance, FormRules } from "element-plus"
-import type { DictDataForm } from "@/common/apis/admin/dict/data/types"
+import type { DictDataForm } from "@/common/apis/admin/system/dict/data/types"
 import { useDevice } from "@@/composables/useDevice"
 import { ElMessage } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { computed, ref } from "vue"
-import { addSysDictDataApi, updateSysDictDataApi } from "@/common/apis/admin/dict/data"
+import { addSysDictDataApi, updateSysDictDataApi } from "@/common/apis/admin/system/dict/data"
 
 const emit = defineEmits<EmitEvents>()
 

@@ -173,6 +173,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
               title: "通知公告",
               svgIcon: "message"
             }
+          },
+          {
+            path: "operlog",
+            component: () => import("@/pages/admin/operlog/index.vue"),
+            name: "AdminSysOperLog",
+            meta: {
+              title: "操作日志",
+              svgIcon: "form"
+            }
           }
         ]
       }

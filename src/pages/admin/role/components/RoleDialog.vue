@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import type { FormInstance, FormRules } from "element-plus"
-import type { MenuTreeOption, RoleMenuTree } from "@/common/apis/admin/menu/types"
-import type { RoleForm } from "@/common/apis/admin/role/types"
+import type { MenuTreeOption, RoleMenuTree } from "@/common/apis/admin/system/menu/types"
+import type { RoleForm } from "@/common/apis/admin/system/role/types"
 import { useDevice } from "@@/composables/useDevice"
 import { ElMessage } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { computed, ref } from "vue"
-import { roleMenuTreeselectApi } from "@/common/apis/admin/menu"
-import { addSysRoleApi, updateSysRoleApi } from "@/common/apis/admin/role"
+import { roleMenuTreeselectApi } from "@/common/apis/admin/system/menu"
+import { addSysRoleApi, updateSysRoleApi } from "@/common/apis/admin/system/role"
 import { useDict } from "@/common/composables/useDict"
 
 const emit = defineEmits<EmitEvents>()

@@ -2,7 +2,7 @@
 import type { MenuOptionsType } from "../index.vue"
 // import { useDevice } from "@@/composables/useDevice"
 import { ElMessage } from "element-plus"
-import { cascadeDelSysMenuApi } from "@/common/apis/admin/menu"
+import { cascadeDelSysMenuApi } from "@/common/apis/admin/system/menu"
 
 const emit = defineEmits<EmitEvents>()
 

@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import type { FormInstance, FormRules } from "element-plus"
-import type { ConfigForm } from "@/common/apis/admin/config/types"
+import type { ConfigForm } from "@/common/apis/admin/system/config/types"
 import { useDevice } from "@@/composables/useDevice"
 import { ElMessage } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { computed, ref } from "vue"
-import { addSysConfigApi, updateSysConfigApi } from "@/common/apis/admin/config"
+import { addSysConfigApi, updateSysConfigApi } from "@/common/apis/admin/system/config"
 import { useDict } from "@/common/composables/useDict"
 
 const emit = defineEmits<EmitEvents>()

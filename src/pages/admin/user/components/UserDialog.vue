@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import type { FormInstance, FormRules } from "element-plus"
-import type { RoleVO } from "@/common/apis/admin/role/types"
-import type { UserForm } from "@/common/apis/admin/user/types"
+import type { RoleVO } from "@/common/apis/admin/system/role/types"
+import type { UserForm } from "@/common/apis/admin/system/user/types"
 import { useDevice } from "@@/composables/useDevice"
 import { ElInput } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { computed, ref } from "vue"
-import { addSysUserApi, updateSysUserApi } from "@/common/apis/admin/user"
+import { addSysUserApi, updateSysUserApi } from "@/common/apis/admin/system/user"
 import { useDict } from "@/common/composables/useDict"
 
 const emit = defineEmits<EmitEvents>()

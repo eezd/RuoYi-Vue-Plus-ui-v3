@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { PaginationData } from "@@/composables/usePagination"
-import type { NoticeForm } from "@/common/apis/admin/notice/types"
+import type { NoticeForm } from "@/common/apis/admin/system/notice/types"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice"
 import { formatDateTime } from "@@/utils/index"

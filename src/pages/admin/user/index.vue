@@ -1,14 +1,14 @@
 <script lang="ts" setup>
 import type { FormInstance } from "element-plus"
-import type { RoleVO } from "@/common/apis/admin/role/types"
-import type { UserForm, UserQuery, UserVO } from "@/common/apis/admin/user/types"
+import type { RoleVO } from "@/common/apis/admin/system/role/types"
+import type { UserForm, UserQuery, UserVO } from "@/common/apis/admin/system/user/types"
 import { usePagination } from "@@/composables/usePagination"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref, watch } from "vue"
-import { getSysConfigKeyApi } from "@/common/apis/admin/config"
-import { delSysUserApi, getSysUserApi, getSysUserListApi, resetSysUserPwdApi } from "@/common/apis/admin/user"
+import { getSysConfigKeyApi } from "@/common/apis/admin/system/config"
+import { delSysUserApi, getSysUserApi, getSysUserListApi, resetSysUserPwdApi } from "@/common/apis/admin/system/user"
 import { useDict } from "@/common/composables/useDict"
 import { download } from "@/common/utils/test"
 import UserDialog from "./components/UserDialog.vue"
@@ -61,10 +61,10 @@ watch(dateRange, ([newBeginTime, newEndTime]) => {
   searchData.params.endTime = newEndTime.toLocaleString()
 })
 
-function resetSearch() {
+async function resetSearch() {
   searchFormRef.value?.resetFields()
   dateRange.value = ["", ""]
-  getTableData()
+  await getTableData()
 }
 // #endregion
 

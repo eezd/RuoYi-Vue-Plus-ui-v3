@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { PaginationData } from "@@/composables/usePagination"
-import type { RoleForm } from "@/common/apis/admin/role/types"
-import type { UserVO } from "@/common/apis/admin/user/types"
+import type { RoleForm } from "@/common/apis/admin/system/role/types"
+import type { UserVO } from "@/common/apis/admin/system/user/types"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice"
 import { formatDateTime } from "@@/utils/index"

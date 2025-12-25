@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import type { FormInstance, FormRules } from "element-plus"
 import type { MenuOptionsType } from "../index.vue"
-import type { MenuForm } from "@/common/apis/admin/menu/types"
+import type { MenuForm } from "@/common/apis/admin/system/menu/types"
 import { useDevice } from "@@/composables/useDevice"
 import { ElMessage } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { computed, ref } from "vue"
-import { addSysMenuApi, updateSysMenuApi } from "@/common/apis/admin/menu"
+import { addSysMenuApi, updateSysMenuApi } from "@/common/apis/admin/system/menu"
 import { useDict } from "@/common/composables/useDict"
 
 const emit = defineEmits<EmitEvents>()

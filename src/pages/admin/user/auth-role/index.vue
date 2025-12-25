@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import type { ElTable } from "element-plus"
-import type { RoleVO } from "@/common/apis/admin/role/types"
-import type { UserForm } from "@/common/apis/admin/user/types"
+import type { RoleVO } from "@/common/apis/admin/system/role/types"
+import type { UserForm } from "@/common/apis/admin/system/user/types"
 import { usePagination } from "@@/composables/usePagination"
 import { formatDateTime } from "@@/utils/index"
 import { ElMessage } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { nextTick, onMounted, ref, watch } from "vue"
-import { getAuthRoleApi, updateAuthRoleApi } from "@/common/apis/admin/user"
+import { getAuthRoleApi, updateAuthRoleApi } from "@/common/apis/admin/system/user"
 import { useTagsViewStore } from "@/pinia/stores/tags-view"
 
 defineOptions({

@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import type { PaginationData } from "@@/composables/usePagination"
-import type { UserForm, UserVO } from "@/common/apis/admin/user/types"
+import type { UserForm, UserVO } from "@/common/apis/admin/system/user/types"
 import { useDevice } from "@@/composables/useDevice"
 import { formatDateTime } from "@@/utils/index"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ElMessage } from "element-plus"
 import { ref } from "vue"
-import { changeSysUserStatusApi } from "@/common/apis/admin/user"
+import { changeSysUserStatusApi } from "@/common/apis/admin/system/user"
 
 const emit = defineEmits<EmitEvents>()
 /**

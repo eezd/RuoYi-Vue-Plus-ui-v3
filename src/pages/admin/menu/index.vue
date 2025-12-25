@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { FormInstance } from "element-plus"
-import type { MenuForm, MenuQuery, MenuVO } from "@/common/apis/admin/menu/types"
+import type { MenuForm, MenuQuery, MenuVO } from "@/common/apis/admin/system/menu/types"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
-import { delSysMenuApi, getSysMenuApi, getSysMenuListApi } from "@/common/apis/admin/menu"
+import { delSysMenuApi, getSysMenuApi, getSysMenuListApi } from "@/common/apis/admin/system/menu"
 import { useDict } from "@/common/composables/useDict"
 import { MenuTypeEnum } from "@/common/enums/MenuTypeEnum"
 import { handleTree } from "@/common/utils"

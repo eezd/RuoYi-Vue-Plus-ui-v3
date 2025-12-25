@@ -1,18 +1,20 @@
 <script lang="ts" setup>
 import type { PaginationData } from "@@/composables/usePagination"
-import type { RoleForm } from "@/common/apis/admin/system/role/types"
+import type { OperLogForm, OperLogVO } from "@/common/apis/admin/monitor/operlog/types"
+import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice"
 import { formatDateTime } from "@@/utils/index"
-import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
+import { RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
-import { changeSysRoleStatusApi } from "@/common/apis/admin/system/role"
+import { cleanSysOperlogApi } from "@/common/apis/admin/monitor/operlog"
+import { useDict } from "@/common/composables/useDict"
 
 const emit = defineEmits<EmitEvents>()
 /**
  * defineModel
  */
 // #region defineModel
-const tableData = defineModel<RoleForm[]>("tableData", { required: true })
+const tableData = defineModel<OperLogVO[]>("tableData", { required: true })
 const paginationData = defineModel<PaginationData>("paginationData", { required: true })
 const loading = defineModel<boolean>("loading", { required: true })
 // #endregion
@@ -22,40 +24,36 @@ const loading = defineModel<boolean>("loading", { required: true })
  */
 // #region EmitEvents
 export interface EmitEvents {
-  openAddDialog: []
-  handleDelete: [rows: RoleForm[]]
+  handleDelete: [rows: OperLogForm[]]
   handleExport: []
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
 }
-const openAddDialog = () => emit("openAddDialog")
-const handleDelete = (rows: RoleForm[]) => emit("handleDelete", rows)
+const handleDelete = (rows: OperLogForm[]) => emit("handleDelete", rows)
 const handleExport = () => emit("handleExport")
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
 const getTableData = () => emit("getTableData")
 // #endregion
 
+const { sys_oper_type, sys_common_status } = toRefs<any>(useDict("sys_oper_type", "sys_common_status"))
+
 const { isMobile } = useDevice()
 
-const selectedRows = ref<RoleForm[]>([])
+const selectedRows = ref<OperLogForm[]>([])
 
-const handleSelectionChange = (val: RoleForm[]) => (selectedRows.value = val)
+const handleSelectionChange = (val: OperLogForm[]) => (selectedRows.value = val)
 
-async function handleStatusChange(row: RoleForm) {
-  const text = row.status === "0" ? "启用" : "停用"
-  try {
-    await ElMessageBox.confirm(`确认要"${text}""${row.roleName}"角色吗?`, "提示", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning"
-    })
-    await changeSysRoleStatusApi(row.roleId, row.status)
-    ElMessage.success(`${text}成功`)
-  } catch {
-    row.status = row.status === "0" ? "1" : "0"
-  }
+async function handleClean() {
+  await ElMessageBox.confirm("是否确认清空所有操作日志数据项", "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning"
+  })
+  await cleanSysOperlogApi()
+  await getTableData()
+  ElMessage.success("删除成功")
 }
 </script>
 
@@ -64,18 +62,17 @@ async function handleStatusChange(row: RoleForm) {
     <div class="toolbar-wrapper">
       <div :style="isMobile ? 'display:flex; gap: 10px; flex-wrap: wrap;' : ''">
         <el-button
-          type="primary"
-          :icon="CirclePlus"
-          @click="openAddDialog()"
-        >
-          新增
-        </el-button>
-        <el-button
           type="danger" plain icon="Delete"
           :disabled="!selectedRows.length"
           @click="handleDelete(selectedRows)"
         >
           批量删除
+        </el-button>
+        <el-button
+          type="danger" plain icon="WarnTriangleFilled"
+          @click="handleClean()"
+        >
+          清空
         </el-button>
         <el-button
           type="warning" plain icon="Download"
@@ -93,17 +90,44 @@ async function handleStatusChange(row: RoleForm) {
     <div class="table-wrapper">
       <el-table :data="tableData" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="50" align="center" />
-        <el-table-column prop="roleName" label="角色名称" align="center" />
-        <el-table-column prop="roleKey" label="权限字符" align="center" />
-        <el-table-column prop="roleSort" label="显示顺序" align="center" />
-        <el-table-column prop="status" label="状态" align="center">
+        <el-table-column prop="operId" label="日志编号" align="center" />
+        <el-table-column prop="title" label="系统模块" align="center" />
+        <el-table-column prop="businessType" label="操作类型" align="center">
           <template #default="scope">
-            <el-switch v-model="scope.row.status" active-value="0" inactive-value="1" @change="handleStatusChange(scope.row)" />
+            <DictTag :options="sys_oper_type" :value="scope.row.businessType" />
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" align="center" prop="createTime" min-width="180">
+        <el-table-column
+          prop="operName"
+          label="操作人员"
+          align="center"
+          width="110"
+          :show-overflow-tooltip="true"
+          sortable="custom"
+          :sort-orders="['descending', 'ascending']"
+        />
+        <el-table-column prop="operIp" label="操作地址" align="center" />
+        <el-table-column prop="status" label="状态" align="center">
           <template #default="scope">
-            <span>{{ formatDateTime(scope.row.createTime) }}</span>
+            <DictTag :options="sys_common_status" :value="scope.row.status" />
+          </template>
+        </el-table-column>
+        <el-table-column label="操作日期" align="center" prop="operTime" width="180">
+          <template #default="scope">
+            <span>{{ formatDateTime(scope.row.operTime) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="costTime"
+          label="消耗时间"
+          align="center"
+          width="110"
+          :show-overflow-tooltip="true"
+          sortable="custom"
+          :sort-orders="['descending', 'ascending']"
+        >
+          <template #default="scope">
+            <span>{{ scope.row.costTime }}毫秒</span>
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作" :width="isMobile ? 100 : 130" align="center">

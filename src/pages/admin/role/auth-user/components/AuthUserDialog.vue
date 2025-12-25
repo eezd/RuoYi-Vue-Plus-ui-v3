@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import type { FormInstance } from "element-plus"
-import type { UserQuery, UserVO } from "@/common/apis/admin/user/types"
+import type { UserQuery, UserVO } from "@/common/apis/admin/system/user/types"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice"
 import { formatDateTime } from "@@/utils/index"
 import { Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage } from "element-plus"
 import { ref } from "vue"
-import { authSysUserSelectAll, unallocatedSysUserListApi } from "@/common/apis/admin/role"
+import { authSysUserSelectAll, unallocatedSysUserListApi } from "@/common/apis/admin/system/role"
 import { useDict } from "@/common/composables/useDict"
 import { usePagination } from "@/common/composables/usePagination"
 

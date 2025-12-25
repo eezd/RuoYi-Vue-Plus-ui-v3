@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { PaginationData } from "@@/composables/usePagination"
-import type { DictDataForm } from "@/common/apis/admin/dict/data/types"
+import type { DictDataForm } from "@/common/apis/admin/system/dict/data/types"
 import { useDevice } from "@@/composables/useDevice"
 import { formatDateTime } from "@@/utils/index"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"

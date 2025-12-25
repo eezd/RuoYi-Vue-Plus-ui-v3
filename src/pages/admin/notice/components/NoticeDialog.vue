@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import type { FormInstance, FormRules } from "element-plus"
-import type { NoticeForm } from "@/common/apis/admin/notice/types"
+import type { NoticeForm } from "@/common/apis/admin/system/notice/types"
 import Editor from "@@/components/Editor/index.vue"
 import { useDevice } from "@@/composables/useDevice"
 import { ElMessage } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { computed, ref } from "vue"
-import { addSysNoticeApi, updateSysNoticeApi } from "@/common/apis/admin/notice"
+import { addSysNoticeApi, updateSysNoticeApi } from "@/common/apis/admin/system/notice"
 import { useDict } from "@/common/composables/useDict"
 
 const emit = defineEmits<EmitEvents>()

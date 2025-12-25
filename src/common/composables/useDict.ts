@@ -1,5 +1,5 @@
 import { useDictStore } from "@/pinia/stores/dict"
-import { getSysDictDataApi } from "../apis/admin/dict/data"
+import { getSysDictDataApi } from "../apis/admin/system/dict/data"
 
 /**
  * 获取字典数据

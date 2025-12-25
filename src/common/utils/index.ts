@@ -224,3 +224,54 @@ export function parseStrEmpty(str: any) {
   }
   return str
 }
+
+// 回显数据字典
+export function selectDictLabel(datas: any, value: number | string) {
+  if (value === undefined) {
+    return ""
+  }
+  const actions: Array<string | number> = []
+  Object.keys(datas).some((key) => {
+    if (datas[key].value === `${value}`) {
+      actions.push(datas[key].label)
+      return true
+    }
+    return false
+  })
+  if (actions.length === 0) {
+    actions.push(value)
+  }
+  return actions.join("")
+}
+
+// 回显数据字典（字符串数组）
+export function selectDictLabels(datas: any, value: any, separator: any) {
+  if (value === undefined || value.length === 0) {
+    return ""
+  }
+  if (Array.isArray(value)) {
+    value = value.join(",")
+  }
+  const actions: any[] = []
+  const currentSeparator = undefined === separator ? "," : separator
+  const temp = value.split(currentSeparator)
+
+  Object.keys(temp).some((val) => {
+    let match = false
+    Object.keys(datas).some((key) => {
+      if (datas[key].value === `${temp[val]}`) {
+        actions.push(datas[key].label + currentSeparator)
+        match = true
+        return true
+      }
+      return false
+    })
+    if (!match) {
+      actions.push(temp[val] + currentSeparator)
+    }
+
+    return match
+  })
+
+  return actions.join("").substring(0, actions.join("").length - 1)
+}
