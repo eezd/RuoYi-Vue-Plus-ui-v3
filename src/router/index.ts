@@ -182,6 +182,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
               title: "操作日志",
               svgIcon: "form"
             }
+          },
+          {
+            path: "logininfor",
+            component: () => import("@/pages/admin/logininfor/index.vue"),
+            name: "AdminSysLoginInfor",
+            meta: {
+              title: "登录日志",
+              svgIcon: "logininfor"
+            }
           }
         ]
       }
