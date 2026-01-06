@@ -213,10 +213,19 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           {
             path: "online",
             component: () => import("@/pages/admin/monitor/online/index.vue"),
-            name: "AdminSysDict",
+            name: "AdminSysOnline",
             meta: {
               title: "在线用户",
               svgIcon: "online"
+            }
+          },
+          {
+            path: "cache",
+            component: () => import("@/pages/admin/monitor/cache/index.vue"),
+            name: "AdminSysCache",
+            meta: {
+              title: "缓存监控",
+              svgIcon: "redis"
             }
           }
         ]
