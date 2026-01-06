@@ -227,6 +227,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
               title: "缓存监控",
               svgIcon: "redis"
             }
+          },
+          {
+            path: "admin",
+            component: () => import("@/pages/admin/monitor/admin/index.vue"),
+            name: "AdminSysAdmin",
+            meta: {
+              title: "Admin监控",
+              svgIcon: "dashboard"
+            }
           }
         ]
       }
