@@ -202,8 +202,25 @@ export const dynamicRoutes: RouteRecordRaw[] = [
             }
           }
         ]
+      },
+      {
+        path: "monitor",
+        meta: {
+          title: "系统监控",
+          svgIcon: "monitor"
+        },
+        children: [
+          {
+            path: "online",
+            component: () => import("@/pages/admin/monitor/online/index.vue"),
+            name: "AdminSysDict",
+            meta: {
+              title: "在线用户",
+              svgIcon: "online"
+            }
+          }
+        ]
       }
-
     ]
   }
 ]

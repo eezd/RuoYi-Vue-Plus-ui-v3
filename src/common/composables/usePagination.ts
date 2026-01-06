@@ -7,7 +7,7 @@ export interface PaginationData {
 }
 
 /** 默认的分页参数 */
-const DEFAULT_PAGINATION_DATA = {
+export const DEFAULT_PAGINATION_DATA = {
   total: 0,
   currentPage: 1,
   pageSizes: [10, 20, 50],
