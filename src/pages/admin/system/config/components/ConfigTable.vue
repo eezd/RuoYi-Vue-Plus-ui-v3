@@ -5,6 +5,7 @@ import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { formatDateTime } from "@@/utils"
+import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
 
@@ -54,19 +55,21 @@ const handleSelectionChange = (val: ConfigForm[]) => (selectedRows.value = val)
         <el-button
           type="primary"
           :icon="CirclePlus"
+          :disabled="!checkPermission(['system:config:add'])"
           @click="openAddDialog()"
         >
           新增
         </el-button>
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length"
+          :disabled="!selectedRows.length || !checkPermission(['system:config:remove'])"
           @click="handleDelete(selectedRows)"
         >
           批量删除
         </el-button>
         <el-button
           type="warning" plain icon="Download"
+          :disabled="!checkPermission(['system:config:export'])"
           @click="handleExport()"
         >
           导出

@@ -5,6 +5,7 @@ import { delSysMenuApi, getSysMenuApi, getSysMenuListApi } from "@@/apis/admin/s
 import { useDict } from "@@/composables/useDict.ts"
 import { MenuTypeEnum } from "@@/enums/MenuTypeEnum.ts"
 import { handleTree } from "@@/utils"
+import { checkPermission } from "@@/utils/permission"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
@@ -196,6 +197,18 @@ function openAddDialog() {
 }
 
 /**
+ * 打开新增子弹窗
+ */
+function openAddSubDialog(parentId: number) {
+  formData.value = cloneDeep(DEFAULT_FORM_DATA)
+  formData.value.parentId = parentId
+  console.log(formData.value)
+  isEditableInDataDialog.value = true
+  dataDialogVisible.value = true
+  loading.value = false
+}
+
+/**
  * 打开修改弹窗
  *
  * @param row
@@ -304,13 +317,19 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="openUpdateDialog(scope.row)">
+                <el-dropdown-item @click="openAddSubDialog(scope.row.menuId)" :disabled="!checkPermission(['system:menu:add'])">
+                  <el-icon color="#409EFF">
+                    <edit />
+                  </el-icon>
+                  新增子菜单
+                </el-dropdown-item>
+                <el-dropdown-item @click="openUpdateDialog(scope.row)" :disabled="!checkPermission(['system:menu:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
                   修改
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleDelete(scope.row)">
+                <el-dropdown-item @click="handleDelete(scope.row)" :disabled="!checkPermission(['system:menu:remove'])">
                   <el-icon color="#F56C6C">
                     <Delete />
                   </el-icon>

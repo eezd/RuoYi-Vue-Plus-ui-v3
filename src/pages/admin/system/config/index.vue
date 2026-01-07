@@ -4,6 +4,7 @@ import type { FormInstance } from "element-plus"
 import { delConfigApi, getSysConfigApi, getSysConfigListApi } from "@@/apis/admin/system/config"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
+import { checkPermission } from "@@/utils/permission"
 import { download } from "@@/utils/test.ts"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
@@ -248,13 +249,13 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="openUpdateDialog(scope.row)">
+                <el-dropdown-item @click="openUpdateDialog(scope.row)" :disabled="!checkPermission(['system:config:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
                   修改
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleDelete(scope.row)">
+                <el-dropdown-item @click="handleDelete(scope.row)" :disabled="!checkPermission(['system:config:remove'])">
                   <el-icon color="#F56C6C">
                     <Delete />
                   </el-icon>

@@ -6,6 +6,7 @@ import { getSysConfigKeyApi } from "@@/apis/admin/system/config"
 import { delSysUserApi, getSysUserApi, getSysUserListApi, resetSysUserPwdApi } from "@@/apis/admin/system/user"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
+import { checkPermission } from "@@/utils/permission"
 import { download } from "@@/utils/test.ts"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
@@ -311,25 +312,25 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="openUpdateDialog(scope.row)">
+                <el-dropdown-item @click="openUpdateDialog(scope.row)" :disabled="!checkPermission(['system:user:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
                   修改
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleResetPwd(scope.row)">
+                <el-dropdown-item @click="handleResetPwd(scope.row)" :disabled="!checkPermission(['system:user:resetPwd'])">
                   <el-icon color="#409EFF">
                     <Key />
                   </el-icon>
                   重置密码
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleAuthRole(scope.row)">
+                <el-dropdown-item @click="handleAuthRole(scope.row)" :disabled="!checkPermission(['system:user:edit'])">
                   <el-icon color="#409EFF">
                     <CircleCheck />
                   </el-icon>
                   分配角色
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleDelete(scope.row)">
+                <el-dropdown-item @click="handleDelete(scope.row)" :disabled="!checkPermission(['system:user:remove'])">
                   <el-icon color="#F56C6C">
                     <Delete />
                   </el-icon>

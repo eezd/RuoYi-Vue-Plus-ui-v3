@@ -4,6 +4,7 @@ import type { FormInstance } from "element-plus"
 import { delSysNoticeApi, getSysNoticeApi, getSysNoticeListApi } from "@@/apis/admin/system/notice"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
+import { checkPermission } from "@@/utils/permission"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
@@ -223,13 +224,13 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="openUpdateDialog(scope.row)">
+                <el-dropdown-item @click="openUpdateDialog(scope.row)" :disabled="!checkPermission(['system:notice:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
                   修改
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleDelete(scope.row)">
+                <el-dropdown-item @click="handleDelete(scope.row)" :disabled="!checkPermission(['system:notice:remove'])">
                   <el-icon color="#F56C6C">
                     <Delete />
                   </el-icon>

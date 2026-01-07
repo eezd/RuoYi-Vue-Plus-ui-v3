@@ -6,6 +6,7 @@ import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { formatDateTime } from "@@/utils"
+import { checkPermission } from "@@/utils/permission"
 import { RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
 
@@ -63,19 +64,21 @@ async function handleClean() {
       <div :style="isMobile ? 'display:flex; gap: 10px; flex-wrap: wrap;' : ''">
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length"
+          :disabled="!selectedRows.length || !checkPermission(['system:operlog:remove'])"
           @click="handleDelete(selectedRows)"
         >
           批量删除
         </el-button>
         <el-button
           type="danger" plain icon="WarnTriangleFilled"
+          :disabled="!checkPermission(['system:operlog:remove'])"
           @click="handleClean()"
         >
           清空
         </el-button>
         <el-button
           type="warning" plain icon="Download"
+          :disabled="!checkPermission(['system:operlog:export'])"
           @click="handleExport()"
         >
           导出

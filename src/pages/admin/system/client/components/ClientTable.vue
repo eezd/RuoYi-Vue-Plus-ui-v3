@@ -5,6 +5,7 @@ import { changeSysStatusApi } from "@@/apis/admin/system/client"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
+import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
 
@@ -69,19 +70,21 @@ async function handleStatusChange(row: ClientVO) {
         <el-button
           type="primary"
           :icon="CirclePlus"
+          :disabled="!checkPermission(['system:client:add'])"
           @click="openAddDialog()"
         >
           新增
         </el-button>
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length"
+          :disabled="!selectedRows.length || !checkPermission(['system:client:remove'])"
           @click="handleDelete(selectedRows)"
         >
           批量删除
         </el-button>
         <el-button
           type="warning" plain icon="Download"
+          :disabled="!checkPermission(['system:client:export'])"
           @click="handleExport()"
         >
           导出

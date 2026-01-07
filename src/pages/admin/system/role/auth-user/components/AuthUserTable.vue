@@ -6,6 +6,7 @@ import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { formatDateTime } from "@@/utils"
+import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
 import { useTagsViewStore } from "@/pinia/stores/tags-view.ts"
@@ -61,13 +62,14 @@ async function handleClose() {
         <el-button
           type="primary"
           :icon="CirclePlus"
+          :disabled="!checkPermission(['system:role:add'])"
           @click="openAddDialog()"
         >
           新增
         </el-button>
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length"
+          :disabled="!selectedRows.length || !checkPermission(['system:role:remove'])"
           @click="handleDelete(selectedRows)"
         >
           批量删除

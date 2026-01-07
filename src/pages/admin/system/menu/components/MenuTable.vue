@@ -4,6 +4,7 @@ import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { formatDateTime } from "@@/utils"
+import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, Delete, RefreshRight } from "@element-plus/icons-vue"
 
 const emit = defineEmits<EmitEvents>()
@@ -44,6 +45,7 @@ const { sys_normal_disable } = toRefs<any>(useDict("sys_show_hide", "sys_normal_
         <el-button
           type="primary"
           :icon="CirclePlus"
+          :disabled="!checkPermission(['system:menu:add'])"
           @click="openAddDialog()"
         >
           新增菜单
@@ -51,6 +53,7 @@ const { sys_normal_disable } = toRefs<any>(useDict("sys_show_hide", "sys_normal_
         <el-button
           type="danger"
           :icon="Delete"
+          :disabled="!checkPermission(['system:menu:remove'])"
           @click="openCascadeDeleteDialog()"
         >
           级联删除

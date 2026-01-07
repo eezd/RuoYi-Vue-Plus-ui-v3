@@ -2,6 +2,7 @@
 import type { FormInstance } from "element-plus"
 import type { OnlineQuery, OnlineVO } from "@/common/apis/admin/monitor/online/types"
 import { usePagination } from "@@/composables/usePagination.ts"
+import { checkPermission } from "@@/utils/permission"
 import { Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { ref, watch } from "vue"
@@ -124,7 +125,10 @@ onMounted(async () => {
     >
       <template #operation="{ scope }">
         <el-tooltip content="强退" placement="top">
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" />
+          <el-button
+            :disabled="!checkPermission(['monitor:online:forceLogout'])"
+            link type="primary" icon="Delete" @click="handleDelete(scope.row)"
+          />
         </el-tooltip>
       </template>
     </OnlineTable>

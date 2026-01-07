@@ -4,6 +4,7 @@ import type { PaginationData } from "@@/composables/usePagination.ts"
 import { changeSysRoleStatusApi } from "@@/apis/admin/system/role"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"
+import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
 
@@ -66,19 +67,21 @@ async function handleStatusChange(row: RoleForm) {
         <el-button
           type="primary"
           :icon="CirclePlus"
+          :disabled="!checkPermission(['system:role:add'])"
           @click="openAddDialog()"
         >
           新增
         </el-button>
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length"
+          :disabled="!selectedRows.length || !checkPermission(['system:role:remove'])"
           @click="handleDelete(selectedRows)"
         >
           批量删除
         </el-button>
         <el-button
           type="warning" plain icon="Download"
+          :disabled="!checkPermission(['system:role:export'])"
           @click="handleExport()"
         >
           导出

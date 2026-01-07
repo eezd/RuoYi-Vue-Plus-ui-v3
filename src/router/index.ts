@@ -85,6 +85,9 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         children: [
           {
             path: "user",
+            meta: {
+              permissions: ["system:user:list"]
+            },
             children: [
               {
                 path: "",
@@ -108,6 +111,9 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           },
           {
             path: "role",
+            meta: {
+              permissions: ["system:role:list"]
+            },
             children: [
               {
                 path: "",
@@ -135,7 +141,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
             name: "AdminSysDict",
             meta: {
               title: "字典管理",
-              svgIcon: "dict"
+              svgIcon: "dict",
+              permissions: ["system:dict:list"]
             }
           },
           {
@@ -153,7 +160,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
             name: "AdminSysMenu",
             meta: {
               title: "菜单权限管理",
-              svgIcon: "tree-table"
+              svgIcon: "tree-table",
+              permissions: ["system:menu:list"]
             }
           },
           {
@@ -162,7 +170,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
             name: "AdminSysConfig",
             meta: {
               title: "参数设置",
-              svgIcon: "edit"
+              svgIcon: "edit",
+              permissions: ["system:config:list"]
             }
           },
           {
@@ -171,7 +180,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
             name: "AdminSysNotice",
             meta: {
               title: "通知公告",
-              svgIcon: "message"
+              svgIcon: "message",
+              permissions: ["system:notice:list"]
             }
           },
           {
@@ -180,7 +190,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
             name: "AdminSysOperLog",
             meta: {
               title: "操作日志",
-              svgIcon: "form"
+              svgIcon: "form",
+              permissions: ["monitor:operlog:list"]
             }
           },
           {
@@ -189,7 +200,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
             name: "AdminSysLoginInfor",
             meta: {
               title: "登录日志",
-              svgIcon: "logininfor"
+              svgIcon: "logininfor",
+              permissions: ["monitor:logininfor:list"]
             }
           },
           {
@@ -198,7 +210,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
             name: "AdminSysClient",
             meta: {
               title: "客户端管理",
-              svgIcon: "international"
+              svgIcon: "international",
+              permissions: ["system:client:list"]
             }
           }
         ]
@@ -216,7 +229,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
             name: "AdminSysOnline",
             meta: {
               title: "在线用户",
-              svgIcon: "online"
+              svgIcon: "online",
+              permissions: ["monitor:online:list"]
             }
           },
           {
@@ -225,7 +239,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
             name: "AdminSysCache",
             meta: {
               title: "缓存监控",
-              svgIcon: "redis"
+              svgIcon: "redis",
+              permissions: ["monitor:cache:list"]
             }
           },
           {
@@ -234,7 +249,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
             name: "AdminSysAdmin",
             meta: {
               title: "Admin监控",
-              svgIcon: "dashboard"
+              svgIcon: "dashboard",
+              permissions: ["monitor:admin:list"]
             }
           }
         ]

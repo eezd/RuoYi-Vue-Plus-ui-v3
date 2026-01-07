@@ -6,7 +6,33 @@ import { flatMultiLevelRoutes } from "@/router/helper"
 
 function hasPermission(roles: string[], route: RouteRecordRaw) {
   const routeRoles = route.meta?.permissions
-  return routeRoles ? roles.some(role => routeRoles.includes(role)) : true
+  // 如果路由没有设置权限要求,则允许访问
+  if (!routeRoles) return true
+  // 检查是否有超级管理员权限
+  if (roles.includes("*:*:*")) {
+    return true
+  }
+  // 检查是否有匹配的权限(支持通配符)
+  return roles.some((role) => {
+    // 如果用户权限本身就在路由要求的权限中
+    if (routeRoles.includes(role)) {
+      return true
+    }
+
+    // 通配符匹配逻辑
+    const roleParts = role.split(":")
+    return routeRoles.some((routeRole) => {
+      const routeRoleParts = routeRole.split(":")
+
+      // 逐级比较,支持 * 通配符
+      return roleParts.every((part, index) => {
+        if (part === "*") return true // 用户权限的这一级是通配符
+        if (!routeRoleParts[index]) return false // 路由权限层级不够
+        if (routeRoleParts[index] === "*") return true // 路由要求的这一级是通配符
+        return part === routeRoleParts[index] // 精确匹配
+      })
+    })
+  })
 }
 
 function filterDynamicRoutes(routes: RouteRecordRaw[], roles: string[]) {

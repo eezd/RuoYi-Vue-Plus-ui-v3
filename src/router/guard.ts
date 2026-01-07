@@ -32,7 +32,7 @@ export function registerNavigationGuard(router: Router) {
       // 否则要重新获取权限角色
       try {
         await userStore.getInfo()
-        // 注意：权限必须是一个数组！ 例如: ["admin"] 或 ["developer", "editor"]
+        // 注意：权限必须是一个数组！
         const permissions = userStore.permissions
         // 生成可访问的 Routes
         routerConfig.dynamic ? permissionStore.setRoutes(permissions) : permissionStore.setAllRoutes()

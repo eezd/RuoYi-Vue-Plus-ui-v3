@@ -6,6 +6,7 @@ import { treeselectApi } from "@@/apis/admin/system/menu"
 import { delSysRoleApi, getSysRoleApi, getSysRolelistApi } from "@@/apis/admin/system/role"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
+import { checkPermission } from "@@/utils/permission"
 import { download } from "@@/utils/test.ts"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
@@ -255,19 +256,19 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="openUpdateDialog(scope.row)">
+                <el-dropdown-item @click="openUpdateDialog(scope.row)" :disabled="!checkPermission(['system:role:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
                   修改
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleAuthUser(scope.row)">
+                <el-dropdown-item @click="handleAuthUser(scope.row)" :disabled="!checkPermission(['system:role:edit'])">
                   <el-icon color="#F56C6C">
                     <User />
                   </el-icon>
                   分配用户
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleDelete(scope.row)">
+                <el-dropdown-item @click="handleDelete(scope.row)" :disabled="!checkPermission(['system:role:remove'])">
                   <el-icon color="#F56C6C">
                     <Delete />
                   </el-icon>
