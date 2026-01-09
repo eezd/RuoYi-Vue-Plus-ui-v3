@@ -6,12 +6,12 @@ import { delSysDictDataApi, getSysDictDataCodeApi, getSysDictDataListApi } from 
 import { getSysDictOptionSelectApi, getSysDictTypeApi } from "@@/apis/admin/system/dict/type"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
-import { download } from "@@/utils/test.ts"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref, watch } from "vue"
 import { useRoute } from "vue-router"
+import { download } from "@/http/download"
 import DictDataDialog from "./components/DictDialog.vue"
 import DictTable from "./components/DictTable.vue"
 

@@ -4,10 +4,10 @@ import type { FormInstance } from "element-plus"
 import { delSysLoginInfoApi, getSysLoginInfoListApi } from "@@/apis/admin/monitor/loginInfo"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
-import { download } from "@@/utils/test.ts"
 import { Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { ref, watch } from "vue"
+import { download } from "@/http/download"
 import LoginInforTable from "./components/LoginInforTable.vue"
 
 defineOptions({

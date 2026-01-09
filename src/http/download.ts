@@ -1,42 +1,11 @@
 import type { LoadingInstance } from "element-plus/es/components/loading/src/loading"
+import { blobValidate, tansParams } from "@@/utils"
+import errorCode from "@@/utils/errorCode"
 import { ElLoading, ElMessage } from "element-plus"
 import FileSaver from "file-saver"
 import { request } from "@/http/axios"
-import errorCode from "./errorCode"
 
 let downloadLoadingInstance: LoadingInstance | null = null
-
-/**
- * 验证是否为blob格式
- */
-function blobValidate(data: any): boolean {
-  return data.type !== "application/json"
-}
-
-/**
- * 参数处理
- */
-function tansParams(params: Record<string, any>): string {
-  let result = ""
-  for (const propName of Object.keys(params)) {
-    const value = params[propName]
-    const part = `${encodeURIComponent(propName)}=`
-    if (value !== null && value !== undefined) {
-      if (typeof value === "object") {
-        for (const key of Object.keys(value)) {
-          if (value[key] !== null && value[key] !== undefined) {
-            const subPart = `${propName}[${key}]=`
-            const subValue = value[key]
-            result += `${subPart}${encodeURIComponent(subValue)}&`
-          }
-        }
-      } else {
-        result += `${part}${encodeURIComponent(value)}&`
-      }
-    }
-  }
-  return result.slice(0, -1)
-}
 
 /**
  * 通用下载方法

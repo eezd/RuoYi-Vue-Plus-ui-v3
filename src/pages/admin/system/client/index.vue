@@ -5,11 +5,11 @@ import { delSysClientApi, getSysClientApi, getSysClientListApi } from "@@/apis/a
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
-import { download } from "@@/utils/test.ts"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref, watch } from "vue"
+import { download } from "@/http/download"
 import ClientDialog from "./components/ClientDialog.vue"
 import ClientTable from "./components/ClientTable.vue"
 

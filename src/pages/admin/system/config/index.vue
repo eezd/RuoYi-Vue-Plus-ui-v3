@@ -5,11 +5,11 @@ import { delConfigApi, getSysConfigApi, getSysConfigListApi } from "@@/apis/admi
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
-import { download } from "@@/utils/test.ts"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref, watch } from "vue"
+import { download } from "@/http/download"
 import ConfigDialog from "./components/ConfigDialog.vue"
 import ConfigTable from "./components/ConfigTable.vue"
 

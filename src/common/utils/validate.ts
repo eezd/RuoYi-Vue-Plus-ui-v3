@@ -4,10 +4,10 @@ export function isArray<T>(arg: T) {
 }
 
 /** 判断是否为字符串 */
-export function isString(str: unknown) {
-  return typeof str === "string" || str instanceof String
+/** 判断是否为字符串 */
+export function isString(str: unknown): str is string {
+  return typeof str === "string"
 }
-
 /** 判断是否为外链 */
 export function isExternal(path: string) {
   const reg = /^(https?:|mailto:|tel:)/
