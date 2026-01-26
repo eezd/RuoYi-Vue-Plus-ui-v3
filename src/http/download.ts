@@ -4,6 +4,7 @@ import errorCode from "@@/utils/errorCode"
 import axios from "axios"
 import { ElLoading, ElMessage } from "element-plus"
 import FileSaver from "file-saver"
+import { useFullscreenLoading } from "@/common/composables/useFullscreenLoading"
 import { globalHeaders, request } from "@/http/axios"
 
 let downloadLoadingInstance: LoadingInstance | null = null
@@ -124,55 +125,62 @@ const handleExportGet = () => {
 /**
  * 下载 OSS 文件
  */
-export async function downloadOss(ossId: string | number) {
-  const url = `${baseURL}/resource/oss/download/${ossId}`
-  downloadLoadingInstance = ElLoading.service({ text: "正在下载数据，请稍候", background: "rgba(0, 0, 0, 0.7)" })
-  try {
-    const res = await axios({
-      method: "get",
-      url,
-      responseType: "blob",
-      headers: globalHeaders()
-    })
-    const isBlob = blobValidate(res.data)
-    if (isBlob) {
-      const blob = new Blob([res.data], { type: "application/octet-stream" })
-      FileSaver.saveAs(blob, decodeURIComponent(res.headers["download-filename"] as string))
-    } else {
-      printErrMsg(res.data)
+export const downloadOss = useFullscreenLoading(
+  async (ossId: string | number) => {
+    const url = `${baseURL}/resource/oss/download/${ossId}`
+    try {
+      const res = await axios({
+        method: "get",
+        url,
+        responseType: "blob",
+        headers: globalHeaders()
+      })
+      const isBlob = await blobValidate(res.data)
+      if (isBlob) {
+        const blob = new Blob([res.data], { type: "application/octet-stream" })
+        FileSaver.saveAs(blob, decodeURIComponent(res.headers["download-filename"] as string))
+      } else {
+        printErrMsg(res.data)
+      }
+    } catch (r) {
+      console.error(r)
+      ElMessage.error("下载文件出现错误，请联系管理员！")
     }
-    downloadLoadingInstance.close()
-  } catch (r) {
-    console.error(r)
-    ElMessage.error("下载文件出现错误，请联系管理员！")
-    downloadLoadingInstance.close()
+  },
+  {
+    text: "正在下载数据，请稍候",
+    background: "rgba(0, 0, 0, 0.7)"
   }
-}
+)
 
-export async function downloadZip(url: string, name: string) {
-  url = baseURL + url
-  downloadLoadingInstance = ElLoading.service({ text: "正在下载数据，请稍候", background: "rgba(0, 0, 0, 0.7)" })
-  try {
-    const res = await axios({
-      method: "get",
-      url,
-      responseType: "blob",
-      headers: globalHeaders()
-    })
-    const isBlob = blobValidate(res.data)
-    if (isBlob) {
-      const blob = new Blob([res.data], { type: "application/zip" })
-      FileSaver.saveAs(blob, name)
-    } else {
-      printErrMsg(res.data)
+export const downloadZip = useFullscreenLoading(
+  async (url: string, name: string) => {
+    // 拼接完整路径
+    const fullUrl = baseURL + url
+    try {
+      const res = await axios({
+        method: "get",
+        url: fullUrl,
+        responseType: "blob",
+        headers: globalHeaders()
+      })
+      const isBlob = blobValidate(res.data)
+      if (isBlob) {
+        const blob = new Blob([res.data], { type: "application/zip" })
+        FileSaver.saveAs(blob, name)
+      } else {
+        printErrMsg(res.data)
+      }
+    } catch (r) {
+      console.error(r)
+      ElMessage.error("下载文件出现错误，请联系管理员！")
     }
-    downloadLoadingInstance.close()
-  } catch (r) {
-    console.error(r)
-    ElMessage.error("下载文件出现错误，请联系管理员！")
-    downloadLoadingInstance.close()
+  },
+  {
+    text: "正在下载数据，请稍候",
+    background: "rgba(0, 0, 0, 0.7)"
   }
-}
+)
 
 async function printErrMsg(data: any) {
   const resText = await data.text()
