@@ -241,6 +241,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
               svgIcon: "international",
               permissions: ["system:client:list"]
             }
+          },
+          {
+            path: "demo",
+            component: () => import("@/pages/admin/system/demo/index.vue"),
+            name: "AdminSysDemo",
+            meta: {
+              title: "示例",
+              elIcon: "Aim"
+            }
           }
         ]
       },

@@ -2,7 +2,6 @@ import CryptoJS from "crypto-js"
 
 /**
  * 随机生成32位的字符串
- * @returns {string}
  */
 function generateRandomString() {
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -16,7 +15,6 @@ function generateRandomString() {
 
 /**
  * 随机生成aes 密钥
- * @returns {string}
  */
 export function generateAesKey() {
   return CryptoJS.enc.Utf8.parse(generateRandomString())
@@ -24,7 +22,6 @@ export function generateAesKey() {
 
 /**
  * 加密base64
- * @returns {string}
  */
 export function encryptBase64(str: CryptoJS.lib.WordArray) {
   return CryptoJS.enc.Base64.stringify(str)
@@ -41,7 +38,6 @@ export function decryptBase64(str: string) {
  * 使用密钥对数据进行加密
  * @param message
  * @param aesKey
- * @returns {string}
  */
 export function encryptWithAes(message: string, aesKey: CryptoJS.lib.WordArray) {
   const encrypted = CryptoJS.AES.encrypt(message, aesKey, {
@@ -55,7 +51,6 @@ export function encryptWithAes(message: string, aesKey: CryptoJS.lib.WordArray) 
  * 使用密钥对数据进行解密
  * @param message
  * @param aesKey
- * @returns {string}
  */
 export function decryptWithAes(message: string, aesKey: CryptoJS.lib.WordArray) {
   const decrypted = CryptoJS.AES.decrypt(message, aesKey, {

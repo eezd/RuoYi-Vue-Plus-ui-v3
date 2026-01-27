@@ -75,7 +75,7 @@ function shouldRenderAsTag(item: DictDataOption): boolean {
 <template>
   <div class="dict-tag-container">
     <template
-      v-for="(item, index) in options"
+      v-for="(item) in options"
       :key="item.value"
     >
       <template v-if="values.includes(String(item.value))">

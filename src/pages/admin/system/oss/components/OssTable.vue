@@ -83,6 +83,7 @@ async function handleSubmit() {
     }
   })
 }
+
 function checkFileSuffix(fileSuffix: string | string[]) {
   const arr = [".png", ".jpg", ".jpeg"]
   const suffixArray = Array.isArray(fileSuffix) ? fileSuffix : [fileSuffix]

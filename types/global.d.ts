@@ -84,7 +84,6 @@ declare global {
      * 是否显示顶部导航
      */
     topNav: boolean
-
     /**
      * 是否显示多标签导航
      */
