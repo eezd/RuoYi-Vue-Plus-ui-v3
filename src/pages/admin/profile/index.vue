@@ -107,7 +107,6 @@ const rulePassword = ref({
 
 async function handlePasswordChange() {
   passwordFormRef.value?.validate(async (valid: boolean) => {
-    // (valid: boolean, fields)
     if (valid) {
       try {
         loading.value = true

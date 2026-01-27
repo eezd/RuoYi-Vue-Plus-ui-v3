@@ -132,7 +132,9 @@ function handleExport() {
     `role_${timestamp}.xlsx`
   )
 }
+// #endregion
 
+// #region 弹窗操作
 /**
  * 打开新增弹窗
  */
@@ -297,7 +299,7 @@ onMounted(async () => {
       v-model:menu-ref="menuRef"
       v-model:form-data="formData"
       v-model:menu-options="menuOptions"
-      @get-table-data="getTableData"
+      @success="getTableData"
     />
   </div>
 </template>

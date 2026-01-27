@@ -19,11 +19,8 @@ const formData = defineModel<Partial<OperLogForm>>(
 )
 // #endregion
 
-const { sys_oper_type } = toRefs<any>(useDict("sys_oper_type"))
-
-const title = "查看参数"
-
 const { isMobile } = useDevice()
+const { sys_oper_type } = toRefs<any>(useDict("sys_oper_type"))
 
 /**
  * json转为对象
@@ -43,16 +40,18 @@ function typeFormat(row: OperLogForm | Partial<OperLogForm>) {
   return selectDictLabel(sys_oper_type.value, row.businessType)
 }
 
-/**
- * 重置表单
- */
+function handleCancel() {
+  resetForm()
+  dialog.value.visible = false
+}
+
 function resetForm() {
   formData.value = cloneDeep({})
 }
 </script>
 
 <template>
-  <el-dialog v-model="dialog.visible" :title="dialog.title" @closed="resetForm" :width="isMobile ? '90%' : '40%'">
+  <el-dialog v-model="dialog.visible" :title="dialog.title" @closed="handleCancel" :width="isMobile ? '90%' : '40%'">
     <el-descriptions v-if="formData" :column="1" border>
       <el-descriptions-item label="操作状态">
         <template #default>

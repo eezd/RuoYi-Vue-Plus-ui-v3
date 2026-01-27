@@ -10,6 +10,10 @@ import { ElMessage } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref } from "vue"
 
+export interface EmitEvents {
+  (e: "success"): void
+  (e: "cancel"): void
+}
 const emit = defineEmits<EmitEvents>()
 
 /**
@@ -27,25 +31,13 @@ const formData = defineModel<Partial<RoleForm>>(
 )
 // #endregion
 
-/**
- * EmitEvents
- */
-// #region EmitEvents
-export interface EmitEvents {
-  getTableData: []
-}
-const getTableData = () => emit("getTableData")
-// #endregion
-
 const { isMobile } = useDevice()
-
 const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 
 const menuExpand = ref(false)
 const menuNodeAll = ref(false)
 
 const formRef = ref<FormInstance | null>(null)
-
 const formRules: FormRules<RoleForm> = {
   roleName: [
     {
@@ -70,37 +62,31 @@ const formRules: FormRules<RoleForm> = {
   ]
 }
 
-/**
- * 创建或更新
- */
-function handleCreateOrUpdate() {
-  formRef.value?.validate(async (valid: boolean) => {
-    // (valid: boolean, fields)
-    if (valid) {
-      try {
-        dialog.value.loading = true
-        const isCreating = formData.value.roleId === undefined
-        formData.value.menuIds = getMenuAllCheckedKeys()
-        if (isCreating) {
-          const res = await addSysRoleApi(formData.value as RoleForm)
-          ElMessage.success(res.msg)
-        } else {
-          const res = await updateSysRoleApi(formData.value as RoleForm)
-          ElMessage.success(res.msg)
-        }
-      } finally {
-        // 新增/修改操作后刷新表格
-        await getTableData()
-        dialog.value.visible = false
-        dialog.value.loading = false
-      }
-    }
-  })
+async function handleSubmit() {
+  if (!formRef.value) return
+  try {
+    await formRef.value.validate()
+    dialog.value.loading = true
+    const isUpdate = !!formData.value.roleId
+    const reqData = formData.value as RoleForm
+    const res = isUpdate
+      ? await updateSysRoleApi(reqData)
+      : await addSysRoleApi(reqData)
+    ElMessage.success(res.msg)
+    resetForm()
+    dialog.value.visible = false
+    emit("success")
+  } finally {
+    dialog.value.loading = false
+  }
 }
 
-/**
- * 重置表单
- */
+function handleCancel() {
+  resetForm()
+  dialog.value.visible = false
+  emit("cancel")
+}
+
 function resetForm() {
   formRef.value?.clearValidate()
   formRef.value?.resetFields()
@@ -133,17 +119,17 @@ function handleCheckedTreeConnect(value: any, type: string) {
 }
 
 /** 所有菜单节点数据 */
-function getMenuAllCheckedKeys(): any {
-  // 目前被选中的菜单节点
-  const checkedKeys = menuRef.value?.getCheckedKeys()
-  // 半选中的菜单节点
-  const halfCheckedKeys = menuRef.value?.getHalfCheckedKeys()
-  if (halfCheckedKeys) {
-    checkedKeys?.unshift(...halfCheckedKeys)
-  }
-  console.log(checkedKeys)
-  return checkedKeys
-}
+// function getMenuAllCheckedKeys(): any {
+//   // 目前被选中的菜单节点
+//   const checkedKeys = menuRef.value?.getCheckedKeys()
+//   // 半选中的菜单节点
+//   const halfCheckedKeys = menuRef.value?.getHalfCheckedKeys()
+//   if (halfCheckedKeys) {
+//     checkedKeys?.unshift(...halfCheckedKeys)
+//   }
+//   console.log(checkedKeys)
+//   return checkedKeys
+// }
 
 function getRoleMenuTreeselect(roleId: string | number) {
   return roleMenuTreeselectApi(roleId).then((res): RoleMenuTree => {
@@ -177,7 +163,7 @@ watch(() => formData.value.roleId, async () => {
     :title="dialog.title"
     direction="rtl"
     :size="isMobile ? '90%' : '40%'"
-    @closed="resetForm"
+    @closed="handleCancel"
     class="system-drawer"
     modal-class="system-drawer-modal"
     :lock-scroll="true"
@@ -234,10 +220,10 @@ watch(() => formData.value.roleId, async () => {
     </div>
     <template #footer>
       <div class="drawer-footer">
-        <el-button class="btn-cancel" @click="dialog.visible = false">
+        <el-button class="btn-cancel" @click="handleCancel">
           取消
         </el-button>
-        <el-button class="btn-submit" type="primary" @click="handleCreateOrUpdate" :loading="dialog.loading" :disabled="!dialog.isEditable">
+        <el-button class="btn-submit" type="primary" @click="handleSubmit" :loading="dialog.loading" :disabled="!dialog.isEditable">
           确认
         </el-button>
       </div>

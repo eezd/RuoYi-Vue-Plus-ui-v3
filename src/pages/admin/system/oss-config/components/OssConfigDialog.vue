@@ -8,10 +8,11 @@ import { ref } from "vue"
 import { addSysOssConfigApi, updateSysOssConfigApi } from "@/common/apis/admin/system/ossConfig"
 import { useDict } from "@/common/composables/useDict"
 
+export interface EmitEvents {
+  (e: "success"): void
+  (e: "cancel"): void
+}
 const emit = defineEmits<EmitEvents>()
-
-const protocol = computed(() => (formData.value.isHttps === "Y" ? "https://" : "http://"))
-const { sys_yes_no } = toRefs<any>(useDict("sys_yes_no"))
 
 /**
  * defineModel
@@ -26,20 +27,12 @@ const formData = defineModel<Partial<OssConfigForm>>(
 )
 // #endregion
 
-/**
- * EmitEvents
- */
-// #region EmitEvents
-export interface EmitEvents {
-  getTableData: []
-}
-const getTableData = () => emit("getTableData")
-// #endregion
-
 const { isMobile } = useDevice()
+const { sys_yes_no } = toRefs<any>(useDict("sys_yes_no"))
+
+const protocol = computed(() => (formData.value.isHttps === "Y" ? "https://" : "http://"))
 
 const formRef = ref<FormInstance | null>(null)
-
 const formRules: FormRules<OssConfigForm> = {
   configKey: [{ required: true, message: "configKey不能为空", trigger: "blur" }],
   accessKey: [
@@ -81,36 +74,31 @@ const formRules: FormRules<OssConfigForm> = {
   accessPolicy: [{ required: true, message: "accessPolicy不能为空", trigger: "blur" }]
 }
 
-/**
- * 创建或更新
- */
-function handleCreateOrUpdate() {
-  formRef.value?.validate(async (valid: boolean) => {
-    // (valid: boolean, fields)
-    if (valid) {
-      try {
-        dialog.value.loading = true
-        const isCreating = formData.value.ossConfigId === undefined
-        if (isCreating) {
-          const res = await addSysOssConfigApi(formData.value as OssConfigForm)
-          ElMessage.success(res.msg)
-        } else {
-          const res = await updateSysOssConfigApi(formData.value as OssConfigForm)
-          ElMessage.success(res.msg)
-        }
-      } finally {
-        // 新增/修改操作后刷新表格
-        await getTableData()
-        dialog.value.visible = false
-        dialog.value.loading = false
-      }
-    }
-  })
+async function handleSubmit() {
+  if (!formRef.value) return
+  try {
+    await formRef.value.validate()
+    dialog.value.loading = true
+    const isUpdate = !!formData.value.ossConfigId
+    const reqData = formData.value as OssConfigForm
+    const res = isUpdate
+      ? await updateSysOssConfigApi(reqData)
+      : await addSysOssConfigApi(reqData)
+    ElMessage.success(res.msg)
+    resetForm()
+    dialog.value.visible = false
+    emit("success")
+  } finally {
+    dialog.value.loading = false
+  }
 }
 
-/**
- * 重置表单
- */
+function handleCancel() {
+  resetForm()
+  dialog.value.visible = false
+  emit("cancel")
+}
+
 function resetForm() {
   formRef.value?.clearValidate()
   formRef.value?.resetFields()
@@ -124,7 +112,7 @@ function resetForm() {
     :title="dialog.title"
     direction="rtl"
     :size="isMobile ? '90%' : '40%'"
-    @closed="resetForm"
+    @closed="handleCancel"
     class="system-drawer"
     modal-class="system-drawer-modal"
     :lock-scroll="true"
@@ -196,10 +184,10 @@ function resetForm() {
     </div>
     <template #footer>
       <div class="drawer-footer">
-        <el-button class="btn-cancel" @click="dialog.visible = false">
+        <el-button class="btn-cancel" @click="handleCancel">
           取消
         </el-button>
-        <el-button class="btn-submit" type="primary" @click="handleCreateOrUpdate" :loading="dialog.loading" :disabled="!dialog.isEditable">
+        <el-button class="btn-submit" type="primary" @click="handleSubmit" :loading="dialog.loading" :disabled="!dialog.isEditable">
           确认
         </el-button>
       </div>

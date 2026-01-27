@@ -106,7 +106,9 @@ function handleExport() {
     `client_${timestamp}.xlsx`
   )
 }
+// #endregion
 
+// #region 弹窗操作
 /**
  * 打开新增弹窗
  */
@@ -254,7 +256,7 @@ onMounted(async () => {
     <ClientDialog
       v-model:dialog="dialog"
       v-model:form-data="formData"
-      @get-table-data="getTableData"
+      @success="getTableData"
     />
   </div>
 </template>

@@ -1,9 +1,12 @@
 <script lang="ts" setup>
 import type { MenuOptionsType } from "../index.vue"
 import { cascadeDelSysMenuApi } from "@@/apis/admin/system/menu"
-// import { useDevice } from "@@/composables/useDevice"
 import { ElMessage } from "element-plus"
 
+export interface EmitEvents {
+  (e: "success"): void
+  (e: "cancel"): void
+}
 const emit = defineEmits<EmitEvents>()
 
 /**
@@ -11,7 +14,6 @@ const emit = defineEmits<EmitEvents>()
  */
 // #region defineModel
 const dialog = defineModel<DialogOption>("dialog", { required: true })
-const menuTreeRef = defineModel<ElTreeInstance | null>("menuTreeRef", { required: true })
 const menuOptions = defineModel<MenuOptionsType[]>(
   "menuOptions",
   {
@@ -20,48 +22,39 @@ const menuOptions = defineModel<MenuOptionsType[]>(
 )
 // #endregion
 
-/**
- * EmitEvents
- */
-// #region EmitEvents
-export interface EmitEvents {
-  getTableData: []
-}
-const getTableData = () => emit("getTableData")
-// #endregion
+const menuTreeRef = ref<ElTreeInstance | null>(null)
 
-// const { isMobile } = useDevice()
-
-/**
- * 创建或更新
- */
-async function handleDeleteForm() {
+async function handleSubmit() {
   const menuIds = menuTreeRef.value?.getCheckedKeys() ?? []
   if (menuIds.length === 0) {
     ElMessage.warning("请选择要删除的菜单")
     return
   }
-
   try {
     dialog.value.loading = true
     await cascadeDelSysMenuApi(menuIds)
-    await ElMessage.success("删除成功")
-  } finally {
-    // 新增/修改操作后刷新表格
-    await getTableData()
+    ElMessage.success("删除成功")
+    resetCancelCascade()
     dialog.value.visible = false
+    emit("success")
+  } finally {
     dialog.value.loading = false
   }
 }
 
-async function resetCancelCascade() {
-  menuTreeRef.value?.setCheckedKeys([])
+function handleCancel() {
+  resetCancelCascade()
   dialog.value.visible = false
+  emit("cancel")
+}
+
+function resetCancelCascade() {
+  menuTreeRef.value?.setCheckedKeys([])
 }
 </script>
 
 <template>
-  <el-dialog v-model="dialog.visible" :title="dialog.title" @closed="resetCancelCascade" destroy-on-close append-to-bod width="750px">
+  <el-dialog v-model="dialog.visible" :title="dialog.title" @closed="handleCancel" destroy-on-close append-to-bod width="750px">
     <el-tree
       ref="menuTreeRef"
       class="tree-border"
@@ -75,10 +68,10 @@ async function resetCancelCascade() {
     />
     <template #footer>
       <div class="dialog-footer">
-        <el-button type="primary" @click="handleDeleteForm" :loading="dialog.loading">
+        <el-button type="primary" @click="handleSubmit" :loading="dialog.loading">
           确 定
         </el-button>
-        <el-button @click="resetCancelCascade">
+        <el-button @click="handleCancel">
           取 消
         </el-button>
       </div>

@@ -111,7 +111,9 @@ function handleExport() {
     `Role_${timestamp}.xlsx`
   )
 }
+// #endregion
 
+// #region 弹窗操作
 /**
  * 打开新增弹窗
  */
@@ -208,7 +210,7 @@ onMounted(async () => {
     <AuthUserDialog
       v-model:dialog="dialog"
       v-model:role-id="getRoleId"
-      @handle-ok="getTableData"
+      @success="getTableData"
     />
   </div>
 </template>

@@ -9,6 +9,10 @@ import { ElMessage } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref } from "vue"
 
+export interface EmitEvents {
+  (e: "success"): void
+  (e: "cancel"): void
+}
 const emit = defineEmits<EmitEvents>()
 
 /**
@@ -24,22 +28,10 @@ const formData = defineModel<Partial<NoticeForm>>(
 )
 // #endregion
 
-/**
- * EmitEvents
- */
-// #region EmitEvents
-export interface EmitEvents {
-  getTableData: []
-}
-const getTableData = () => emit("getTableData")
-// #endregion
-
+const { isMobile } = useDevice()
 const { sys_notice_type, sys_notice_status } = toRefs<any>(useDict("sys_notice_type", "sys_notice_status"))
 
-const { isMobile } = useDevice()
-
 const formRef = ref<FormInstance | null>(null)
-
 const formRules: FormRules<NoticeForm> = {
   noticeTitle: [
     {
@@ -57,36 +49,31 @@ const formRules: FormRules<NoticeForm> = {
   ]
 }
 
-/**
- * 创建或更新
- */
-function handleCreateOrUpdate() {
-  formRef.value?.validate(async (valid: boolean) => {
-    // (valid: boolean, fields)
-    if (valid) {
-      try {
-        dialog.value.loading = true
-        const isCreating = formData.value.noticeId === undefined
-        if (isCreating) {
-          const res = await addSysNoticeApi(formData.value as NoticeForm)
-          ElMessage.success(res.msg)
-        } else {
-          const res = await updateSysNoticeApi(formData.value as NoticeForm)
-          ElMessage.success(res.msg)
-        }
-      } finally {
-        // 新增/修改操作后刷新表格
-        await getTableData()
-        dialog.value.visible = false
-        dialog.value.loading = false
-      }
-    }
-  })
+async function handleSubmit() {
+  if (!formRef.value) return
+  try {
+    await formRef.value.validate()
+    dialog.value.loading = true
+    const isUpdate = !!formData.value.noticeId
+    const reqData = formData.value as NoticeForm
+    const res = isUpdate
+      ? await updateSysNoticeApi(reqData)
+      : await addSysNoticeApi(reqData)
+    ElMessage.success(res.msg)
+    resetForm()
+    dialog.value.visible = false
+    emit("success")
+  } finally {
+    dialog.value.loading = false
+  }
 }
 
-/**
- * 重置表单
- */
+function handleCancel() {
+  resetForm()
+  dialog.value.visible = false
+  emit("cancel")
+}
+
 function resetForm() {
   formRef.value?.clearValidate()
   formRef.value?.resetFields()
@@ -100,7 +87,7 @@ function resetForm() {
     :title="dialog.title"
     direction="rtl"
     :size="isMobile ? '90%' : '40%'"
-    @closed="resetForm"
+    @closed="handleCancel"
     class="system-drawer"
     modal-class="system-drawer-modal"
     :lock-scroll="true"
@@ -135,10 +122,10 @@ function resetForm() {
     </div>
     <template #footer>
       <div class="drawer-footer">
-        <el-button class="btn-cancel" @click="dialog.visible = false">
+        <el-button class="btn-cancel" @click="handleCancel">
           取消
         </el-button>
-        <el-button class="btn-submit" type="primary" @click="handleCreateOrUpdate" :loading="dialog.loading" :disabled="!dialog.isEditable">
+        <el-button class="btn-submit" type="primary" @click="handleSubmit" :loading="dialog.loading" :disabled="!dialog.isEditable">
           确认
         </el-button>
       </div>

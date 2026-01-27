@@ -187,7 +187,9 @@ async function handleDelete(row: MenuForm) {
     loading.value = false
   }
 }
+// #endregion
 
+// #region 弹窗操作
 /**
  * 打开新增弹窗
  */
@@ -251,7 +253,6 @@ async function openShowDialog(row: MenuForm) {
 // #endregion
 
 // #region 联删除
-const menuTreeRef = ref<ElTreeInstance | null>(null)
 const menuCascadeDeleteDialog = reactive<DialogOption>({
   title: "",
   visible: false,
@@ -357,15 +358,14 @@ onMounted(async () => {
       v-model:dialog="dialog"
       v-model:form-data="formData"
       v-model:menu-options="menuOptions"
-      @get-table-data="getTableData"
+      @success="getTableData"
     />
 
     <!-- 数据弹窗 -->
     <MenuCascadeDeleteDialog
-      v-model:menu-tree-ref="menuTreeRef"
       v-model:dialog="menuCascadeDeleteDialog"
       v-model:menu-options="menuOptions"
-      @get-table-data="getTableData"
+      @success="getTableData"
     />
   </div>
 </template>

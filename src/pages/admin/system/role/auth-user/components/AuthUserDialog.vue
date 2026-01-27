@@ -11,6 +11,10 @@ import { Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage } from "element-plus"
 import { ref } from "vue"
 
+export interface EmitEvents {
+  (e: "success"): void
+  (e: "cancel"): void
+}
 const emit = defineEmits<EmitEvents>()
 
 /**
@@ -26,35 +30,20 @@ const roleId = defineModel<number | string>(
 )
 // #endregion
 
-/**
- * EmitEvents
- */
-// #region EmitEvents
-export interface EmitEvents {
-  handleOk: []
-}
-const handleOk = () => emit("handleOk")
-// #endregion
-
 const { isMobile } = useDevice()
-
 const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 
-/**
- * 创建或更新
- */
-async function handleCreateOrUpdate() {
+async function handleSubmit() {
   const ids = selectedRows.value.map((user) => {
     return user.userId
   }).join(",")
-
   if (ids === "") {
     ElMessage.success("请选择要分配的用户")
     return
   }
   await authSysUserSelectAll({ roleId: roleId.value, userIds: ids })
   ElMessage.success("分配成功")
-  await handleOk()
+  emit("success")
   dialog.value.visible = false
 }
 
@@ -63,7 +52,6 @@ const tableData = ref<UserVO[]>([])
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
 const selectedRows = ref<UserVO[]>([])
-
 const handleSelectionChange = (val: UserVO[]) => (selectedRows.value = val)
 
 // #region 搜索栏
@@ -79,9 +67,6 @@ function resetSearch() {
 }
 // #endregion
 
-/**
- * 获取数据
- */
 async function getTableData(): Promise<void> {
   try {
     dialog.value.loading = true
@@ -98,6 +83,12 @@ async function getTableData(): Promise<void> {
   } finally {
     dialog.value.loading = false
   }
+}
+
+function handleCancel() {
+  resetSearch()
+  dialog.value.visible = false
+  emit("cancel")
 }
 
 watch(() => dialog.value.visible, () => {
@@ -163,10 +154,10 @@ watch(() => dialog.value.visible, () => {
       </div>
 
       <template #footer>
-        <el-button @click="dialog.visible = false">
+        <el-button @click="handleCancel">
           取消
         </el-button>
-        <el-button type="primary" @click="handleCreateOrUpdate" :loading="dialog.loading" :disabled="selectedRows.length === 0">
+        <el-button type="primary" @click="handleSubmit" :loading="dialog.loading" :disabled="selectedRows.length === 0">
           确认
         </el-button>
       </template>

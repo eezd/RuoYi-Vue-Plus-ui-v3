@@ -130,7 +130,9 @@ function handleExport() {
     `user_${timestamp}.xlsx`
   )
 }
+// #endregion
 
+// #region 弹窗操作
 /**
  * 打开新增弹窗
  */
@@ -354,7 +356,7 @@ onMounted(async () => {
       v-model:dialog="dialog"
       v-model:form-data="formData"
       v-model:role-options="roleOptions"
-      @get-table-data="getTableData"
+      @success="getTableData"
     />
   </div>
 </template>

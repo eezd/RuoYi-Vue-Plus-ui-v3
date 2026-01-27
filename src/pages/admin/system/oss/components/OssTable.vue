@@ -75,9 +75,8 @@ function handleImage() {
   dialog.visible = true
   dialog.title = "上传图片"
 }
-function handleCreateOrUpdate() {
+async function handleSubmit() {
   formRef.value?.validate(async (valid: boolean) => {
-    // (valid: boolean, fields)
     if (valid) {
       await getTableData()
       dialog.visible = false
@@ -204,7 +203,7 @@ async function handlePreviewListResource(preview: boolean) {
     </el-form>
     <template #footer>
       <div class="dialog-footer">
-        <el-button :loading="loading" type="primary" @click="handleCreateOrUpdate">
+        <el-button :loading="loading" type="primary" @click="handleSubmit">
           确 定
         </el-button>
         <el-button @click="dialog.visible = false">
