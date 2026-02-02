@@ -13,6 +13,12 @@ import "element-plus/theme-chalk/dark/css-vars.css"
 import "@@/assets/styles/index.scss"
 import "virtual:uno.css"
 
+// 高亮组件
+// import 'highlight.js/styles/a11y-light.css';
+import "highlight.js/styles/atom-one-dark.css"
+import "highlight.js/lib/common"
+import HighLight from "@highlightjs/vue-plugin"
+
 // 创建应用实例
 const app = createApp(App)
 
@@ -20,7 +26,7 @@ const app = createApp(App)
 installPlugins(app)
 
 // 安装 pinia 和 router
-app.use(pinia).use(router)
+app.use(HighLight).use(pinia).use(router)
 
 // router 准备就绪后挂载应用
 router.isReady().then(() => {

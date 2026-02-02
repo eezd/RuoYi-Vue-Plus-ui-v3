@@ -11,6 +11,9 @@ importers:
       '@element-plus/icons-vue':
         specifier: 2.3.1
         version: 2.3.1(vue@3.5.17(typescript@5.8.3))
+      '@highlightjs/vue-plugin':
+        specifier: 2.1.0
+        version: 2.1.0(highlight.js@11.9.0)(vue@3.5.17(typescript@5.8.3))
       '@vueup/vue-quill':
         specifier: 1.2.0
         version: 1.2.0(vue@3.5.17(typescript@5.8.3))
@@ -35,6 +38,9 @@ importers:
       file-saver:
         specifier: 2.0.5
         version: 2.0.5
+      highlight.js:
+        specifier: 11.9.0
+        version: 11.9.0
       image-conversion:
         specifier: 2.1.1
         version: 2.1.1
@@ -513,6 +519,12 @@ packages:
 
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
+
+  '@highlightjs/vue-plugin@2.1.0':
+    resolution: {integrity: sha512-E+bmk4ncca+hBEYRV2a+1aIzIV0VSY/e5ArjpuSN9IO7wBJrzUE2u4ESCwrbQD7sAy+jWQjkV5qCCWgc+pu7CQ==}
+    peerDependencies:
+      highlight.js: ^11.0.1
+      vue: ^3
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -2159,6 +2171,10 @@ packages:
   he@1.2.0:
     resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
     hasBin: true
+
+  highlight.js@11.9.0:
+    resolution: {integrity: sha512-fJ7cW7fQGCYAkgv4CPfwFHrfd/cLS4Hau96JuJ+ZTOWhjnhoeN1ub1tFmALm/+lW5z4WCAuAV9bm05AP0mS6Gw==}
+    engines: {node: '>=12.0.0'}
 
   hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
@@ -4058,6 +4074,11 @@ snapshots:
 
   '@floating-ui/utils@0.2.9': {}
 
+  '@highlightjs/vue-plugin@2.1.0(highlight.js@11.9.0)(vue@3.5.17(typescript@5.8.3))':
+    dependencies:
+      highlight.js: 11.9.0
+      vue: 3.5.17(typescript@5.8.3)
+
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.6':
@@ -5907,6 +5928,8 @@ snapshots:
       function-bind: 1.1.2
 
   he@1.2.0: {}
+
+  highlight.js@11.9.0: {}
 
   hookable@5.5.3: {}
 

@@ -291,6 +291,35 @@ export const dynamicRoutes: RouteRecordRaw[] = [
             }
           }
         ]
+      },
+      {
+        path: "tool",
+        meta: {
+          title: "系统工具",
+          svgIcon: "tool"
+        },
+        children: [
+          {
+            path: "gen",
+            component: () => import("@/pages/admin/tool/gen/index.vue"),
+            name: "AdminToolGen",
+            meta: {
+              title: "代码生成",
+              svgIcon: "code",
+              permissions: ["tool:gen:list"]
+            }
+          },
+          {
+            path: "gen-edit/:tableId",
+            component: () => import("@/pages/admin/tool/gen-edit/index.vue"),
+            name: "AdminToolGenEdit",
+            meta: {
+              title: "修改生成配置",
+              hidden: true,
+              permissions: ["tool:gen:edit"]
+            }
+          }
+        ]
       }
     ]
   }
