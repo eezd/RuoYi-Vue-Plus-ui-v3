@@ -3,8 +3,8 @@ export interface TableVO extends BaseEntity {
   dataName: string
   tableName: string
   tableComment: string
-  subTableName?: any
-  subTableFkName?: any
+  subTableName: any
+  subTableFkName: any
   className: string
   tplCategory: string
   packageName: string
@@ -14,16 +14,16 @@ export interface TableVO extends BaseEntity {
   functionAuthor: string
   genType: string
   genPath: string
-  pkColumn?: any
-  columns?: any
-  options?: any
-  remark?: any
-  treeCode?: any
-  treeParentCode?: any
-  treeName?: any
-  menuIds?: any
-  parentMenuId?: any
-  parentMenuName?: any
+  pkColumn: any
+  columns: any
+  options: any
+  remark: any
+  treeCode: any
+  treeParentCode: any
+  treeName: any
+  menuIds: any
+  parentMenuId: any
+  parentMenuName: any
   tree: boolean
   crud: boolean
 }
@@ -39,26 +39,26 @@ export interface TableQuery extends PageQuery {
 }
 
 export interface DbColumnVO extends BaseEntity {
-  columnId?: any
-  tableId?: any
-  columnName?: any
-  columnComment?: any
-  columnType?: any
-  javaType?: any
-  javaField?: any
-  isPk?: any
-  isIncrement?: any
-  isRequired?: any
-  isInsert?: any
-  isEdit?: any
-  isList?: any
-  isQuery?: any
-  queryType?: any
-  htmlType?: any
-  dictType?: any
-  sort?: any
+  columnId: any
+  tableId: any
+  columnName: any
+  columnComment: any
+  columnType: any
+  javaType: any
+  javaField: any
+  isPk: any
+  isIncrement: any
+  isRequired: any
+  isInsert: any
+  isEdit: any
+  isList: any
+  isQuery: any
+  queryType: any
+  htmlType: any
+  dictType: any
+  sort: any
   increment: boolean
-  capJavaField?: any
+  capJavaField: any
   usableColumn: boolean
   superColumn: boolean
   list: boolean
@@ -70,30 +70,30 @@ export interface DbColumnVO extends BaseEntity {
 }
 
 export interface DbTableVO {
-  tableId?: any
+  tableId: any
   tableName: string
   tableComment: string
-  subTableName?: any
-  subTableFkName?: any
-  className?: any
-  tplCategory?: any
-  packageName?: any
-  moduleName?: any
-  businessName?: any
-  functionName?: any
-  functionAuthor?: any
-  genType?: any
-  genPath?: any
-  pkColumn?: any
+  subTableName: any
+  subTableFkName: any
+  className: any
+  tplCategory: any
+  packageName: any
+  moduleName: any
+  businessName: any
+  functionName: any
+  functionAuthor: any
+  genType: any
+  genPath: any
+  pkColumn: any
   columns: DbColumnVO[]
-  options?: any
-  remark?: any
-  treeCode?: any
-  treeParentCode?: any
-  treeName?: any
-  menuIds?: any
-  parentMenuId?: any
-  parentMenuName?: any
+  options: any
+  remark: any
+  treeCode: any
+  treeParentCode: any
+  treeName: any
+  menuIds: any
+  parentMenuId: any
+  parentMenuName: any
   tree: boolean
   crud: boolean
 }
@@ -111,7 +111,6 @@ export interface GenTableVO {
 }
 
 export interface DbColumnForm extends BaseEntity {
-  createDept: number
   columnId: string
   tableId: string
   columnName: string
@@ -122,10 +121,10 @@ export interface DbColumnForm extends BaseEntity {
   isPk: string
   isIncrement: string
   isRequired: string
-  isInsert?: any
+  isInsert: any
   isEdit: string
   isList: string
-  isQuery?: any
+  isQuery: any
   queryType: string
   htmlType: string
   dictType: string
@@ -143,19 +142,18 @@ export interface DbColumnForm extends BaseEntity {
 }
 
 export interface DbParamForm {
-  treeCode?: any
-  treeName?: any
-  treeParentCode?: any
+  treeCode: any
+  treeName: any
+  treeParentCode: any
   parentMenuId: string
 }
 
 export interface DbTableForm extends BaseEntity {
-  createDept?: any
   tableId: string | string
   tableName: string
   tableComment: string
-  subTableName?: any
-  subTableFkName?: any
+  subTableName: any
+  subTableFkName: any
   className: string
   tplCategory: string
   packageName: string
@@ -165,16 +163,16 @@ export interface DbTableForm extends BaseEntity {
   functionAuthor: string
   genType: string
   genPath: string
-  pkColumn?: any
+  pkColumn: any
   columns: DbColumnForm[]
   options: string
-  remark?: any
-  treeCode?: any
-  treeParentCode?: any
-  treeName?: any
-  menuIds?: any
+  remark: any
+  treeCode: any
+  treeParentCode: any
+  treeName: any
+  menuIds: any
   parentMenuId: string
-  parentMenuName?: any
+  parentMenuName: any
   tree: boolean
   crud: boolean
   params: DbParamForm

@@ -7,7 +7,7 @@ import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref, watch } from "vue"
-import { delSysGenTable, genSysGenCode, getSysGenDataNames, getSysGenListApi, previewSysGenTable } from "@/common/apis/admin/tool/gen"
+import { delSysGenTable, genSysGenCode, getSysGenDataNames, getSysGenListApi, previewSysGenTable, synchSysGenDb } from "@/common/apis/admin/tool/gen"
 import { downloadZip } from "@/http/download"
 import DataDialog from "./components/DataDialog.vue"
 import DataTable from "./components/DataTable.vue"
@@ -152,6 +152,24 @@ async function handleGenTable(row: TableVO) {
     downloadZip(`/tool/gen/batchGenCode?tableIdStr=${tbIds}`, "ruoyi.zip")
   }
 }
+
+/**
+ * 同步数据库操作
+ */
+async function handleSynchDb(row: TableVO) {
+  const tableId = row.tableId
+  ElMessageBox.confirm(
+    `确认要强制同步"${row.tableName}"表结构吗？`,
+    "提示",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  )
+  await synchSysGenDb(tableId)
+  ElMessage.success("同步成功")
+}
 // #endregion
 
 // #region 弹窗操作
@@ -263,7 +281,7 @@ onMounted(async () => {
             size="small"
             @click="openShowDialog(scope.row)"
           >
-            查看
+            预览
           </el-button>
           <el-dropdown trigger="hover">
             <span class="el-dropdown-link">
@@ -282,6 +300,12 @@ onMounted(async () => {
                     <Delete />
                   </el-icon>
                   删除
+                </el-dropdown-item>
+                <el-dropdown-item @click="handleSynchDb(scope.row)" :disabled="!checkPermission(['tool:gen:edit'])">
+                  <el-icon color="#409EFF">
+                    <Refresh />
+                  </el-icon>
+                  同步
                 </el-dropdown-item>
                 <el-dropdown-item @click="handleGenTable(scope.row)" :disabled="!checkPermission(['tool:gen:code'])">
                   <el-icon color="#409EFF">

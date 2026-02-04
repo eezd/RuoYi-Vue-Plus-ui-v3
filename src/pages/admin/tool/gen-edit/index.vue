@@ -1,6 +1,6 @@
 <script setup name="GenEdit" lang="ts">
 import type { DictTypeVO } from "@/common/apis/admin/system/dict/type/types"
-import type { DbColumnVO, DbTableVO } from "@/common/apis/admin/tool/gen/types"
+import type { DbColumnVO, DbTableForm, DbTableVO } from "@/common/apis/admin/tool/gen/types"
 import { ElTable } from "element-plus"
 import { getSysDictOptionSelectApi } from "@/common/apis/admin/system/dict/type"
 import { getSysGenApi, updateSysGenTableApi } from "@/common/apis/admin/tool/gen"
@@ -11,8 +11,6 @@ import GenInfoForm from "./components/GenInfoForm.vue"
 const route = useRoute()
 const router = useRouter()
 const tagsViewStore = useTagsViewStore()
-
-const dragTable = ref<InstanceType<typeof ElTable>>()
 
 const loading = ref(true)
 
@@ -27,40 +25,42 @@ const basicInfo = ref<InstanceType<typeof BasicInfoForm>>()
 const genInfo = ref<InstanceType<typeof GenInfoForm>>()
 
 /** 提交按钮 */
-function submitForm() {
-  const basicForm = basicInfo.value?.$refs.basicInfoForm
-  const genForm = genInfo.value?.$refs.genInfoForm
-
-  console.log(basicForm, genForm)
-
-  Promise.all([basicForm, genForm].map(getFormPromise)).then(async (res) => {
-    const validateResult = res.every(item => !!item)
-    if (validateResult) {
-      const genTable: any = Object.assign({}, info.value)
-      genTable.columns = columns.value
-      genTable.params = {
-        treeCode: info.value?.treeCode,
-        treeName: info.value.treeName,
-        treeParentCode: info.value.treeParentCode,
-        parentMenuId: info.value.parentMenuId
-      }
-      const response = await updateSysGenTableApi(genTable)
-      ElMessage.success(response.msg)
-      if (response.code === 200) {
-        close()
-      }
-    } else {
-      // proxy?.$modal.msgError('表单校验未通过，请重新检查提交内容');
+async function submitForm() {
+  loading.value = true
+  try {
+    const [basicOk, genOk] = await Promise.all([
+      basicInfo.value?.validate() ?? Promise.resolve(true),
+      genInfo.value?.validate() ?? Promise.resolve(true)
+    ])
+    if (!basicOk || !genOk) {
+      ElMessage.error("表单校验未通过，请重新检查提交内容")
+      return
     }
-  })
+    const genTable = buildGenTablePayload()
+    const response = await updateSysGenTableApi(genTable as DbTableForm)
+    ElMessage.success(response.msg)
+    if (response.code === 200) close()
+  } catch (err) {
+    ElMessage.error("提交失败，请稍后重试")
+    console.error(err)
+  } finally {
+    loading.value = false
+  }
 }
-function getFormPromise(form: any) {
-  return new Promise((resolve) => {
-    form.validate((res: any) => {
-      resolve(res)
-    })
-  })
+
+function buildGenTablePayload() {
+  return {
+    ...info.value,
+    columns: columns.value,
+    params: {
+      treeCode: info.value?.treeCode,
+      treeName: info.value.treeName,
+      treeParentCode: info.value.treeParentCode,
+      parentMenuId: info.value.parentMenuId
+    }
+  }
 }
+
 function close() {
   tagsViewStore.delVisitedView(router.currentRoute.value)
   router.back()
@@ -83,13 +83,13 @@ function close() {
 </script>
 
 <template>
-  <el-card v-loading="loading">
+  <el-card v-loading="loading" class="min-w-[1280px]">
     <el-tabs v-model="activeName">
       <el-tab-pane label="基本信息" name="basic">
-        <BasicInfoForm ref="basicInfo" :info="info" />
+        <BasicInfoForm ref="basicInfo" v-model:info="info" />
       </el-tab-pane>
       <el-tab-pane label="字段信息" name="columnInfo">
-        <ElTable ref="dragTable" border :data="columns" row-key="columnId" :max-height="tableHeight">
+        <ElTable border :data="columns" row-key="columnId" :max-height="tableHeight">
           <el-table-column label="序号" type="index" min-width="5%" />
           <el-table-column label="字段列名" prop="columnName" min-width="10%" :show-overflow-tooltip="true" />
           <el-table-column label="字段描述" min-width="10%">
@@ -184,7 +184,7 @@ function close() {
         </ElTable>
       </el-tab-pane>
       <el-tab-pane label="生成信息" name="genInfo">
-        <GenInfoForm ref="genInfo" :info="info" :tables="tables" />
+        <GenInfoForm ref="genInfo" v-model:info="info" v-model:tables="tables" />
       </el-tab-pane>
     </el-tabs>
     <el-form label-width="100px">

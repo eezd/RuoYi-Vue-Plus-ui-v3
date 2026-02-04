@@ -1,27 +1,35 @@
 <script setup lang="ts">
 import { ElForm } from "element-plus"
-import propTypes from "@/common/utils/propTypes"
 
-interface MenuOptionsType {
-  menuId: number | string
-  menuName: string
-  children?: MenuOptionsType[]
+// interface MenuOptionsType {
+//   menuId: number | string
+//   menuName: string
+//   children?: MenuOptionsType[]
+// }
+
+interface Info {
+  tplCategory?: string
+  packageName?: string
+  moduleName?: string
+  businessName?: string
+  functionName?: string
+  genType?: string
+  genPath?: string
+  parentMenuId?: number | string
+  subTableName?: string
+  subTableFkName?: string
+  treeCode?: string
+  treeParentCode?: string
+  treeName?: string
+  columns?: any[]
 }
-const props = defineProps({
-  info: propTypes.any.isRequired,
-  tables: propTypes.any.isRequired
-})
-
-// const { proxy } = getCurrentInstance()
+const infoForm = defineModel<Info>("info", { required: true })
+const table = defineModel<any>("tables", { required: true })
 
 const genInfoForm = ref<InstanceType<typeof ElForm>>()
 
 const subColumns = ref<any>([])
-const menuOptions = ref<Array<MenuOptionsType>>([])
-
-const infoForm = computed(() => props.info)
-
-const table = computed(() => props.tables)
+// const menuOptions = ref<Array<MenuOptionsType>>([])
 
 // 表单校验
 const rules = ref({
@@ -40,7 +48,11 @@ function tplSelectChange(value: string) {
     infoForm.value.subTableFkName = ""
   }
 }
-function setSubTableColumns(value: string) {
+function setSubTableColumns(value: string | undefined) {
+  if (!value) {
+    subColumns.value = []
+    return
+  }
   table.value.forEach((item: any) => {
     const name = item.tableName
     if (value === name) {
@@ -50,24 +62,38 @@ function setSubTableColumns(value: string) {
 }
 
 /** 查询菜单下拉树结构 */
-async function getMenuTreeselect() {
-  // const res = await listMenu()
-  // const data = proxy?.handleTree<MenuOptionsType>(res.data, "menuId")
+// async function getMenuTreeselect() {
+//   const res = await listMenu()
+//   const data = proxy?.handleTree<MenuOptionsType>(res.data, "menuId")
 
-  // if (data) {
-  //   menuOptions.value = data
-  // }
+//   if (data) {
+//     menuOptions.value = data
+//   }
+// }
+
+async function validate(): Promise<boolean> {
+  if (!genInfoForm.value) return true
+  try {
+    await genInfoForm.value.validate()
+    return true
+  } catch {
+    return false
+  }
 }
 
 watch(
-  () => props.info.subTableName,
+  () => infoForm.value.subTableName,
   (val) => {
     setSubTableColumns(val)
   }
 )
 
-onMounted(() => {
-  getMenuTreeselect()
+// onMounted(() => {
+//   getMenuTreeselect()
+// })
+
+defineExpose({
+  validate
 })
 </script>
 
@@ -81,7 +107,7 @@ onMounted(() => {
           </template>
           <el-select v-model="infoForm.tplCategory" @change="tplSelectChange">
             <el-option label="单表（增删改查）" value="crud" />
-            <el-option label="树表（增删改查）" value="tree" />
+            <!-- <el-option label="树表（增删改查）" value="tree" /> -->
           </el-select>
         </el-form-item>
       </el-col>
@@ -134,7 +160,7 @@ onMounted(() => {
         </el-form-item>
       </el-col>
 
-      <el-col :span="12">
+      <!-- <el-col :span="12">
         <el-form-item>
           <template #label>
             上级菜单
@@ -155,7 +181,7 @@ onMounted(() => {
             highlight-current
           />
         </el-form-item>
-      </el-col>
+      </el-col> -->
 
       <el-col :span="12">
         <el-form-item prop="genType">

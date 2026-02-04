@@ -1,26 +1,42 @@
 <script setup lang="ts">
 import { ElForm } from "element-plus"
-import propTypes from "@/common/utils/propTypes"
 
-const prop = defineProps({
-  info: propTypes.any.def({})
-})
+interface Info {
+  tableName?: string
+  tableComment?: string
+  className?: string
+  functionAuthor?: string
+  remark?: string
+}
 
-const infoForm = computed(() => prop.info)
+const infoForm = defineModel<Info>("info", { required: true })
 
 const basicInfoForm = ref<InstanceType<typeof ElForm>>()
 
-// 表单校验
 const rules = ref({
   tableName: [{ required: true, message: "请输入表名称", trigger: "blur" }],
   tableComment: [{ required: true, message: "请输入表描述", trigger: "blur" }],
   className: [{ required: true, message: "请输入实体类名称", trigger: "blur" }],
   functionAuthor: [{ required: true, message: "请输入作者", trigger: "blur" }]
 })
+
+async function validate(): Promise<boolean> {
+  if (!basicInfoForm.value) return true
+  try {
+    await basicInfoForm.value.validate()
+    return true
+  } catch {
+    return false
+  }
+}
+
+defineExpose({
+  validate
+})
 </script>
 
 <template>
-  <ElForm ref="basicInfoForm" :model="infoForm" :rules="rules" label-width="150px">
+  <ElForm ref="basicInfoForm" :model="info" :rules="rules" label-width="150px">
     <el-row>
       <el-col :span="12">
         <el-form-item label="表名称" prop="tableName">

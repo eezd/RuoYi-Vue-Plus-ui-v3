@@ -2,7 +2,6 @@
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import type { TableVO } from "@/common/apis/admin/tool/gen/types"
 import { useDevice } from "@@/composables/useDevice.ts"
-import { useDict } from "@@/composables/useDict.ts"
 import { formatDateTime } from "@@/utils"
 import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, Edit, RefreshRight } from "@element-plus/icons-vue"
@@ -38,8 +37,6 @@ const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
 const getTableData = () => emit("getTableData")
 // #endregion
 
-const { sys_yes_no } = toRefs<any>(useDict("sys_yes_no"))
-
 const { isMobile } = useDevice()
 
 const selectedRows = ref<TableVO[]>([])
@@ -54,7 +51,7 @@ const handleSelectionChange = (val: TableVO[]) => (selectedRows.value = val)
         <el-button
           type="info"
           :icon="CirclePlus"
-          :disabled="!checkPermission(['tool:gen:import'])"
+          :disabled="!checkPermission(['tool:gen:code'])"
           @click="openImportDialog()"
         >
           生成
