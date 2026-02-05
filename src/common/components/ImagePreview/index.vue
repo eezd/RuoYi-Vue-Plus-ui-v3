@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import propTypes from "@/common/utils/propTypes"
-
+/**
+ * defineProps
+ */
+// #region defineProps
 const props = defineProps({
-  src: propTypes.string.def(""),
-  width: {
-    type: [Number, String],
-    default: ""
-  },
-  height: {
-    type: [Number, String],
-    default: ""
-  }
+  src: { type: String, default: "" },
+  width: { type: [Number, String], default: "" },
+  height: { type: [Number, String], default: "" }
 })
+// #endregion
 
 const realSrc = computed(() => {
   if (!props.src) {

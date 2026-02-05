@@ -61,7 +61,7 @@ const formRules: FormRules<any> = {
   file: [{ required: true, message: "文件不能为空", trigger: "blur" }]
 }
 function handleFile() {
-  formData.value = { file: undefined }
+  formData.value = { file: "" }
   formRef.value?.resetFields()
   type.value = 0
   dialog.visible = true
@@ -69,7 +69,7 @@ function handleFile() {
 }
 
 function handleImage() {
-  formData.value = { file: undefined }
+  formData.value = { file: "" }
   formRef.value?.resetFields()
   type.value = 1
   dialog.visible = true
@@ -82,6 +82,10 @@ async function handleSubmit() {
       dialog.visible = false
     }
   })
+}
+
+function handleDialogClosed() {
+  formData.value = { file: "" }
 }
 
 function checkFileSuffix(fileSuffix: string | string[]) {
@@ -194,12 +198,14 @@ async function handlePreviewListResource(preview: boolean) {
       />
     </div>
   </el-card>
+  {{ formData }}
   <!-- 添加或修改OSS对象存储对话框 -->
-  <el-dialog v-model="dialog.visible" :title="dialog.title" width="500px" append-to-body>
+  <el-dialog v-model="dialog.visible" @closed="handleDialogClosed" :title="dialog.title" width="500px" append-to-body>
+    {{ formData }}
     <el-form ref="formRef" :model="formData" :rules="formRules" label-width="80px">
       <el-form-item label="文件名">
-        <FileUpload v-if="type === 0" v-model="formData.file" />
-        <ImageUpload v-if="type === 1" v-model="formData.file" />
+        <FileUpload v-if="type === 0" v-model:file-ids="formData.file" />
+        <ImageUpload v-if="type === 1" v-model:file-ids="formData.file" />
       </el-form-item>
     </el-form>
     <template #footer>

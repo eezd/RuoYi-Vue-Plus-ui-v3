@@ -1,283 +1,239 @@
 <script setup lang="ts">
-import type { OssVO } from "@/common/apis/admin/system/oss/types"
+import type { UploadInstance, UploadProps, UploadUserFile } from "element-plus"
+import { ElMessage } from "element-plus"
 import { compressAccurately } from "image-conversion"
 import { delSysOssApi, getSysOssByIdsApi } from "@/common/apis/admin/system/oss"
-import propTypes from "@/common/utils/propTypes"
 import { globalHeaders } from "@/http/axios"
 
+/**
+ * defineProps
+ */
+// #region defineProps
 const props = defineProps({
-  /** v-model 绑定值 */
-  modelValue: {
-    type: [String, Object, Array],
-    default: () => []
-  },
-  /** 图片数量上限，默认 5 张 */
-  limit: propTypes.number.def(5),
+  /** 文件数量上限，默认 5 张 */
+  limit: { type: Number, default: 5 },
   /** 文件大小限制（MB），默认 5MB */
-  fileSize: propTypes.number.def(5),
-  /** 允许的文件类型，如 ['png', 'jpg', 'jpeg'] */
-  fileType: propTypes.array.def(["png", "jpg", "jpeg"]),
+  fileSize: { type: Number, default: 5 },
+  /** 允许的文件类型 */
+  fileType: { type: Array as PropType<string[]>, default: () => ["png", "jpg", "jpeg"] },
   /** 是否显示上传提示信息，默认显示 */
-  isShowTip: {
-    type: Boolean,
-    default: true
-  },
+  isShowTip: { type: Boolean, default: true },
   /** 是否启用图片压缩功能，默认关闭 */
-  compressSupport: {
-    type: Boolean,
-    default: false
-  },
+  compressSupport: { type: Boolean, default: false },
   /**
    * 图片压缩目标大小（KB）
    * 超过此大小的图片会被压缩到此大小以内
    * 默认 300KB
    */
-  compressTargetSize: propTypes.number.def(300)
+  compressTargetSize: { type: Number, default: 300 }
 })
+// #endregion
 
-const emit = defineEmits(["update:modelValue"])
+/**
+ * defineModel
+ */
+// #region defineModel
+const fileIds = defineModel<string>("fileIds", { required: true })
+const loading = defineModel<boolean>("loading", { default: false })
+const loadingText = defineModel<string>("loadingText", { default: "" })
+// #endregion
 
-/** 当前正在上传的文件数量计数器 */
-const number = ref(0)
-/** 临时存储上传成功的文件列表 */
-const uploadList = ref<any[]>([])
-/** 预览对话框中显示的图片 URL */
-const dialogImageUrl = ref("")
-/** 控制预览对话框的显示/隐藏 */
-const dialogVisible = ref(false)
-/** Element Plus Upload 组件实例引用 */
-const imageUploadRef = ref<ElUploadInstance>()
-/** 展示的文件列表（包含 name, url, ossId） */
-const fileList = ref<any[]>([])
-
-/** 上传服务器地址 */
-const baseUrl = import.meta.env.VITE_BASE_URL
-const uploadImgUrl = ref(`${baseUrl}/resource/oss/upload`)
-
+const uploadImgUrl = ref(`${import.meta.env.VITE_BASE_URL}/resource/oss/upload`)
 const headers = ref(globalHeaders())
+// 绑定的文件列表
+const fileList = ref<UploadUserFile[]>([])
+const imageUploadRef = useTemplateRef<UploadInstance>("useTemplateRef")
+const dialogImageUrl = ref("")
+const dialogVisible = ref(false)
 
-/**
- * 是否显示上传提示
- * 需要 isShowTip 为 true 且配置了 fileType 或 fileSize 时才显示
- */
+// 防止内部更新触发 watch 导致的闪烁
+const isInnerUpdate = ref(false)
+
 const showTip = computed(() => props.isShowTip && (props.fileType || props.fileSize))
-
-/**
- * 根据 fileType 生成 accept 属性值
- * 例如：['png', 'jpg'] => '.png,.jpg'
- */
 const fileAccept = computed(() => props.fileType.map(type => `.${type}`).join(","))
 
-let loadingInstance: ReturnType<typeof ElLoading.service> | null = null
-
 watch(
-  () => props.modelValue,
-  async (val: any) => {
-    if (val) {
-      let list: OssVO[] = []
-      if (Array.isArray(val)) {
-        list = val as OssVO[]
-      } else {
-        const res = await getSysOssByIdsApi(val)
-        list = res.data
-      }
-      fileList.value = list.map((item) => {
-        if (typeof item === "string") {
-          return { name: item, url: item }
-        } else {
-          return {
-            name: item.ossId,
-            url: item.url,
-            ossId: item.ossId
-          }
-        }
-      })
-    } else {
+  () => fileIds.value,
+  async (val) => {
+    // 如果是内部上传/删除引起的变化，不重新请求 API，防止闪烁
+    if (isInnerUpdate.value) {
+      isInnerUpdate.value = false
+      return
+    }
+
+    const ids = (val ?? "").trim()
+    if (!ids) {
       fileList.value = []
+      return
+    }
+
+    // 只有外部传入新 ID 时才请求接口
+    try {
+      const res = await getSysOssByIdsApi(ids)
+      const data = res?.data
+      const list = Array.isArray(data) ? data : data ? [data] : []
+
+      // 映射回 el-upload 需要的格式
+      fileList.value = list.map((item: any) => ({
+        name: item.originalName,
+        url: item.url,
+        ossId: item.ossId,
+        uid: item.ossId || Date.now()
+      })) as UploadUserFile[]
+    } catch (e) {
+      console.error("获取图片列表失败:", e)
     }
   },
-  { deep: true, immediate: true }
+  { immediate: true }
 )
 
-// ==================== 上传前处理 ====================
-// eslint-disable-next-line jsdoc/require-returns-check
 /**
- * 文件上传前的验证和处理
- * @param file 待上传的文件对象
- * @returns {boolean|Promise} 返回 false 则阻止上传，返回 Promise 则用压缩后的文件
+ * 核心逻辑：从当前 fileList 提取 ossId 并更新 fileIds
+ * 同时设置 isInnerUpdate = true 阻止 watch 再次请求
  */
-function handleBeforeUpload(file: any) {
-  let isImg = false
-  if (props.fileType.length) {
-    let fileExtension = ""
-    if (file.name.includes(".")) {
-      const dotIndex = file.name.lastIndexOf(".")
-      fileExtension = file.name.slice(dotIndex + 1)
-    }
-    isImg = props.fileType.some((type: any) => {
-      if (file.type?.includes(type)) return true
-      if (fileExtension && fileExtension.includes(type)) return true
-      return false
-    })
-  } else {
-    isImg = file.type?.includes("image")
+function updateModelValue() {
+  const ids = fileList.value
+    .map((file: any) => file.ossId || (file.response?.data?.ossId))
+    .filter(id => id) // 过滤掉无效 ID
+    .join(",")
+
+  if (fileIds.value !== ids) {
+    isInnerUpdate.value = true // 标记为内部更新
+    fileIds.value = ids
   }
+}
+
+/** 上传前校验与压缩 */
+const handleBeforeUpload: UploadProps["beforeUpload"] = async (file) => {
+  // 1. 格式校验
+  const fileName = file.name
+  const fileExtension = fileName.slice(fileName.lastIndexOf(".") + 1)
+  const isImg = props.fileType.some(type =>
+    file.type.includes(type) || fileExtension.toLowerCase() === type.toLowerCase()
+  )
 
   if (!isImg) {
-    ElMessage.error(`文件格式不正确, 请上传 ${props.fileType.join("/")} 图片格式文件!`)
+    ElMessage.error(`文件格式不正确, 请上传 ${props.fileType.join("/")} 图片!`)
     return false
   }
-  if (file.name.includes(",")) {
-    ElMessage.error("文件名不正确，不能包含英文逗号!")
+  if (props.fileSize && file.size / 1024 / 1024 > props.fileSize) {
+    ElMessage.error(`上传图片大小不能超过 ${props.fileSize} MB!`)
     return false
   }
-  if (props.fileSize) {
-    const isLt = file.size / 1024 / 1024 < props.fileSize
-    if (!isLt) {
-      ElMessage.error(`上传图片大小不能超过 ${props.fileSize} MB!`)
+
+  // 2. 压缩处理
+  if (props.compressSupport && file.size / 1024 > props.compressTargetSize) {
+    loading.value = true
+    loadingText.value = "正在压缩图片，请稍候..."
+    try {
+      const blob = await compressAccurately(file, props.compressTargetSize)
+      // 需要将 blob 转回 File 对象，否则 element-plus 可能无法正确识别 uid
+      const compressedFile = new File([blob], fileName, { type: blob.type })
+      return compressedFile
+    } catch {
+      loading.value = false
+      ElMessage.error("图片压缩失败")
       return false
     }
   }
 
-  // 当开启压缩且文件大小超过压缩阈值时进行压缩
-  if (props.compressSupport && file.size / 1024 > props.compressTargetSize) {
-    loadingInstance?.close()
-    loadingInstance = ElLoading.service({ text: "正在上传图片，请稍候..." })
-    number.value++
-    // 返回压缩后的文件 Promise
-    return compressAccurately(file, props.compressTargetSize)
-  } else {
-    // 不需要压缩，直接上传
-    loadingInstance?.close()
-    loadingInstance = ElLoading.service({ text: "正在上传图片，请稍候..." })
-    number.value++
-  }
+  loading.value = true
+  loadingText.value = "正在上传图片..."
+  return true
 }
 
-/**
- * 当文件数量超过限制时触发
- */
-function handleExceed() {
-  ElMessage.error(`上传文件数量不能超过 ${props.limit} 个!`)
-}
+/** 上传成功 */
+const handleUploadSuccess: UploadProps["onSuccess"] = (res, file, uploadFiles) => {
+  loading.value = false
 
-/**
- * 文件上传成功后的处理
- * @param res 服务器返回的响应数据
- * @param file 上传的文件对象
- */
-function handleUploadSuccess(res: any, file: UploadFile) {
   if (res.code === 200) {
-    uploadList.value.push({
-      name: res.data.fileName,
-      url: res.data.url,
-      ossId: res.data.ossId
-    })
-    uploadedSuccessfully()
+    // 关键：将后端返回的 ossId 挂载到 file 对象上
+    // uploadFiles 是当前控件内的所有文件列表（包含之前的和新上传的）
+    const successFile = uploadFiles.find(f => f.uid === file.uid)
+    if (successFile) {
+      (successFile as any).ossId = res.data.ossId;
+      (successFile as any).url = res.data.url
+    }
+
+    // 更新 fileList 并触发 v-model 更新
+    fileList.value = uploadFiles
+    updateModelValue()
+    ElMessage.success("上传成功")
   } else {
-    // 上传失败，回滚计数器并移除文件
-    number.value--
-    loadingInstance?.close()
-    ElMessage.error(res.msg)
-    imageUploadRef.value?.handleRemove(file)
-    uploadedSuccessfully()
+    // 失败处理：从列表中移除该文件
+    const index = fileList.value.findIndex(f => f.uid === file.uid)
+    if (index !== -1) fileList.value.splice(index, 1)
+    ElMessage.error(res.msg || "上传失败")
   }
 }
 
-/**
- * 删除文件前的处理
- * @param file 要删除的文件对象
- * @returns {boolean} 返回 false 阻止默认删除行为
- */
-function handleDelete(file: UploadFile): boolean {
-  const findex = fileList.value.map(f => f.name).indexOf(file.name)
-
-  // 如果文件存在且所有上传已完成
-  if (findex > -1 && uploadList.value.length === number.value) {
-    const ossId = fileList.value[findex].ossId
-    delSysOssApi(ossId)
-    fileList.value.splice(findex, 1)
-    emit("update:modelValue", listToString(fileList.value))
-    return false // 阻止 el-upload 的默认删除行为
-  }
-  return true // 允许默认删除行为
+/** 上传失败 */
+const handleUploadError: UploadProps["onError"] = () => {
+  loading.value = false
+  ElMessage.error("上传发生错误")
 }
 
-/**
- * 检查所有文件是否上传完成
- * 完成后合并文件列表并触发 v-model 更新
- */
-function uploadedSuccessfully() {
-  if (number.value > 0 && uploadList.value.length === number.value) {
-    fileList.value = fileList.value
-      .filter(f => f.url !== undefined) // 过滤掉无效文件
-      .concat(uploadList.value) // 合并新上传的文件
+/** 删除文件 */
+const handleDelete: UploadProps["beforeRemove"] = async (file) => {
+  const ossId = (file as any).ossId
 
-    uploadList.value = []
-    number.value = 0
+  // 如果是刚上传还是 loading 状态或者没有 ossId，直接移除即可
+  if (!ossId) return true
 
-    emit("update:modelValue", listToString(fileList.value))
-
-    loadingInstance?.close()
+  try {
+    // 必须调接口删除成功才从 UI 移除
+    // 如果你希望表单提交时才删除，这里可以去掉 API 调用
+    loading.value = true
+    loadingText.value = "正在删除..."
+    await delSysOssApi(ossId)
+    loading.value = false
+    return true
+  } catch {
+    ElMessage.error("删除失败")
+    return false // 阻止移除
   }
 }
 
-/**
- * 文件上传失败的处理
- */
-function handleUploadError() {
-  ElMessage.error("上传图片失败")
-  loadingInstance?.close()
+/** 移除文件后的回调（处理数据同步） */
+const handleRemove: UploadProps["onRemove"] = (file, uploadFiles) => {
+  fileList.value = uploadFiles
+  updateModelValue()
 }
 
-/**
- * 点击图片预览
- * @param file 要预览的文件对象
- */
-function handlePictureCardPreview(file: any) {
-  dialogImageUrl.value = file.url
+/** 超限提示 */
+const handleExceed: UploadProps["onExceed"] = () => {
+  ElMessage.warning(`最多只能上传 ${props.limit} 张图片`)
+}
+
+/** 预览 */
+const handlePictureCardPreview: UploadProps["onPreview"] = (file) => {
+  dialogImageUrl.value = file.url!
   dialogVisible.value = true
 }
 
-/**
- * 将文件列表转换为以分隔符连接的 ossId 字符串
- * @param list 文件对象数组
- * @param separator 分隔符，默认为逗号
- * @returns {string} ossId 字符串，如 "id1,id2,id3"
- */
-function listToString(list: any[], separator?: string): string {
-  let strs = ""
-  separator = separator || ","
-
-  for (const i in list) {
-    // 只处理有效的 ossId（非 undefined 且非 blob URL）
-    if (undefined !== list[i].ossId && list[i].url.indexOf("blob:") !== 0) {
-      strs += list[i].ossId + separator
-    }
-  }
-
-  // 移除末尾多余的分隔符
-  return strs !== "" ? strs.substring(0, strs.length - 1) : ""
-}
+defineExpose({
+  imageUploadRef
+})
 </script>
 
 <template>
-  <div class="component-upload-image">
+  <div class="component-upload-image" v-loading="loading" :element-loading-text="loadingText">
     <el-upload
       ref="imageUploadRef"
       multiple
-      :action="uploadImgUrl"
+      v-model:file-list="fileList"
       list-type="picture-card"
-      :on-success="handleUploadSuccess"
-      :before-upload="handleBeforeUpload"
+      :action="uploadImgUrl"
+      :headers="headers"
       :limit="limit"
       :accept="fileAccept"
+      :show-file-list="true"
+      :before-upload="handleBeforeUpload"
+      :on-success="handleUploadSuccess"
       :on-error="handleUploadError"
       :on-exceed="handleExceed"
       :before-remove="handleDelete"
-      :show-file-list="true"
-      :headers="headers"
-      :file-list="fileList"
+      :on-remove="handleRemove"
       :on-preview="handlePictureCardPreview"
       :class="{ hide: fileList.length >= limit }"
     >
@@ -289,23 +245,18 @@ function listToString(list: any[], separator?: string): string {
     <div v-if="showTip" class="el-upload__tip">
       请上传
       <template v-if="fileSize">
-        大小不超过 <b style="color: #f56c6c">{{ fileSize }}MB</b>
+        大小不超过 <b class="text-danger">{{ fileSize }}MB</b>
       </template>
       <template v-if="fileType">
-        格式为 <b style="color: #f56c6c">{{ fileType.join('/') }}</b>
+        格式为 <b class="text-danger">{{ fileType.join('/') }}</b>
       </template>
       的文件
     </div>
 
-    <el-dialog
-      v-model="dialogVisible"
-      title="预览"
-      width="800px"
-      append-to-body
-    >
+    <el-dialog v-model="dialogVisible" title="预览" width="800px" append-to-body>
       <img
         :src="dialogImageUrl"
-        style="display: block; max-width: 100%; margin: 0 auto"
+        class="preview-img"
         alt="预览图片"
       >
     </el-dialog>
@@ -313,11 +264,22 @@ function listToString(list: any[], separator?: string): string {
 </template>
 
 <style lang="scss" scoped>
-/**
- * 当文件数量达到上限时隐藏上传按钮
- * .hide 类会在 :class 绑定中动态添加
- */
 :deep(.hide .el-upload--picture-card) {
   display: none;
+}
+
+.el-upload__tip {
+  line-height: 1.2;
+  margin-top: 5px;
+}
+
+.text-danger {
+  color: #f56c6c;
+}
+
+.preview-img {
+  display: block;
+  max-width: 100%;
+  margin: 0 auto;
 }
 </style>

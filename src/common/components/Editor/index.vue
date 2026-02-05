@@ -1,25 +1,34 @@
 <script setup lang="ts">
-import { propTypes } from "@@/utils/propTypes"
 import { Quill, QuillEditor } from "@vueup/vue-quill"
 import { globalHeaders } from "@/http/axios"
 import "@vueup/vue-quill/dist/vue-quill.snow.css"
 
+/**
+ * defineProps
+ */
+// #region defineProps
 const props = defineProps({
-  /* 编辑器的内容 */
-  modelValue: propTypes.string,
   /* 高度 */
-  height: propTypes.number.def(400),
+  height: { type: Number, default: 400 },
   /* 最小高度 */
-  minHeight: propTypes.number.def(400),
+  minHeight: { type: Number, default: 400 },
   /* 只读 */
-  readOnly: propTypes.bool.def(false),
+  readOnly: { type: Boolean, default: false },
   /* 上传文件大小限制(MB) */
-  fileSize: propTypes.number.def(5),
+  fileSize: { type: Number, default: 5 },
   /* 类型（base64格式、url格式） */
-  type: propTypes.string.def("url")
+  type: { type: String, default: "url" }
 })
+// #endregion
 
-defineEmits(["update:modelValue"])
+/**
+ * defineModel
+ */
+// #region defineModel
+const content = defineModel<string>("content", { default: "" })
+const loading = defineModel<boolean>("loading", { default: false })
+const loadingText = defineModel<string>("loadingText", { default: "" })
+// #endregion
 
 const upload = reactive<UploadOption>({
   headers: globalHeaders(),
@@ -74,17 +83,6 @@ const styles = computed(() => {
   return style
 })
 
-const content = ref("")
-watch(
-  () => props.modelValue,
-  (v: string) => {
-    if (v !== content.value) {
-      content.value = v || "<p></p>"
-    }
-  },
-  { immediate: true }
-)
-
 // 图片上传成功返回图片地址
 function handleUploadSuccess(res: any) {
   // 如果上传成功
@@ -97,10 +95,10 @@ function handleUploadSuccess(res: any) {
     quill.insertEmbed(length, "image", res.data.url)
     // 调整光标到最后
     quill.setSelection(length + 1)
-    // proxy?.$modal.closeLoading()
+    loading.value = false
   } else {
     ElMessage.error("图片插入失败")
-    // proxy?.$modal.closeLoading()
+    loading.value = false
   }
 }
 
@@ -121,7 +119,8 @@ function handleBeforeUpload(file: any) {
       return false
     }
   }
-  // proxy?.$modal.loading("正在上传文件，请稍候...")
+  loading.value = true
+  loadingText.value = "正在上传文件..."
   return true
 }
 
@@ -147,14 +146,13 @@ function handleUploadError() {
       <i ref="uploadRef" />
     </el-upload>
   </div>
-  <div class="editor">
+  <div class="editor" v-loading="loading" :element-loading-text="loadingText">
     <QuillEditor
       ref="quillEditorRef"
       v-model:content="content"
       content-type="html"
       :options="options"
       :style="styles"
-      @text-change="(e: any) => $emit('update:modelValue', content)"
     />
   </div>
 </template>

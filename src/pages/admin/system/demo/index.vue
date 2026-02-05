@@ -14,10 +14,10 @@ const { sys_common_status } = toRefs<any>(useDict("sys_common_status"))
 const noticeContent = ref<string>("")
 
 // 3. 组件：FileUpload 文件上传, 返回ID数组
-const fileUpload = ref<any[]>()
+const fileUpload = ref<string>("")
 
 // 4. 组件：ImageUpload 图片上传, 返回ID数组
-const imageUpload = ref<any[]>()
+const imageUpload = ref<string>("")
 
 // 5. 组件：ImagePreview 图片预览
 const productData = ref({
@@ -33,15 +33,15 @@ const productData = ref({
     <br>
     <br>
     2. 组件：Editor 富文本编辑器
-    <Editor v-model="noticeContent" :height="50" :min-height="50" />
+    <Editor v-model:content="noticeContent" :height="50" :min-height="150" />
     <br>
     <br>
     3. 组件：FileUpload 文件上传, 返回ID数组
-    <FileUpload v-model="fileUpload" />
+    <FileUpload v-model:file-ids="fileUpload" />
     <br>
     <br>
     4. 组件：ImageUpload 图片上传, 返回ID数组
-    <ImageUpload v-model="imageUpload" />
+    <ImageUpload v-model:file-ids="imageUpload" />
     {{ imageUpload }}
     <br>
     <br>

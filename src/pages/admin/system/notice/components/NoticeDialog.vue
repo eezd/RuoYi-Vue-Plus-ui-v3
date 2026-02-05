@@ -116,7 +116,7 @@ function resetForm() {
           </el-radio-group>
         </el-form-item>
         <el-form-item prop="noticeContent" label="内容">
-          <Editor v-model="formData.noticeContent" :min-height="192" />
+          <Editor v-model:model-value="formData.noticeContent" :min-height="192" />
         </el-form-item>
       </el-form>
     </div>
