@@ -25,6 +25,7 @@ export interface EmitEvents {
   openImportDialog: []
   handleDelete: [rows: TableVO[]]
   handleUpdate: [row: TableVO]
+  handleGenTable: [row: TableVO]
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
@@ -32,6 +33,7 @@ export interface EmitEvents {
 const openImportDialog = () => emit("openImportDialog")
 const handleDelete = (rows: TableVO[]) => emit("handleDelete", rows)
 const handleUpdate = (row: TableVO) => emit("handleUpdate", row)
+const handleGenTable = (row: TableVO) => emit("handleGenTable", row)
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
 const getTableData = () => emit("getTableData")
@@ -49,14 +51,6 @@ const handleSelectionChange = (val: TableVO[]) => (selectedRows.value = val)
     <div class="toolbar-wrapper">
       <div :style="isMobile ? 'display:flex; gap: 10px; flex-wrap: wrap;' : ''">
         <el-button
-          type="info"
-          :icon="CirclePlus"
-          :disabled="!checkPermission(['tool:gen:code'])"
-          @click="openImportDialog()"
-        >
-          生成
-        </el-button>
-        <el-button
           type="primary"
           :icon="CirclePlus"
           :disabled="!checkPermission(['tool:gen:import'])"
@@ -64,13 +58,22 @@ const handleSelectionChange = (val: TableVO[]) => (selectedRows.value = val)
         >
           导入
         </el-button>
+
         <el-button
-          type="success"
+          type="warning"
           :icon="Edit"
           :disabled="!checkPermission(['tool:gen:edit']) || !selectedRows.length || selectedRows.length > 1"
           @click="handleUpdate(selectedRows[0])"
         >
           编辑
+        </el-button>
+        <el-button
+          type="success"
+          :icon="CirclePlus"
+          :disabled="!checkPermission(['tool:gen:code']) || !selectedRows.length || selectedRows.length > 1"
+          @click="handleGenTable(selectedRows[0])"
+        >
+          生成
         </el-button>
         <el-button
           type="danger" plain icon="Delete"

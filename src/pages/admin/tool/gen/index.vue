@@ -158,7 +158,7 @@ async function handleGenTable(row: TableVO) {
  */
 async function handleSynchDb(row: TableVO) {
   const tableId = row.tableId
-  ElMessageBox.confirm(
+  await ElMessageBox.confirm(
     `确认要强制同步"${row.tableName}"表结构吗？`,
     "提示",
     {
@@ -167,7 +167,9 @@ async function handleSynchDb(row: TableVO) {
       type: "warning"
     }
   )
+  loading.value = true
   await synchSysGenDb(tableId)
+  loading.value = false
   ElMessage.success("同步成功")
 }
 // #endregion
@@ -268,6 +270,7 @@ onMounted(async () => {
       @get-table-data="getTableData"
       @handle-delete="handleDelete"
       @handle-update="handleUpdate"
+      @handle-gen-table="handleGenTable"
       @handle-current-change="handleCurrentChange"
       @handle-size-change="handleSizeChange"
     >

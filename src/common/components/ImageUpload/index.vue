@@ -33,7 +33,7 @@ const props = defineProps({
  * defineModel
  */
 // #region defineModel
-const fileIds = defineModel<string>("fileIds", { required: true })
+const fileIds = defineModel<string>("fileIds", { default: "" })
 const loading = defineModel<boolean>("loading", { default: false })
 const loadingText = defineModel<string>("loadingText", { default: "" })
 // #endregion
