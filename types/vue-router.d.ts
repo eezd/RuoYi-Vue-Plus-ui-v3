@@ -13,6 +13,10 @@ declare module "vue-router" {
      */
     title?: string
     /**
+     * @description  图标
+     */
+    icon?: SvgName
+    /**
      * @description 设置该路由的图标，记得将 svg 导入 src/common/assets/icons
      */
     svgIcon?: SvgName

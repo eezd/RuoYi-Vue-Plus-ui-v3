@@ -49,6 +49,23 @@ export const constantRoutes: RouteRecordRaw[] = [
     meta: {
       hidden: true
     }
+  },
+  {
+    path: "",
+    component: Layouts,
+    redirect: "/index",
+    children: [
+      {
+        path: "/index",
+        component: () => import("@/pages/dashboard/index.vue"),
+        name: "Dashboard",
+        meta: {
+          title: "首页",
+          svgIcon: "dashboard",
+          affix: true
+        }
+      }
+    ]
   }
 ]
 
@@ -59,7 +76,7 @@ export const constantRoutes: RouteRecordRaw[] = [
  */
 export const dynamicRoutes: RouteRecordRaw[] = [
   {
-    path: "/admin",
+    path: "/system",
     component: Layouts,
     meta: {
       title: "后台系统"
@@ -67,7 +84,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     children: [
       {
         path: "dashboard",
-        component: () => import("@/pages/admin/dashboard/index.vue"),
+        component: () => import("@/pages/dashboard/index.vue"),
         name: "Dashboard",
         meta: {
           title: "首页",
@@ -77,250 +94,250 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       },
       {
         path: "profile",
-        component: () => import("@/pages/admin/profile/index.vue"),
+        component: () => import("@/pages/profile/index.vue"),
         name: "Profile",
         meta: {
           title: "个人中心",
           hidden: true
         }
-      },
-      {
-        path: "system",
-        redirect: "/admin/system/dashboard",
-        meta: {
-          title: "系统管理",
-          svgIcon: "system"
-        },
-        children: [
-          {
-            path: "user",
-            meta: {
-              permissions: ["system:user:list"]
-            },
-            children: [
-              {
-                path: "",
-                component: () => import("@/pages/admin/system/user/index.vue"),
-                name: "AdminSysUser",
-                meta: {
-                  title: "用户管理",
-                  svgIcon: "user"
-                }
-              },
-              {
-                path: "auth-role/:userId",
-                component: () => import("@/pages/admin/system/user/auth-role/index.vue"),
-                name: "AdminSysUserAuthRole",
-                meta: {
-                  title: "分配角色",
-                  hidden: true
-                }
-              }
-            ]
-          },
-          {
-            path: "role",
-            meta: {
-              permissions: ["system:role:list"]
-            },
-            children: [
-              {
-                path: "",
-                component: () => import("@/pages/admin/system/role/index.vue"),
-                name: "AdminSysRole",
-                meta: {
-                  title: "角色管理",
-                  svgIcon: "peoples"
-                }
-              },
-              {
-                path: "auth-user/:roleId",
-                component: () => import("@/pages/admin/system/role/auth-user/index.vue"),
-                name: "AdminSysRoleAuthUser",
-                meta: {
-                  title: "分配用户",
-                  hidden: true
-                }
-              }
-            ]
-          },
-          {
-            path: "dict",
-            component: () => import("@/pages/admin/system/dict/index.vue"),
-            name: "AdminSysDict",
-            meta: {
-              title: "字典管理",
-              svgIcon: "dict",
-              permissions: ["system:dict:list"]
-            }
-          },
-          {
-            path: "dict-data/:dictId",
-            component: () => import("@/pages/admin/system/dict/data/index.vue"),
-            name: "AdminSysDictData",
-            meta: {
-              title: "字典数据",
-              hidden: true
-            }
-          },
-          {
-            path: "menu",
-            component: () => import("@/pages/admin/system/menu/index.vue"),
-            name: "AdminSysMenu",
-            meta: {
-              title: "菜单权限管理",
-              svgIcon: "tree-table",
-              permissions: ["system:menu:list"]
-            }
-          },
-          {
-            path: "config",
-            component: () => import("@/pages/admin/system/config/index.vue"),
-            name: "AdminSysConfig",
-            meta: {
-              title: "参数设置",
-              svgIcon: "edit",
-              permissions: ["system:config:list"]
-            }
-          },
-          {
-            path: "notice",
-            component: () => import("@/pages/admin/system/notice/index.vue"),
-            name: "AdminSysNotice",
-            meta: {
-              title: "通知公告",
-              svgIcon: "message",
-              permissions: ["system:notice:list"]
-            }
-          },
-          {
-            path: "operlog",
-            component: () => import("@/pages/admin/system/operlog/index.vue"),
-            name: "AdminSysOperLog",
-            meta: {
-              title: "操作日志",
-              svgIcon: "form",
-              permissions: ["monitor:operlog:list"]
-            }
-          },
-          {
-            path: "logininfor",
-            component: () => import("@/pages/admin/system/logininfor/index.vue"),
-            name: "AdminSysLoginInfor",
-            meta: {
-              title: "登录日志",
-              svgIcon: "logininfor",
-              permissions: ["monitor:logininfor:list"]
-            }
-          },
-          {
-            path: "oss",
-            component: () => import("@/pages/admin/system/oss/index.vue"),
-            name: "AdminSysOss",
-            meta: {
-              title: "文件管理",
-              svgIcon: "upload",
-              permissions: ["system:oss:list"]
-            }
-          },
-          {
-            path: "oss-config",
-            component: () => import("@/pages/admin/system/oss-config/index.vue"),
-            name: "AdminSysOssConfig",
-            meta: {
-              title: "对象存储配置",
-              hidden: true
-            }
-          },
-          {
-            path: "client",
-            component: () => import("@/pages/admin/system/client/index.vue"),
-            name: "AdminSysClient",
-            meta: {
-              title: "客户端管理",
-              svgIcon: "international",
-              permissions: ["system:client:list"]
-            }
-          },
-          {
-            path: "demo",
-            component: () => import("@/pages/admin/system/demo/index.vue"),
-            name: "AdminSysDemo",
-            meta: {
-              title: "示例",
-              elIcon: "Aim"
-            }
-          }
-        ]
-      },
-      {
-        path: "monitor",
-        meta: {
-          title: "系统监控",
-          svgIcon: "monitor"
-        },
-        children: [
-          {
-            path: "online",
-            component: () => import("@/pages/admin/monitor/online/index.vue"),
-            name: "AdminSysOnline",
-            meta: {
-              title: "在线用户",
-              svgIcon: "online",
-              permissions: ["monitor:online:list"]
-            }
-          },
-          {
-            path: "cache",
-            component: () => import("@/pages/admin/monitor/cache/index.vue"),
-            name: "AdminSysCache",
-            meta: {
-              title: "缓存监控",
-              svgIcon: "redis",
-              permissions: ["monitor:cache:list"]
-            }
-          },
-          {
-            path: "admin",
-            component: () => import("@/pages/admin/monitor/admin/index.vue"),
-            name: "AdminSysAdmin",
-            meta: {
-              title: "Admin监控",
-              svgIcon: "dashboard",
-              permissions: ["monitor:admin:list"]
-            }
-          }
-        ]
-      },
-      {
-        path: "tool",
-        meta: {
-          title: "系统工具",
-          svgIcon: "tool"
-        },
-        children: [
-          {
-            path: "gen",
-            component: () => import("@/pages/admin/tool/gen/index.vue"),
-            name: "AdminToolGen",
-            meta: {
-              title: "代码生成",
-              svgIcon: "code",
-              permissions: ["tool:gen:list"]
-            }
-          },
-          {
-            path: "gen-edit/:tableId",
-            component: () => import("@/pages/admin/tool/gen-edit/index.vue"),
-            name: "AdminToolGenEdit",
-            meta: {
-              title: "修改生成配置",
-              hidden: true,
-              permissions: ["tool:gen:edit"]
-            }
-          }
-        ]
       }
+      // {
+      //   path: "system",
+      //   redirect: "/admin/system/dashboard",
+      //   meta: {
+      //     title: "系统管理",
+      //     svgIcon: "system"
+      //   },
+      //   children: [
+      //     {
+      //       path: "user",
+      //       meta: {
+      //         permissions: ["system:user:list"]
+      //       },
+      //       children: [
+      //         {
+      //           path: "",
+      //           component: () => import("@/pages/admin/system/user/index.vue"),
+      //           name: "AdminSysUser",
+      //           meta: {
+      //             title: "用户管理",
+      //             svgIcon: "user"
+      //           }
+      //         },
+      //         {
+      //           path: "auth-role/:userId",
+      //           component: () => import("@/pages/admin/system/user/auth-role/index.vue"),
+      //           name: "AdminSysUserAuthRole",
+      //           meta: {
+      //             title: "分配角色",
+      //             hidden: true
+      //           }
+      //         }
+      //       ]
+      //     },
+      //     {
+      //       path: "role",
+      //       meta: {
+      //         permissions: ["system:role:list"]
+      //       },
+      //       children: [
+      //         {
+      //           path: "",
+      //           component: () => import("@/pages/admin/system/role/index.vue"),
+      //           name: "AdminSysRole",
+      //           meta: {
+      //             title: "角色管理",
+      //             svgIcon: "peoples"
+      //           }
+      //         },
+      //         {
+      //           path: "auth-user/:roleId",
+      //           component: () => import("@/pages/admin/system/role/auth-user/index.vue"),
+      //           name: "AdminSysRoleAuthUser",
+      //           meta: {
+      //             title: "分配用户",
+      //             hidden: true
+      //           }
+      //         }
+      //       ]
+      //     },
+      //     {
+      //       path: "dict",
+      //       component: () => import("@/pages/admin/system/dict/index.vue"),
+      //       name: "AdminSysDict",
+      //       meta: {
+      //         title: "字典管理",
+      //         svgIcon: "dict",
+      //         permissions: ["system:dict:list"]
+      //       }
+      //     },
+      //     {
+      //       path: "dict-data/:dictId",
+      //       component: () => import("@/pages/admin/system/dict/data/index.vue"),
+      //       name: "AdminSysDictData",
+      //       meta: {
+      //         title: "字典数据",
+      //         hidden: true
+      //       }
+      //     },
+      //     {
+      //       path: "menu",
+      //       component: () => import("@/pages/admin/system/menu/index.vue"),
+      //       name: "AdminSysMenu",
+      //       meta: {
+      //         title: "菜单权限管理",
+      //         svgIcon: "tree-table",
+      //         permissions: ["system:menu:list"]
+      //       }
+      //     },
+      //     {
+      //       path: "config",
+      //       component: () => import("@/pages/admin/system/config/index.vue"),
+      //       name: "AdminSysConfig",
+      //       meta: {
+      //         title: "参数设置",
+      //         svgIcon: "edit",
+      //         permissions: ["system:config:list"]
+      //       }
+      //     },
+      //     {
+      //       path: "notice",
+      //       component: () => import("@/pages/admin/system/notice/index.vue"),
+      //       name: "AdminSysNotice",
+      //       meta: {
+      //         title: "通知公告",
+      //         svgIcon: "message",
+      //         permissions: ["system:notice:list"]
+      //       }
+      //     },
+      //     {
+      //       path: "operlog",
+      //       component: () => import("@/pages/admin/system/operlog/index.vue"),
+      //       name: "AdminSysOperLog",
+      //       meta: {
+      //         title: "操作日志",
+      //         svgIcon: "form",
+      //         permissions: ["monitor:operlog:list"]
+      //       }
+      //     },
+      //     {
+      //       path: "logininfor",
+      //       component: () => import("@/pages/admin/system/logininfor/index.vue"),
+      //       name: "AdminSysLoginInfor",
+      //       meta: {
+      //         title: "登录日志",
+      //         svgIcon: "logininfor",
+      //         permissions: ["monitor:logininfor:list"]
+      //       }
+      //     },
+      //     {
+      //       path: "oss",
+      //       component: () => import("@/pages/admin/system/oss/index.vue"),
+      //       name: "AdminSysOss",
+      //       meta: {
+      //         title: "文件管理",
+      //         svgIcon: "upload",
+      //         permissions: ["system:oss:list"]
+      //       }
+      //     },
+      //     {
+      //       path: "oss-config",
+      //       component: () => import("@/pages/admin/system/oss-config/index.vue"),
+      //       name: "AdminSysOssConfig",
+      //       meta: {
+      //         title: "对象存储配置",
+      //         hidden: true
+      //       }
+      //     },
+      //     {
+      //       path: "client",
+      //       component: () => import("@/pages/admin/system/client/index.vue"),
+      //       name: "AdminSysClient",
+      //       meta: {
+      //         title: "客户端管理",
+      //         svgIcon: "international",
+      //         permissions: ["system:client:list"]
+      //       }
+      //     },
+      //     {
+      //       path: "demo",
+      //       component: () => import("@/pages/admin/system/demo/index.vue"),
+      //       name: "AdminSysDemo",
+      //       meta: {
+      //         title: "示例",
+      //         elIcon: "Aim"
+      //       }
+      //     }
+      //   ]
+      // },
+      // {
+      //   path: "monitor",
+      //   meta: {
+      //     title: "系统监控",
+      //     svgIcon: "monitor"
+      //   },
+      //   children: [
+      //     {
+      //       path: "online",
+      //       component: () => import("@/pages/admin/monitor/online/index.vue"),
+      //       name: "AdminSysOnline",
+      //       meta: {
+      //         title: "在线用户",
+      //         svgIcon: "online",
+      //         permissions: ["monitor:online:list"]
+      //       }
+      //     },
+      //     {
+      //       path: "cache",
+      //       component: () => import("@/pages/admin/monitor/cache/index.vue"),
+      //       name: "AdminSysCache",
+      //       meta: {
+      //         title: "缓存监控",
+      //         svgIcon: "redis",
+      //         permissions: ["monitor:cache:list"]
+      //       }
+      //     },
+      //     {
+      //       path: "admin",
+      //       component: () => import("@/pages/admin/monitor/admin/index.vue"),
+      //       name: "AdminSysAdmin",
+      //       meta: {
+      //         title: "Admin监控",
+      //         svgIcon: "dashboard",
+      //         permissions: ["monitor:admin:list"]
+      //       }
+      //     }
+      //   ]
+      // },
+      // {
+      //   path: "tool",
+      //   meta: {
+      //     title: "系统工具",
+      //     svgIcon: "tool"
+      //   },
+      //   children: [
+      //     {
+      //       path: "gen",
+      //       component: () => import("@/pages/admin/tool/gen/index.vue"),
+      //       name: "AdminToolGen",
+      //       meta: {
+      //         title: "代码生成",
+      //         svgIcon: "code",
+      //         permissions: ["tool:gen:list"]
+      //       }
+      //     },
+      //     {
+      //       path: "gen-edit/:tableId",
+      //       component: () => import("@/pages/admin/tool/gen-edit/index.vue"),
+      //       name: "AdminToolGenEdit",
+      //       meta: {
+      //         title: "修改生成配置",
+      //         hidden: true,
+      //         permissions: ["tool:gen:edit"]
+      //       }
+      //     }
+      //   ]
+      // }
     ]
   }
 ]

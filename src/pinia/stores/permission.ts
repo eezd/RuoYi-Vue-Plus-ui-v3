@@ -1,85 +1,199 @@
 import type { RouteRecordRaw } from "vue-router"
-import { pinia } from "@/pinia"
-import { constantRoutes, dynamicRoutes } from "@/router"
-import { routerConfig } from "@/router/config"
-import { flatMultiLevelRoutes } from "@/router/helper"
+import InnerLink from "@@/components/InnerLink/index.vue"
+import ParentView from "@@/components/ParentView/index.vue"
+import { getRouters } from "@/common/apis/admin/menu"
+import auth from "@/common/utils/auth"
+import { createCustomNameComponent } from "@/common/utils/createCustomNameComponent"
+import Layout from "@/layouts/index.vue"
+import { constantRoutes, dynamicRoutes, router } from "@/router"
 
-function hasPermission(roles: string[], route: RouteRecordRaw) {
-  const routeRoles = route.meta?.permissions
-  // 如果路由没有设置权限要求,则允许访问
-  if (!routeRoles) return true
-  // 检查是否有超级管理员权限
-  if (roles.includes("*:*:*")) {
-    return true
+// 匹配pages里面所有的.vue文件
+const modules = import.meta.glob("./../../pages/**/*.vue")
+export const usePermissionStore = defineStore("permission", () => {
+  const routes = ref<RouteRecordRaw[]>([])
+  const addRoutes = ref<RouteRecordRaw[]>([])
+  const defaultRoutes = ref<RouteRecordRaw[]>([])
+  const topbarRouters = ref<RouteRecordRaw[]>([])
+  const sidebarRouters = ref<RouteRecordRaw[]>([])
+
+  const getRoutes = (): RouteRecordRaw[] => {
+    return routes.value as RouteRecordRaw[]
   }
-  // 检查是否有匹配的权限(支持通配符)
-  return roles.some((role) => {
-    // 如果用户权限本身就在路由要求的权限中
-    if (routeRoles.includes(role)) {
-      return true
-    }
+  const getDefaultRoutes = (): RouteRecordRaw[] => {
+    return defaultRoutes.value as RouteRecordRaw[]
+  }
+  const getSidebarRoutes = (): RouteRecordRaw[] => {
+    return sidebarRouters.value as RouteRecordRaw[]
+  }
+  const getTopbarRoutes = (): RouteRecordRaw[] => {
+    return topbarRouters.value as RouteRecordRaw[]
+  }
 
-    // 通配符匹配逻辑
-    const roleParts = role.split(":")
-    return routeRoles.some((routeRole) => {
-      const routeRoleParts = routeRole.split(":")
-
-      // 逐级比较,支持 * 通配符
-      return roleParts.every((part, index) => {
-        if (part === "*") return true // 用户权限的这一级是通配符
-        if (!routeRoleParts[index]) return false // 路由权限层级不够
-        if (routeRoleParts[index] === "*") return true // 路由要求的这一级是通配符
-        return part === routeRoleParts[index] // 精确匹配
-      })
+  const setRoutes = (newRoutes: RouteRecordRaw[]): void => {
+    addRoutes.value = newRoutes
+    routes.value = constantRoutes.concat(newRoutes)
+  }
+  const setDefaultRoutes = (routes: RouteRecordRaw[]): void => {
+    defaultRoutes.value = constantRoutes.concat(routes)
+  }
+  const setTopbarRoutes = (routes: RouteRecordRaw[]): void => {
+    topbarRouters.value = routes
+  }
+  const setSidebarRouters = (routes: RouteRecordRaw[]): void => {
+    sidebarRouters.value = routes
+  }
+  const generateRoutes = async (): Promise<RouteRecordRaw[]> => {
+    const res = await getRouters()
+    const { data } = res
+    const sdata = JSON.parse(JSON.stringify(data))
+    const rdata = JSON.parse(JSON.stringify(data))
+    const defaultData = JSON.parse(JSON.stringify(data))
+    const sidebarRoutes = filterAsyncRouter(sdata)
+    const rewriteRoutes = filterAsyncRouter(rdata, undefined, true)
+    const defaultRoutes = filterAsyncRouter(defaultData)
+    const asyncRoutes = filterDynamicRoutes(dynamicRoutes)
+    asyncRoutes.forEach((route) => {
+      router.addRoute(route)
     })
-  })
-}
+    setRoutes(rewriteRoutes)
+    setSidebarRouters(constantRoutes.concat(sidebarRoutes))
+    setDefaultRoutes(sidebarRoutes)
+    setTopbarRoutes(defaultRoutes)
+    // 路由name重复检查
+    duplicateRouteChecker(asyncRoutes, sidebarRoutes)
+    return new Promise<RouteRecordRaw[]>(resolve => resolve(rewriteRoutes))
+  }
 
-function filterDynamicRoutes(routes: RouteRecordRaw[], roles: string[]) {
-  const res: RouteRecordRaw[] = []
-  routes.forEach((route) => {
-    const tempRoute = { ...route }
-    if (hasPermission(roles, tempRoute)) {
-      if (tempRoute.children) {
-        tempRoute.children = filterDynamicRoutes(tempRoute.children, roles)
+  /**
+   * 遍历后台传来的路由字符串，转换为组件对象
+   * @param asyncRouterMap 后台传来的路由字符串
+   * @param lastRouter 上一级路由
+   * @param type 是否是重写路由
+   */
+  const filterAsyncRouter = (asyncRouterMap: RouteRecordRaw[], lastRouter?: RouteRecordRaw, type = false): RouteRecordRaw[] => {
+    return asyncRouterMap.filter((route) => {
+      if (type && route.children) {
+        route.children = filterChildren(route.children, undefined)
       }
-      res.push(tempRoute)
+      // Layout ParentView 组件特殊处理
+      if (route.component?.toString() === "Layout") {
+        route.component = Layout
+      } else if (route.component?.toString() === "ParentView") {
+        route.component = ParentView
+      } else if (route.component?.toString() === "InnerLink") {
+        route.component = InnerLink
+      } else {
+        route.component = loadView(route.component, route.name as string)
+      }
+      if (route.children != null && route.children && route.children.length) {
+        route.children = filterAsyncRouter(route.children, route, type)
+      } else {
+        delete route.children
+        delete route.redirect
+      }
+      return true
+    })
+  }
+  const filterChildren = (childrenMap: RouteRecordRaw[], lastRouter?: RouteRecordRaw): RouteRecordRaw[] => {
+    let children: RouteRecordRaw[] = []
+    childrenMap.forEach((el) => {
+      el.path = lastRouter ? `${lastRouter.path}/${el.path}` : el.path
+      if (el.children && el.children.length && el.component?.toString() === "ParentView") {
+        children = children.concat(filterChildren(el.children, el))
+      } else {
+        children.push(el)
+      }
+    })
+    return children
+  }
+  return {
+    routes,
+    topbarRouters,
+    sidebarRouters,
+    defaultRoutes,
+
+    getRoutes,
+    getDefaultRoutes,
+    getSidebarRoutes,
+    getTopbarRoutes,
+
+    setRoutes,
+    generateRoutes,
+    setSidebarRouters
+  }
+})
+
+// 动态路由遍历，验证是否具备权限
+export function filterDynamicRoutes(routes: RouteRecordRaw[]) {
+  const res: RouteRecordRaw[] = []
+  routes.forEach((route: any) => {
+    if (route.permissions) {
+      if (auth.hasPermiOr(route.permissions)) {
+        res.push(route)
+      }
+    } else if (route.roles) {
+      if (auth.hasRoleOr(route.roles)) {
+        res.push(route)
+      }
     }
   })
   return res
 }
 
-export const usePermissionStore = defineStore("permission", () => {
-  // 可访问的路由
-  const routes = ref<RouteRecordRaw[]>([])
-
-  // 有访问权限的动态路由
-  const addRoutes = ref<RouteRecordRaw[]>([])
-
-  // 根据角色生成可访问的 Routes（可访问的路由 = 常驻路由 + 有访问权限的动态路由）
-  const setRoutes = (roles: string[]) => {
-    const accessedRoutes = filterDynamicRoutes(dynamicRoutes, roles)
-    set(accessedRoutes)
+export function loadView(view: any, name: string) {
+  let res
+  for (const path in modules) {
+    const pagesIndex = path.indexOf("/pages/")
+    let dir = path.substring(pagesIndex + 7)
+    dir = dir.substring(0, dir.lastIndexOf(".vue"))
+    if (dir === view) {
+      res = createCustomNameComponent(modules[path], { name })
+      return res
+    }
   }
+  return res
+}
 
-  // 所有路由 = 所有常驻路由 + 所有动态路由
-  const setAllRoutes = () => {
-    set(dynamicRoutes)
-  }
-
-  // 统一设置
-  const set = (accessedRoutes: RouteRecordRaw[]) => {
-    routes.value = constantRoutes.concat(accessedRoutes)
-    addRoutes.value = routerConfig.thirdLevelRouteCache ? flatMultiLevelRoutes(accessedRoutes) : accessedRoutes
-  }
-
-  return { routes, addRoutes, setRoutes, setAllRoutes }
-})
+interface Route {
+  name?: string | symbol
+  path: string
+  children?: Route[]
+}
 
 /**
- * @description 在 SPA 应用中可用于在 pinia 实例被激活前使用 store
- * @description 在 SSR 应用中可用于在 setup 外使用 store
+ * 检查路由name是否重复
+ * @param localRoutes 本地路由
+ * @param routes 动态路由
  */
-export function usePermissionStoreOutside() {
-  return usePermissionStore(pinia)
+function duplicateRouteChecker(localRoutes: Route[], routes: Route[]) {
+  // 展平
+  function flatRoutes(routes: Route[]) {
+    const res: Route[] = []
+    routes.forEach((route) => {
+      if (route.children) {
+        res.push(...flatRoutes(route.children))
+      } else {
+        res.push(route)
+      }
+    })
+    return res
+  }
+
+  const allRoutes = flatRoutes([...localRoutes, ...routes])
+
+  const nameList: string[] = []
+  allRoutes.forEach((route: any) => {
+    const name = route.name.toString()
+    if (name && nameList.includes(name)) {
+      const message = `路由名称: [${name}] 重复, 会造成 404`
+      console.error(message)
+      ElNotification({
+        title: "路由名称重复",
+        message,
+        type: "error"
+      })
+      return
+    }
+    nameList.push(route.name.toString())
+  })
 }

@@ -1,5 +1,8 @@
+import type { LanguageEnum } from "@/common/enums/LanguageEnum"
 import { DeviceEnum, SIDEBAR_CLOSED, SIDEBAR_OPENED } from "@@/constants/app-key"
-import { getSidebarStatus, setSidebarStatus } from "@@/utils/cache/local-storage"
+import { getLanguage, getSidebarStatus, setLanguage, setSidebarStatus } from "@@/utils/cache/local-storage"
+import enUS from "element-plus/es/locale/lang/en"
+import zhCN from "element-plus/es/locale/lang/zh-cn"
 import { pinia } from "@/pinia"
 
 interface Sidebar {
@@ -13,6 +16,16 @@ function handleSidebarStatus(opened: boolean) {
 }
 
 export const useAppStore = defineStore("app", () => {
+  // 语言
+  const language = ref<LanguageEnum>(getLanguage())
+  const languageObj: Record<LanguageEnum, object> = {
+    en_US: enUS,
+    zh_CN: zhCN
+  }
+  const locale = computed(() => {
+    return languageObj[language.value]
+  })
+
   // 侧边栏状态
   const sidebar: Sidebar = reactive({
     opened: getSidebarStatus() !== SIDEBAR_CLOSED,
@@ -47,7 +60,14 @@ export const useAppStore = defineStore("app", () => {
     device.value = value
   }
 
-  return { device, sidebar, toggleSidebar, closeSidebar, toggleDevice }
+  // 切换语言
+  const changeLanguage = (val: LanguageEnum): void => {
+    language.value = val
+    // i18n.global.locale.value = val
+    setLanguage(val)
+  }
+
+  return { language, locale, device, sidebar, toggleSidebar, closeSidebar, toggleDevice, changeLanguage }
 })
 
 /**

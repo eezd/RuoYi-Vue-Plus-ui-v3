@@ -2,13 +2,16 @@ import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios"
 import { getToken } from "@@/utils/cache/cookies"
 import axios from "axios"
 import { get } from "lodash-es"
-import { getLanguage } from "@/common/lang"
 import { tansParams } from "@/common/utils"
 import cache from "@/common/utils/cache"
+import { getLanguage } from "@/common/utils/cache/local-storage"
 import { encryptBase64, encryptWithAes, generateAesKey } from "@/common/utils/crypto"
 import errorCode from "@/common/utils/errorCode"
 import { encrypt } from "@/common/utils/jsencrypt"
 import { useUserStore } from "@/pinia/stores/user"
+
+// 是否显示重新登录
+export const isRelogin = { show: false }
 
 // ================= 常量定义 =================
 const HEADER_ENCRYPT_KEY = "encrypt-key"

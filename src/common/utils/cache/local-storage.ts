@@ -5,6 +5,7 @@ import type { SidebarClosed, SidebarOpened } from "@@/constants/app-key"
 import type { LayoutsConfig } from "@/layouts/config"
 import type { TagView } from "@/pinia/stores/tags-view"
 import { CacheKey } from "@@/constants/cache-key"
+import { LanguageEnum } from "@/common/enums/LanguageEnum"
 
 // #region 系统布局配置
 export function getLayoutsConfig() {
@@ -63,5 +64,20 @@ export function getCachedViews() {
 
 export function setCachedViews(views: string[]) {
   localStorage.setItem(CacheKey.CACHED_VIEWS, JSON.stringify(views))
+}
+// #endregion
+
+// #region 语言
+export function getLanguage(): LanguageEnum {
+  const value = localStorage.getItem(CacheKey.LANGUAGE)
+  if (!value) return LanguageEnum.zh_CN
+  if (Object.values(LanguageEnum).includes(value as LanguageEnum)) {
+    return value as LanguageEnum
+  }
+  return LanguageEnum.zh_CN
+}
+
+export function setLanguage(language: LanguageEnum) {
+  localStorage.setItem(CacheKey.LANGUAGE, language)
 }
 // #endregion

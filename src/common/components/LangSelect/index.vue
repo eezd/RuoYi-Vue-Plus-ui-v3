@@ -1,0 +1,42 @@
+<script setup lang="ts">
+import { useI18n } from "vue-i18n"
+import { useAppStore } from "@/pinia/stores/app"
+
+const appStore = useAppStore()
+const { locale } = useI18n()
+
+const message: any = {
+  zh_CN: "切换语言成功！",
+  en_US: "Switch Language Successful!"
+}
+function handleLanguageChange(lang: any) {
+  locale.value = lang
+  appStore.changeLanguage(lang)
+  ElMessage.success(message[lang] || "切换语言成功！")
+}
+</script>
+
+<template>
+  <el-dropdown trigger="click" @command="handleLanguageChange">
+    <div class="lang-select--style">
+      <SvgIcon name="language" />
+    </div>
+    <template #dropdown>
+      <el-dropdown-menu>
+        <el-dropdown-item :disabled="appStore.language === 'zh_CN'" command="zh_CN">
+          中文
+        </el-dropdown-item>
+        <el-dropdown-item :disabled="appStore.language === 'en_US'" command="en_US">
+          English
+        </el-dropdown-item>
+      </el-dropdown-menu>
+    </template>
+  </el-dropdown>
+</template>
+
+<style lang="scss" scoped>
+.lang-select--style {
+  font-size: 18px;
+  line-height: 50px;
+}
+</style>

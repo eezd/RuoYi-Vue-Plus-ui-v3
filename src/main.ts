@@ -19,6 +19,9 @@ import "highlight.js/styles/atom-one-dark.css"
 import "highlight.js/lib/common"
 import HighLight from "@highlightjs/vue-plugin"
 
+// 国际化
+import i18n from "@@/lang/index"
+
 // 创建应用实例
 const app = createApp(App)
 
@@ -26,7 +29,7 @@ const app = createApp(App)
 installPlugins(app)
 
 // 安装 pinia 和 router
-app.use(HighLight).use(pinia).use(router)
+app.use(HighLight).use(pinia).use(i18n).use(router)
 
 // router 准备就绪后挂载应用
 router.isReady().then(() => {

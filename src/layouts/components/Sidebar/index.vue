@@ -28,23 +28,7 @@ const settingsStore = useSettingsStore()
 
 const activeMenu = computed(() => route.meta.activeMenu || route.path)
 
-const noHiddenRoutes = computed(() => {
-  // 找到 /admin 路由
-  const adminRoute = permissionStore.routes.find(item => item.path === "/admin")
-
-  // 如果找到了 admin 路由且有 children，返回未隐藏的子路由
-  if (adminRoute && adminRoute.children) {
-    return adminRoute.children
-      .filter(item => !item.meta?.hidden)
-      .map(item => ({
-        ...item,
-        // 为子路由添加完整路径
-        path: item.path.startsWith("/") ? item.path : `/admin/${item.path}`
-      }))
-  }
-
-  return []
-})
+const noHiddenRoutes = computed(() => permissionStore.routes.filter(item => !item.meta?.hidden))
 
 const isCollapse = computed(() => !appStore.sidebar.opened)
 

@@ -168,3 +168,12 @@ export function selectDictLabels(datas: any, value: any, separator: any) {
 
   return actions.join("").substring(0, actions.join("").length - 1)
 }
+
+/**
+ * 判断url是否是http或https
+ * @returns {boolean}
+ * @param url
+ */
+export function isHttp(url: string): boolean {
+  return url.includes("http://") || url.includes("https://")
+}

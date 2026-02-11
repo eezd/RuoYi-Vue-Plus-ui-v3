@@ -1,31 +1,21 @@
-import { useStorage } from "@vueuse/core"
 // 自定义国际化配置
 import { createI18n } from "vue-i18n"
 import { LanguageEnum } from "../enums/LanguageEnum"
+import { getLanguage } from "../utils/cache/local-storage"
 import en_US from "./en_US"
 import zh_CN from "./zh_CN"
 
-/**
- * 获取当前语言
- * @returns zh-cn|en ...
- */
-export function getLanguage(): LanguageEnum {
-  const language = useStorage<LanguageEnum>("language", LanguageEnum.zh_CN)
-  if (language.value) {
-    return language.value
-  }
-  return LanguageEnum.zh_CN
-}
-
 const i18n = createI18n({
-  globalInjection: true,
-  allowComposition: true,
-  legacy: false,
+  legacy: false, // 必须设为 false，启用 Composition API 模式
   locale: getLanguage(),
+  fallbackLocale: "en_US",
   messages: {
-    zh_CN,
-    en_US
-  }
+    [LanguageEnum.zh_CN]: zh_CN,
+    [LanguageEnum.en_US]: en_US
+  },
+  // 开发环境显示警告
+  missingWarn: import.meta.env.DEV,
+  fallbackWarn: import.meta.env.DEV
 })
 
 export default i18n
