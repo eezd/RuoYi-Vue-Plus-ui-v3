@@ -1,7 +1,8 @@
 <script lang="ts" setup>
+import type { OssVO } from "@@/apis/system/oss/types"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import type { FormRules } from "element-plus"
-import type { OssVO } from "@/common/apis/admin/system/oss/types"
+import { updateSysConfigByKeyApi } from "@@/apis/system/config"
 import FileUpload from "@@/components/FileUpload/index.vue"
 import ImagePreview from "@@/components/ImagePreview/index.vue"
 import ImageUpload from "@@/components/ImageUpload/index.vue"
@@ -10,7 +11,6 @@ import { formatDateTime } from "@@/utils"
 import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
-import { updateSysConfigByKeyApi } from "@/common/apis/admin/system/config"
 
 const emit = defineEmits<EmitEvents>()
 /**

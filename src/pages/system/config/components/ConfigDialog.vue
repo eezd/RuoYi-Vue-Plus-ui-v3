@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { ConfigForm } from "@@/apis/admin/system/config/types.ts"
+import type { ConfigForm } from "@@/apis/system/config/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
-import { addSysConfigApi, updateSysConfigApi } from "@@/apis/admin/system/config"
+import { addSysConfigApi, updateSysConfigApi } from "@@/apis/system/config"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElMessage } from "element-plus"

@@ -1,13 +1,13 @@
 <script lang="ts" setup>
+import type { DbTableQuery, DbTableVO } from "@@/apis/tool/gen/types"
 import type { FormInstance } from "element-plus"
-import type { DbTableQuery, DbTableVO } from "@/common/apis/admin/tool/gen/types"
+import { getSysGenDataNames, getSysGenDbListApi, importSysGenTable } from "@@/apis/tool/gen"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { formatDateTime } from "@@/utils"
 import { Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage } from "element-plus"
 import { ref } from "vue"
-import { getSysGenDataNames, getSysGenDbListApi, importSysGenTable } from "@/common/apis/admin/tool/gen"
 
 export interface EmitEvents {
   (e: "success"): void

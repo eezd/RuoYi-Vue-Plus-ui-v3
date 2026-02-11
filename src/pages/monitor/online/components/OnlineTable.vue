@@ -1,6 +1,6 @@
 <script lang="ts" setup>
+import type { OnlineVO } from "@@/apis/monitor/online/types"
 import type { PaginationData } from "@@/composables/usePagination.ts"
-import type { OnlineVO } from "@/common/apis/admin/monitor/online/types"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"

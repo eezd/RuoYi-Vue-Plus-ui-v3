@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { RoleForm } from "@@/apis/admin/system/role/types.ts"
-import type { UserQuery, UserVO } from "@@/apis/admin/system/user/types.ts"
+import type { RoleForm } from "@@/apis/system/role/types.ts"
+import type { UserQuery, UserVO } from "@@/apis/system/user/types.ts"
 import type { FormInstance } from "element-plus"
-import { allocatedSysUserListApi, authSysUserCancelApi, delSysRoleApi } from "@@/apis/admin/system/role"
+import { allocatedSysUserListApi, authSysUserCancelApi, delSysRoleApi } from "@@/apis/system/role"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
 import { CircleClose, Refresh, Search } from "@element-plus/icons-vue"

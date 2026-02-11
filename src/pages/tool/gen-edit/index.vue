@@ -1,9 +1,9 @@
 <script setup name="GenEdit" lang="ts">
-import type { DictTypeVO } from "@/common/apis/admin/system/dict/type/types"
-import type { DbColumnVO, DbTableForm, DbTableVO } from "@/common/apis/admin/tool/gen/types"
+import type { DictTypeVO } from "@@/apis/system/dict/type/types"
+import type { DbColumnVO, DbTableForm, DbTableVO } from "@@/apis/tool/gen/types"
+import { getSysDictOptionSelectApi } from "@@/apis/system/dict/type"
+import { getSysGenApi, updateSysGenTableApi } from "@@/apis/tool/gen"
 import { ElTable } from "element-plus"
-import { getSysDictOptionSelectApi } from "@/common/apis/admin/system/dict/type"
-import { getSysGenApi, updateSysGenTableApi } from "@/common/apis/admin/tool/gen"
 import { useTagsViewStore } from "@/pinia/stores/tags-view"
 import BasicInfoForm from "./components/BasicInfoForm.vue"
 import GenInfoForm from "./components/GenInfoForm.vue"

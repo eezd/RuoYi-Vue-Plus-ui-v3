@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { MenuForm } from "@@/apis/admin/system/menu/types.ts"
+import type { MenuForm } from "@@/apis/system/menu/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
 import type { MenuOptionsType } from "../index.vue"
-import { addSysMenuApi, updateSysMenuApi } from "@@/apis/admin/system/menu"
+import { addSysMenuApi, updateSysMenuApi } from "@@/apis/system/menu"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElMessage } from "element-plus"

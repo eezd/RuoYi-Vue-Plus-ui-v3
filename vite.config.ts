@@ -8,6 +8,7 @@ import SvgComponent from "unplugin-svg-component/vite"
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers"
 import Components from "unplugin-vue-components/vite"
 import { defineConfig, loadEnv } from "vite"
+import VueDevTools from "vite-plugin-vue-devtools"
 import { VueMcp } from "vite-plugin-vue-mcp"
 import svgLoader from "vite-svg-loader"
 
@@ -102,6 +103,7 @@ export default defineConfig(({ mode }) => {
     // 插件配置
     plugins: [
       vue(),
+      VueDevTools(),
       // 支持将 SVG 文件导入为 Vue 组件
       svgLoader({
         defaultImport: "url",

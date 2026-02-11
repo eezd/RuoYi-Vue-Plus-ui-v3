@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { RoleVO } from "@@/apis/admin/system/role/types.ts"
-import type { UserForm } from "@@/apis/admin/system/user/types.ts"
+import type { RoleVO } from "@@/apis/system/role/types.ts"
+import type { UserForm } from "@@/apis/system/user/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
-import { addSysUserApi, updateSysUserApi } from "@@/apis/admin/system/user"
+import { addSysUserApi, updateSysUserApi } from "@@/apis/system/user"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElInput } from "element-plus"

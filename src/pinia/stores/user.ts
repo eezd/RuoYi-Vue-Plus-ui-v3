@@ -1,6 +1,6 @@
+import { getInfoApi } from "@@/apis/system/user"
 import defAva from "@@/assets/images/profile.jpg"
 import { setToken as _setToken, getToken, removeToken } from "@@/utils/cache/cookies"
-import { getInfoApi } from "@/common/apis/admin/system/user"
 import { pinia } from "@/pinia"
 import { resetRouter } from "@/router"
 import { useSettingsStore } from "./settings"

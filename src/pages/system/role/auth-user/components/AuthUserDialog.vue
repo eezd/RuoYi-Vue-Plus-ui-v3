@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { UserQuery, UserVO } from "@@/apis/admin/system/user/types.ts"
+import type { UserQuery, UserVO } from "@@/apis/system/user/types.ts"
 import type { FormInstance } from "element-plus"
-import { authSysUserSelectAll, unallocatedSysUserListApi } from "@@/apis/admin/system/role"
+import { authSysUserSelectAll, unallocatedSysUserListApi } from "@@/apis/system/role"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"

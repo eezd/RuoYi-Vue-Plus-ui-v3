@@ -1,7 +1,7 @@
 <script setup name="Cache" lang="ts">
-import type { CacheVO } from "@/common/apis/admin/monitor/cache/types"
+import type { CacheVO } from "@@/apis/monitor/cache/types"
+import { getSysCacheApi } from "@@/apis/monitor/cache"
 import * as echarts from "echarts"
-import { getSysCacheApi } from "@/common/apis/admin/monitor/cache"
 
 const cache = ref<Partial<CacheVO>>({})
 const commandstats = ref()

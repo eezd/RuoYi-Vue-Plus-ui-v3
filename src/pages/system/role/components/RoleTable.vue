@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { RoleForm } from "@@/apis/admin/system/role/types.ts"
+import type { RoleForm } from "@@/apis/system/role/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
-import { changeSysRoleStatusApi } from "@@/apis/admin/system/role"
+import { changeSysRoleStatusApi } from "@@/apis/system/role"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"
 import { checkPermission } from "@@/utils/permission"

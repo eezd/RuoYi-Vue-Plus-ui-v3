@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { ConfigForm, ConfigQuery } from "@@/apis/admin/system/config/types.ts"
+import type { ConfigForm, ConfigQuery } from "@@/apis/system/config/types.ts"
 import type { FormInstance } from "element-plus"
-import { delConfigApi, getSysConfigApi, getSysConfigListApi } from "@@/apis/admin/system/config"
+import { delConfigApi, getSysConfigApi, getSysConfigListApi } from "@@/apis/system/config"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"

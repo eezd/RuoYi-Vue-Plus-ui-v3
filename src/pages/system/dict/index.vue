@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { DictTypeForm, DictTypeQuery } from "@@/apis/admin/system/dict/type/types.ts"
+import type { DictTypeForm, DictTypeQuery } from "@@/apis/system/dict/type/types.ts"
 import type { FormInstance } from "element-plus"
-import { delSysDictTypeApi, getSysDictListTypeApi, getSysDictTypeApi } from "@@/apis/admin/system/dict/type"
+import { delSysDictTypeApi, getSysDictListTypeApi, getSysDictTypeApi } from "@@/apis/system/dict/type"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"

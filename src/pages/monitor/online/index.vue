@@ -1,12 +1,12 @@
 <script lang="ts" setup>
+import type { OnlineQuery, OnlineVO } from "@@/apis/monitor/online/types"
 import type { FormInstance } from "element-plus"
-import type { OnlineQuery, OnlineVO } from "@/common/apis/admin/monitor/online/types"
+import { forceLogoutSysOnlineApi, getSysOnlineListApi } from "@@/apis/monitor/online"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
 import { Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { ref, watch } from "vue"
-import { forceLogoutSysOnlineApi, getSysOnlineListApi } from "@/common/apis/admin/monitor/online"
 import OnlineTable from "./components/OnlineTable.vue"
 
 defineOptions({

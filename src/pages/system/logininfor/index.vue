@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { LoginInfoQuery, LoginInfoVO } from "@@/apis/admin/monitor/loginInfo/types.ts"
+import type { LoginInfoQuery, LoginInfoVO } from "@@/apis/monitor/loginInfo/types.ts"
 import type { FormInstance } from "element-plus"
-import { delSysLoginInfoApi, getSysLoginInfoListApi } from "@@/apis/admin/monitor/loginInfo"
+import { delSysLoginInfoApi, getSysLoginInfoListApi } from "@@/apis/monitor/loginInfo"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { Refresh, Search } from "@element-plus/icons-vue"

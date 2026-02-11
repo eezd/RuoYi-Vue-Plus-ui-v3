@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { LoginInfoVO } from "@@/apis/admin/monitor/loginInfo/types.ts"
+import type { LoginInfoVO } from "@@/apis/monitor/loginInfo/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
-import { cleanSysLoginInfoApi, unlockSysLoginInfoApi } from "@@/apis/admin/monitor/loginInfo"
+import { cleanSysLoginInfoApi, unlockSysLoginInfoApi } from "@@/apis/monitor/loginInfo"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"

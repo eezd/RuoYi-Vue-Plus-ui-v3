@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ConfigForm } from "@@/apis/admin/system/config/types.ts"
+import type { ConfigForm } from "@@/apis/system/config/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"

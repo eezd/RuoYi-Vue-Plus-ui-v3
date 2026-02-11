@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { DictTypeForm } from "@@/apis/admin/system/dict/type/types.ts"
+import type { DictTypeForm } from "@@/apis/system/dict/type/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
-import { addSysDictTypeApi, updateSysDictTypeApi } from "@@/apis/admin/system/dict/type"
+import { addSysDictTypeApi, updateSysDictTypeApi } from "@@/apis/system/dict/type"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { ElMessage } from "element-plus"
 import { cloneDeep } from "lodash-es"

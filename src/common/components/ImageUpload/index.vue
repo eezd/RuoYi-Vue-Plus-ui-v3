@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { UploadInstance, UploadProps, UploadUserFile } from "element-plus"
+import { delSysOssApi, getSysOssByIdsApi } from "@@/apis/system/oss"
 import { ElMessage } from "element-plus"
 import { compressAccurately } from "image-conversion"
-import { delSysOssApi, getSysOssByIdsApi } from "@/common/apis/admin/system/oss"
 import { globalHeaders } from "@/http/axios"
 
 /**

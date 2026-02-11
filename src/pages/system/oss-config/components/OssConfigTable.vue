@@ -1,11 +1,11 @@
 <script lang="ts" setup>
+import type { OssConfigForm, OssConfigVO } from "@@/apis/system/ossConfig/types"
 import type { PaginationData } from "@@/composables/usePagination.ts"
-import type { OssConfigForm, OssConfigVO } from "@/common/apis/admin/system/ossConfig/types"
+import { changeSysOssConfigStatusApi } from "@@/apis/system/ossConfig"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
-import { changeSysOssConfigStatusApi } from "@/common/apis/admin/system/ossConfig"
 
 const emit = defineEmits<EmitEvents>()
 /**

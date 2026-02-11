@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import type { MenuTreeOption, RoleMenuTree } from "@@/apis/admin/system/menu/types.ts"
-import type { RoleForm } from "@@/apis/admin/system/role/types.ts"
+import type { MenuTreeOption, RoleMenuTree } from "@@/apis/system/menu/types.ts"
+import type { RoleForm } from "@@/apis/system/role/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
-import { roleMenuTreeselectApi } from "@@/apis/admin/system/menu"
-import { addSysRoleApi, updateSysRoleApi } from "@@/apis/admin/system/role"
+import { roleMenuTreeselectApi } from "@@/apis/system/menu"
+import { addSysRoleApi, updateSysRoleApi } from "@@/apis/system/role"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElMessage } from "element-plus"

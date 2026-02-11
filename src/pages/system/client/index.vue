@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { ClientForm, ClientQuery } from "@@/apis/admin/system/client/types.ts"
+import type { ClientForm, ClientQuery } from "@@/apis/system/client/types.ts"
 import type { FormInstance } from "element-plus"
-import { delSysClientApi, getSysClientApi, getSysClientListApi } from "@@/apis/admin/system/client"
+import { delSysClientApi, getSysClientApi, getSysClientListApi } from "@@/apis/system/client"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"

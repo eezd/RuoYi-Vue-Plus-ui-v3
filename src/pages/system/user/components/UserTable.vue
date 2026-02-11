@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { UserForm, UserVO } from "@@/apis/admin/system/user/types.ts"
+import type { UserForm, UserVO } from "@@/apis/system/user/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
-import { changeSysUserStatusApi } from "@@/apis/admin/system/user"
+import { changeSysUserStatusApi } from "@@/apis/system/user"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"
 import { checkPermission } from "@@/utils/permission"

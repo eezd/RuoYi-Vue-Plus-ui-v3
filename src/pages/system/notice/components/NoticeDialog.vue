@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { NoticeForm } from "@@/apis/admin/system/notice/types.ts"
+import type { NoticeForm } from "@@/apis/system/notice/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
-import { addSysNoticeApi, updateSysNoticeApi } from "@@/apis/admin/system/notice"
+import { addSysNoticeApi, updateSysNoticeApi } from "@@/apis/system/notice"
 import Editor from "@@/components/Editor/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"

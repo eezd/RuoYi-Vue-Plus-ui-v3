@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { DictDataForm } from "@@/apis/admin/system/dict/data/types.ts"
+import type { DictDataForm } from "@@/apis/system/dict/data/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"

@@ -1,13 +1,13 @@
 <script lang="ts" setup>
+import type { OssConfigForm, OssConfigQuery } from "@@/apis/system/ossConfig/types"
 import type { FormInstance } from "element-plus"
-import type { OssConfigForm, OssConfigQuery } from "@/common/apis/admin/system/ossConfig/types"
+import { delSysOssConfigApi, getSysOssConfigApi, getSysOssConfigListApi } from "@@/apis/system/ossConfig"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref, watch } from "vue"
-import { delSysOssConfigApi, getSysOssConfigApi, getSysOssConfigListApi } from "@/common/apis/admin/system/ossConfig"
 import OssConfigDialog from "./components/OssConfigDialog.vue"
 import OssConfigTable from "./components/OssConfigTable.vue"
 

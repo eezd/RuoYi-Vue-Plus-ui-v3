@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { ClientForm } from "@@/apis/admin/system/client/types.ts"
+import type { ClientForm } from "@@/apis/system/client/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
-import { addSysClientApi, updateSysClientApi } from "@@/apis/admin/system/client"
+import { addSysClientApi, updateSysClientApi } from "@@/apis/system/client"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElMessage } from "element-plus"

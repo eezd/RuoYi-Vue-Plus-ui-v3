@@ -1,13 +1,13 @@
 <script lang="ts" setup>
+import type { OssQuery, OssVO } from "@@/apis/system/oss/types"
 import type { FormInstance } from "element-plus"
-import type { OssQuery, OssVO } from "@/common/apis/admin/system/oss/types"
+import { getSysConfigKeyApi } from "@@/apis/system/config"
+import { delSysOssApi, getSysOssListApi } from "@@/apis/system/oss"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
 import { Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { ref, watch } from "vue"
-import { getSysConfigKeyApi } from "@/common/apis/admin/system/config"
-import { delSysOssApi, getSysOssListApi } from "@/common/apis/admin/system/oss"
 import { downloadOss } from "@/http/download"
 import OssTable from "./components/OssTable.vue"
 

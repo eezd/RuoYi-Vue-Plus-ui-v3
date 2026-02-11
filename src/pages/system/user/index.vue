@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import type { RoleVO } from "@@/apis/admin/system/role/types.ts"
-import type { UserForm, UserQuery, UserVO } from "@@/apis/admin/system/user/types.ts"
+import type { RoleVO } from "@@/apis/system/role/types.ts"
+import type { UserForm, UserQuery, UserVO } from "@@/apis/system/user/types.ts"
 import type { FormInstance } from "element-plus"
-import { getSysConfigKeyApi } from "@@/apis/admin/system/config"
-import { delSysUserApi, getSysUserApi, getSysUserListApi, resetSysUserPwdApi } from "@@/apis/admin/system/user"
+import { getSysConfigKeyApi } from "@@/apis/system/config"
+import { delSysUserApi, getSysUserApi, getSysUserListApi, resetSysUserPwdApi } from "@@/apis/system/user"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
+import type { TableVO } from "@@/apis/tool/gen/types"
 import type { PaginationData } from "@@/composables/usePagination.ts"
-import type { TableVO } from "@/common/apis/admin/tool/gen/types"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"
 import { checkPermission } from "@@/utils/permission"

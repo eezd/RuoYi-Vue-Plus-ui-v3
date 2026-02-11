@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { OperLogForm, OperLogVO } from "@@/apis/admin/monitor/operlog/types.ts"
+import type { OperLogForm, OperLogVO } from "@@/apis/monitor/operlog/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
-import { cleanSysOperlogApi } from "@@/apis/admin/monitor/operlog"
+import { cleanSysOperlogApi } from "@@/apis/monitor/operlog"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"

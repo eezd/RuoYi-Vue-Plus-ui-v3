@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { NoticeForm } from "@@/apis/admin/system/notice/types.ts"
+import type { NoticeForm } from "@@/apis/system/notice/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"

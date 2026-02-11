@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { MenuOptionsType } from "../index.vue"
-import { cascadeDelSysMenuApi } from "@@/apis/admin/system/menu"
+import { cascadeDelSysMenuApi } from "@@/apis/system/menu"
 import { ElMessage } from "element-plus"
 
 export interface EmitEvents {

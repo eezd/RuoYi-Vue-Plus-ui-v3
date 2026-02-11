@@ -1,11 +1,11 @@
 <script lang="ts" setup>
+import type { OssConfigForm } from "@@/apis/system/ossConfig/types"
 import type { FormInstance, FormRules } from "element-plus"
-import type { OssConfigForm } from "@/common/apis/admin/system/ossConfig/types"
+import { addSysOssConfigApi, updateSysOssConfigApi } from "@@/apis/system/ossConfig"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { ElMessage } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref } from "vue"
-import { addSysOssConfigApi, updateSysOssConfigApi } from "@/common/apis/admin/system/ossConfig"
 import { useDict } from "@/common/composables/useDict"
 
 export interface EmitEvents {

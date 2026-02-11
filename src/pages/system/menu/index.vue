@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { MenuForm, MenuQuery, MenuVO } from "@@/apis/admin/system/menu/types.ts"
+import type { MenuForm, MenuQuery, MenuVO } from "@@/apis/system/menu/types.ts"
 import type { FormInstance } from "element-plus"
-import { delSysMenuApi, getSysMenuApi, getSysMenuListApi } from "@@/apis/admin/system/menu"
+import { delSysMenuApi, getSysMenuApi, getSysMenuListApi } from "@@/apis/system/menu"
 import { useDict } from "@@/composables/useDict.ts"
 import { MenuTypeEnum } from "@@/enums/MenuTypeEnum.ts"
 import { handleTree } from "@@/utils"

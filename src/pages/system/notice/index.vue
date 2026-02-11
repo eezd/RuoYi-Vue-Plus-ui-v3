@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { NoticeForm, NoticeQuery } from "@@/apis/admin/system/notice/types.ts"
+import type { NoticeForm, NoticeQuery } from "@@/apis/system/notice/types.ts"
 import type { FormInstance } from "element-plus"
-import { delSysNoticeApi, getSysNoticeApi, getSysNoticeListApi } from "@@/apis/admin/system/notice"
+import { delSysNoticeApi, getSysNoticeApi, getSysNoticeListApi } from "@@/apis/system/notice"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"

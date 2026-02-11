@@ -1,7 +1,7 @@
 import type { RouteRecordRaw } from "vue-router"
+import { getRouters } from "@@/apis/menu.ts"
 import InnerLink from "@@/components/InnerLink/index.vue"
 import ParentView from "@@/components/ParentView/index.vue"
-import { getRouters } from "@/common/apis/admin/menu"
 import auth from "@/common/utils/auth"
 import { createCustomNameComponent } from "@/common/utils/createCustomNameComponent"
 import Layout from "@/layouts/index.vue"

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { RoleForm } from "@@/apis/admin/system/role/types.ts"
-import type { UserVO } from "@@/apis/admin/system/user/types.ts"
+import type { RoleForm } from "@@/apis/system/role/types.ts"
+import type { UserVO } from "@@/apis/system/user/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"

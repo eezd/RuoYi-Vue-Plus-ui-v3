@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { OperLogForm } from "@@/apis/admin/monitor/operlog/types.ts"
+import type { OperLogForm } from "@@/apis/monitor/operlog/types.ts"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { formatDateTime, selectDictLabel } from "@@/utils"

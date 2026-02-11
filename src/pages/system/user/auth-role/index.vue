@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { RoleVO } from "@@/apis/admin/system/role/types.ts"
-import type { UserForm } from "@@/apis/admin/system/user/types.ts"
+import type { RoleVO } from "@@/apis/system/role/types.ts"
+import type { UserForm } from "@@/apis/system/user/types.ts"
 import type { ElTable } from "element-plus"
-import { getAuthRoleApi, updateAuthRoleApi } from "@@/apis/admin/system/user"
+import { getAuthRoleApi, updateAuthRoleApi } from "@@/apis/system/user"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { formatDateTime } from "@@/utils"
 import { ElMessage } from "element-plus"

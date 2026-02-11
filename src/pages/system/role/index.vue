@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import type { MenuTreeOption } from "@@/apis/admin/system/menu/types.ts"
-import type { RoleForm, RoleQuery, RoleVO } from "@@/apis/admin/system/role/types.ts"
+import type { MenuTreeOption } from "@@/apis/system/menu/types.ts"
+import type { RoleForm, RoleQuery, RoleVO } from "@@/apis/system/role/types.ts"
 import type { FormInstance } from "element-plus"
-import { treeselectApi } from "@@/apis/admin/system/menu"
-import { delSysRoleApi, getSysRoleApi, getSysRolelistApi } from "@@/apis/admin/system/role"
+import { treeselectApi } from "@@/apis/system/menu"
+import { delSysRoleApi, getSysRoleApi, getSysRolelistApi } from "@@/apis/system/role"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"

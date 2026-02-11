@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { ResetPwdForm, UserForm, UserVO } from "@/common/apis/admin/system/user/types"
+import type { ResetPwdForm, UserForm, UserVO } from "@@/apis/system/user/types"
+import { delSysOnlineApi, getSysOnlineApi } from "@@/apis/monitor/online"
+import { getSysUserProfileApi, updateSysUserProfileApi, updateSysUserPwdApi } from "@@/apis/system/user"
 import { ref } from "vue"
-import { delSysOnlineApi, getSysOnlineApi } from "@/common/apis/admin/monitor/online"
-import { getSysUserProfileApi, updateSysUserProfileApi, updateSysUserPwdApi } from "@/common/apis/admin/system/user"
 import { formatDateTime } from "@/common/utils"
 
 const loading = ref(false)

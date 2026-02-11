@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { ClientForm, ClientVO } from "@@/apis/admin/system/client/types.ts"
+import type { ClientForm, ClientVO } from "@@/apis/system/client/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
-import { changeSysStatusApi } from "@@/apis/admin/system/client"
+import { changeSysStatusApi } from "@@/apis/system/client"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
