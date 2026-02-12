@@ -104,9 +104,9 @@ async function handleDelete(row: RoleForm | RoleForm[]) {
 function handleExport() {
   const timestamp = new Date().getTime()
   download(
-    "/system/Role/type/export",
+    "/system/role/export",
     { ...searchData },
-    `Role_${timestamp}.xlsx`
+    `role_${timestamp}.xlsx`
   )
 }
 // #endregion

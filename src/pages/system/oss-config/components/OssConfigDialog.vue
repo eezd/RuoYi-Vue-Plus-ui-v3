@@ -4,7 +4,6 @@ import type { FormInstance, FormRules } from "element-plus"
 import { addSysOssConfigApi, updateSysOssConfigApi } from "@@/apis/system/ossConfig"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { ElMessage } from "element-plus"
-import { cloneDeep } from "lodash-es"
 import { ref } from "vue"
 import { useDict } from "@/common/composables/useDict"
 
@@ -101,8 +100,6 @@ function handleCancel() {
 
 function resetForm() {
   formRef.value?.clearValidate()
-  formRef.value?.resetFields()
-  formData.value = cloneDeep({})
 }
 </script>
 

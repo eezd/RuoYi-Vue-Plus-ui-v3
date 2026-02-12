@@ -11,6 +11,7 @@ import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref, watch } from "vue"
 import { download } from "@/http/download"
+import RoleDataScopeDialog from "./components/RoleDataScopeDialog.vue"
 import RoleDialog from "./components/RoleDialog.vue"
 import RoleTable from "./components/RoleTable.vue"
 
@@ -25,7 +26,19 @@ const loading = ref(true)
 
 // 表格数据
 const tableData = ref<RoleForm[]>([])
-const DEFAULT_FORM_DATA = { status: "0", menuCheckStrictly: true }
+const DEFAULT_FORM_DATA = {
+  roleId: undefined,
+  roleSort: 1,
+  status: "0",
+  roleName: "",
+  roleKey: "",
+  menuCheckStrictly: true,
+  deptCheckStrictly: true,
+  remark: "",
+  dataScope: "1",
+  menuIds: [],
+  deptIds: []
+}
 // 表单数据
 const formData = ref<Partial<RoleForm>>(cloneDeep(DEFAULT_FORM_DATA))
 
@@ -36,7 +49,6 @@ const dialog = reactive<DialogOption>({
   isEditable: false
 })
 
-const menuRef = ref<ElTreeInstance | null>(null)
 const menuOptions = ref<MenuTreeOption[]>([])
 
 // 分页
@@ -117,7 +129,7 @@ async function handleDelete(row: RoleForm | RoleForm[]) {
 
 /** 分配用户 */
 function handleAuthUser(row: RoleVO) {
-  router.push(`/admin/system/role/auth-user/${row.roleId}`)
+  router.push(`/system/role-auth/user/${row.roleId}`)
 }
 
 /**
@@ -126,7 +138,7 @@ function handleAuthUser(row: RoleVO) {
 function handleExport() {
   const timestamp = new Date().getTime()
   download(
-    "/system/Role/type/export",
+    "/system/role/export",
     { ...searchData },
     `role_${timestamp}.xlsx`
   )
@@ -139,7 +151,7 @@ function handleExport() {
  */
 function openAddDialog() {
   formData.value = cloneDeep(DEFAULT_FORM_DATA)
-  dialog.title = "新增角色"
+  dialog.title = "新增"
   dialog.isEditable = true
   dialog.visible = true
 }
@@ -149,11 +161,11 @@ function openAddDialog() {
  */
 async function openUpdateDialog(row: RoleForm) {
   dialog.loading = true
-  dialog.title = "修改角色"
+  dialog.title = "修改"
   dialog.isEditable = true
   dialog.visible = true
   try {
-    formData.value = cloneDeep({})
+    formData.value = cloneDeep(DEFAULT_FORM_DATA)
     const roleId = row?.roleId
     const { data } = await getSysRoleApi(roleId)
     Object.assign(formData.value, data)
@@ -168,10 +180,43 @@ async function openUpdateDialog(row: RoleForm) {
  */
 async function openShowDialog(row: RoleForm) {
   dialog.loading = true
-  dialog.title = "查看角色"
-  formData.value = cloneDeep(row)
+  dialog.title = "查看"
   dialog.isEditable = false
   dialog.visible = true
+  try {
+    formData.value = cloneDeep(DEFAULT_FORM_DATA)
+    const roleId = row?.roleId
+    const { data } = await getSysRoleApi(roleId)
+    Object.assign(formData.value, data)
+    formData.value.roleSort = Number(formData.value.roleSort)
+  } finally {
+    dialog.loading = false
+  }
+}
+
+/**
+ * 打开数据权限弹窗
+ */
+const dialogDataScope = reactive<DialogOption>({
+  title: "",
+  visible: false,
+  loading: false,
+  isEditable: false
+})
+async function openDataScope(row: RoleForm) {
+  dialogDataScope.loading = true
+  dialogDataScope.title = "数据权限"
+  dialogDataScope.isEditable = true
+  dialogDataScope.visible = true
+  try {
+    formData.value = cloneDeep(DEFAULT_FORM_DATA)
+    const roleId = row?.roleId
+    const { data } = await getSysRoleApi(roleId)
+    Object.assign(formData.value, data)
+    formData.value.roleSort = Number(formData.value.roleSort)
+  } finally {
+    dialogDataScope.loading = false
+  }
 }
 // #endregion
 
@@ -273,6 +318,12 @@ onMounted(async () => {
                   </el-icon>
                   修改
                 </el-dropdown-item>
+                <el-dropdown-item @click="openDataScope(scope.row)" v-if="checkPermission(['system:role:edit'])">
+                  <el-icon color="#F56C6C">
+                    <CircleCheck />
+                  </el-icon>
+                  数据权限
+                </el-dropdown-item>
                 <el-dropdown-item @click="handleAuthUser(scope.row)" v-if="checkPermission(['system:role:edit'])">
                   <el-icon color="#F56C6C">
                     <User />
@@ -295,9 +346,14 @@ onMounted(async () => {
     <!-- 数据弹窗 -->
     <RoleDialog
       v-model:dialog="dialog"
-      v-model:menu-ref="menuRef"
       v-model:form-data="formData"
       v-model:menu-options="menuOptions"
+      @success="getTableData"
+    />
+
+    <RoleDataScopeDialog
+      v-model:dialog="dialogDataScope"
+      v-model:form-data="formData"
       @success="getTableData"
     />
   </div>

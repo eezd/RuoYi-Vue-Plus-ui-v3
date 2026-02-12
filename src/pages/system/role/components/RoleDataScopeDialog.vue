@@ -1,10 +1,7 @@
 <script lang="ts" setup>
-import type { MenuTreeOption, RoleMenuTree } from "@@/apis/system/menu/types.ts"
-import type { RoleForm } from "@@/apis/system/role/types.ts"
-import type { FormRules } from "element-plus"
+import type { DeptTreeOption, RoleForm } from "@@/apis/system/role/types.ts"
 import type { FormActionEmits } from "types/common"
-import { roleMenuTreeselectApi } from "@@/apis/system/menu"
-import { addSysRoleApi, updateSysRoleApi } from "@@/apis/system/role"
+import { getSysDeptTreeSelectApi, updateSysRoleDataScopeApi } from "@@/apis/system/role"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElMessage } from "element-plus"
@@ -16,7 +13,6 @@ const emit = defineEmits<FormActionEmits>()
  * defineModel
  */
 // #region defineModel
-const menuOptions = defineModel<MenuTreeOption[]>("menuOptions", { required: true })
 const dialog = defineModel<DialogOption>("dialog", { required: true })
 const formData = defineModel<Partial<RoleForm>>(
   "formData",
@@ -29,48 +25,34 @@ const formData = defineModel<Partial<RoleForm>>(
 const { isMobile } = useDevice()
 const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 
-const menuPermissionRef = useTemplateRef("menuPermissionRef")
+const deptPermissionRef = useTemplateRef("deptPermissionRef")
+
+const deptOptions = ref<DeptTreeOption[]>([])
 
 const formRef = useTemplateRef("formRef")
-const formRules: FormRules<RoleForm> = {
-  roleName: [
-    {
-      required: true,
-      trigger: "blur",
-      message: "角色名称必填"
-    }
-  ],
-  roleKey: [
-    {
-      required: true,
-      trigger: "blur",
-      message: "角色键名必填"
-    }
-  ],
-  roleSort: [
-    {
-      required: true,
-      trigger: "blur",
-      message: "角色顺序必填"
-    }
-  ]
-}
+/** 数据范围选项 */
+const dataScopeOptions = ref([
+  { value: "1", label: "全部数据权限" },
+  { value: "2", label: "自定数据权限" },
+  { value: "3", label: "本部门数据权限" },
+  { value: "4", label: "本部门及以下数据权限" },
+  { value: "5", label: "仅本人数据权限" },
+  { value: "6", label: "部门及以下或本人数据权限" }
+])
 
 async function handleSubmit() {
   if (!formRef.value) return
   try {
     await formRef.value.validate()
-    dialog.value.loading = true
-    const isUpdate = !!formData.value.roleId
-    formData.value.menuIds = menuPermissionRef.value?.getAllCheckedKeys()
-    const reqData = formData.value as RoleForm
-    const res = isUpdate
-      ? await updateSysRoleApi(reqData)
-      : await addSysRoleApi(reqData)
-    ElMessage.success(res.msg)
-    resetForm()
-    dialog.value.visible = false
-    emit("success")
+    if (formData.value.roleId) {
+      dialog.value.loading = true
+      formData.value.deptIds = deptPermissionRef.value?.getAllCheckedKeys()
+      await updateSysRoleDataScopeApi(formData.value)
+      ElMessage.success("修改成功")
+      resetForm()
+      dialog.value.visible = false
+      emit("success")
+    }
   } finally {
     dialog.value.loading = false
   }
@@ -84,22 +66,28 @@ function handleCancel() {
 
 function resetForm() {
   formRef.value?.clearValidate()
-  menuPermissionRef.value?.reset()
+  deptPermissionRef.value?.reset()
 }
 
-function getRoleMenuTreeselect(roleId: string | number) {
-  return roleMenuTreeselectApi(roleId).then((res): RoleMenuTree => {
-    menuOptions.value = res.data.menus
-    return res.data
-  })
+function dataScopeSelectChange(value: string) {
+  if (value !== "2") {
+    deptPermissionRef.value?.reset()
+  }
+}
+
+/** 根据角色ID查询部门树结构 */
+async function getRoleDeptTreeSelect(roleId: string | number) {
+  const res = await getSysDeptTreeSelectApi(roleId)
+  deptOptions.value = res.data.depts
+  return res.data
 }
 
 watch(() => formData.value.roleId, async () => {
   try {
     if (formData.value.roleId !== undefined) {
       dialog.value.loading = true
-      const menuRes = await getRoleMenuTreeselect(formData.value.roleId)
-      menuPermissionRef.value?.setCheckedKeys(menuRes.checkedKeys)
+      const deptRes = await getRoleDeptTreeSelect(formData.value.roleId)
+      deptPermissionRef.value?.setCheckedKeys(deptRes.checkedKeys)
     }
   } finally {
     dialog.value.loading = false
@@ -125,7 +113,7 @@ watch(() => formData.value.roleId, async () => {
       </div>
     </template>
     <div class="drawer-content">
-      <el-form ref="formRef" v-loading="dialog.loading" label-width="auto" :model="formData" :rules="formRules" label-position="left">
+      <el-form ref="formRef" v-loading="dialog.loading" label-width="auto" :model="formData" label-position="left">
         <el-form-item prop="roleName" label="角色名称">
           <el-input v-model="formData.roleName" placeholder="请输入角色名称" :disabled="!dialog.isEditable" />
         </el-form-item>
@@ -133,7 +121,9 @@ watch(() => formData.value.roleId, async () => {
           <el-input v-model="formData.roleKey" placeholder="请输入权限字符" :disabled="!dialog.isEditable" />
         </el-form-item>
         <el-form-item prop="roleSort" label="角色顺序">
-          <el-input-number v-model="formData.roleSort" controls-position="right" :min="0" :disabled="!dialog.isEditable" />
+          <el-select v-model="formData.dataScope" @change="dataScopeSelectChange">
+            <el-option v-for="item in dataScopeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item prop="status" label="状态">
           <el-radio-group v-model="formData.status" :disabled="!dialog.isEditable">
@@ -142,12 +132,13 @@ watch(() => formData.value.roleId, async () => {
             </el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item prop="menuCheckStrictly" label="菜单权限">
+        <el-form-item v-show="formData.dataScope === '2'" prop="menuCheckStrictly" label="菜单权限">
           <TreePermission
-            ref="menuPermissionRef"
-            v-model:check-strictly="formData.menuCheckStrictly"
-            :tree-data="menuOptions"
+            ref="deptPermissionRef"
+            v-model:check-strictly="formData.deptCheckStrictly"
+            :tree-data="deptOptions"
             :editable="dialog.isEditable"
+            node-key="id"
           />
         </el-form-item>
         <el-form-item prop="remark" label="备注">

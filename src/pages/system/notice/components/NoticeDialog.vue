@@ -6,7 +6,6 @@ import Editor from "@@/components/Editor/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElMessage } from "element-plus"
-import { cloneDeep } from "lodash-es"
 import { ref } from "vue"
 
 export interface EmitEvents {
@@ -76,8 +75,6 @@ function handleCancel() {
 
 function resetForm() {
   formRef.value?.clearValidate()
-  formRef.value?.resetFields()
-  formData.value = cloneDeep({})
 }
 </script>
 

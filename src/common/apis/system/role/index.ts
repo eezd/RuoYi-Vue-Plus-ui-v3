@@ -1,5 +1,5 @@
 import type { UserQuery, UserVO } from "../user/types.ts"
-import type { RoleQuery, RoleVO } from "./types.ts"
+import type { RoleDeptTree, RoleQuery, RoleVO } from "./types.ts"
 import { request } from "@/http/axios.ts"
 
 export function getSysRolelistApi(query: RoleQuery) {
@@ -57,7 +57,7 @@ export function updateSysRoleApi(data: any) {
 /**
  * 角色数据权限
  */
-export function dataScopeApi(data: any) {
+export function updateSysRoleDataScopeApi(data: any) {
   return request<ApiResponseData<null>>({
     url: "/system/role/dataScope",
     method: "put",
@@ -142,5 +142,13 @@ export function authSysUserSelectAll(data: any) {
     url: "/system/role/authUser/selectAll",
     method: "put",
     params: data
+  })
+}
+
+// 根据角色ID查询部门树结构
+export function getSysDeptTreeSelectApi(roleId: string | number) {
+  return request<ApiResponseData<RoleDeptTree>>({
+    url: `/system/role/deptTree/${roleId}`,
+    method: "get"
   })
 }

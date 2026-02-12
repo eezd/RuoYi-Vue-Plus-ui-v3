@@ -1,44 +1,34 @@
+/**
+ * 菜单树形结构类型
+ */
+export interface DeptTreeOption {
+  id: string
+  label: string
+  parentId: string
+  weight: number
+  children?: DeptTreeOption[]
+}
+
+export interface RoleDeptTree {
+  checkedKeys: string[]
+  depts: DeptTreeOption[]
+}
+
 export interface RoleVO extends BaseEntity {
-  /**
-   * 角色ID
-   */
   roleId: string | number
-  /**
-   * 角色名称
-   */
   roleName: string
-  /**
-   * 角色权限字符串
-   */
   roleKey: string
-  /**
-   * 显示顺序
-   */
   roleSort: number
-  /**
-   * 菜单树选择项是否关联显示
-   */
+  dataScope: string
   menuCheckStrictly: boolean
-  /**
-   * 角色状态（0正常 1停用）
-   */
+  deptCheckStrictly: boolean
   status: string
-  /**
-   * 备注
-   */
+  delFlag: string
   remark: any
-  /**
-   * 用户是否存在此角色标识 默认不存在
-   */
   flag: boolean
-  /**
-   * 是否为管理员角色
-   */
-  admin: boolean
-  /**
-   * Element UI 树形控件已分配的菜单ID集合
-   */
   menuIds: Array<string | number>
+  deptIds: Array<string | number>
+  admin: boolean
 }
 
 export interface RoleQuery extends PageQuery {
@@ -52,36 +42,15 @@ export interface RoleQuery extends PageQuery {
 }
 
 export interface RoleForm {
-  /**
-   * 角色ID
-   */
   roleId: string | number
-  /**
-   * 角色名称
-   */
   roleName: string
-  /**
-   * 角色权限字符串
-   */
   roleKey: string
-  /**
-   * 显示顺序
-   */
   roleSort: number
-  /**
-   * 菜单树选择项是否关联显示
-   */
-  menuCheckStrictly: boolean
-  /**
-   * 角色状态（0正常 1停用）
-   */
   status: string
-  /**
-   * 备注
-   */
+  menuCheckStrictly: boolean
+  deptCheckStrictly: boolean
   remark: string
-  /**
-   * Element UI 树形控件已分配的菜单ID集合
-   */
+  dataScope?: string
   menuIds: Array<string | number>
+  deptIds: Array<string | number>
 }

@@ -2,13 +2,13 @@
 import type { RoleVO } from "@@/apis/system/role/types.ts"
 import type { UserForm } from "@@/apis/system/user/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
+import type { FormActionEmits } from "types/common"
 import type { DeptTreeVO } from "@/common/apis/system/dept/types"
 import type { PostVO } from "@/common/apis/system/post/types"
 import { addSysUserApi, updateSysUserApi } from "@@/apis/system/user"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElInput } from "element-plus"
-import { cloneDeep } from "lodash-es"
 import { ref } from "vue"
 import { getSysPostOptionselectApi } from "@/common/apis/system/post"
 
@@ -17,11 +17,8 @@ interface Props {
 }
 const { enabledDeptOptions } = defineProps<Props>()
 
-const emit = defineEmits<EmitEvents>()
-export interface EmitEvents {
-  (e: "success"): void
-  (e: "cancel"): void
-}
+const emit = defineEmits<FormActionEmits>()
+
 /**
  * defineModel
  */
@@ -107,8 +104,6 @@ function handleCancel() {
 
 function resetForm() {
   formRef.value?.clearValidate()
-  formRef.value?.resetFields()
-  formData.value = cloneDeep({})
 }
 
 // 岗位选项

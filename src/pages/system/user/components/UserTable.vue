@@ -49,7 +49,7 @@ const handleSelectionChange = (val: UserForm[]) => (selectedRows.value = val)
 async function handleStatusChange(row: UserForm) {
   const text = row.status === "0" ? "启用" : "停用"
   try {
-    await ElMessageBox.confirm(`确认要"${text}""${row.userName}"用户吗?`, "提示", {
+    await ElMessageBox.confirm(`确认要"${text}""${row.userName}"吗?`, "提示", {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       type: "warning"

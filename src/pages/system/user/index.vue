@@ -20,14 +20,12 @@ defineOptions({
 })
 
 const router = useRouter()
-
 const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 
 const loading = ref(true)
 
 // 表格数据
 const tableData = ref<UserVO[]>([])
-
 const DEFAULT_FORM_DATA = {
   userId: undefined,
   deptId: undefined,
@@ -153,7 +151,7 @@ function handleExport() {
  */
 async function openAddDialog() {
   dialog.loading = true
-  dialog.title = "新增用户"
+  dialog.title = "新增"
   dialog.isEditable = true
   dialog.visible = true
   try {
@@ -171,11 +169,11 @@ async function openAddDialog() {
  */
 async function openUpdateDialog(row: UserForm) {
   dialog.loading = true
-  dialog.title = "修改用户"
+  dialog.title = "修改"
   dialog.isEditable = true
   dialog.visible = true
   try {
-    formData.value = cloneDeep({})
+    formData.value = cloneDeep(DEFAULT_FORM_DATA)
     const userId = row?.userId
     const { data } = await getSysUserApi(userId)
     Object.assign(formData.value, data.user)
@@ -194,11 +192,11 @@ async function openUpdateDialog(row: UserForm) {
  */
 async function openShowDialog(row: UserForm) {
   dialog.loading = true
-  dialog.title = "查看用户"
+  dialog.title = "查看"
   dialog.isEditable = false
   dialog.visible = true
   try {
-    formData.value = cloneDeep({})
+    formData.value = cloneDeep(DEFAULT_FORM_DATA)
     const userId = row?.userId
     const { data } = await getSysUserApi(userId)
     Object.assign(formData.value, data.user)

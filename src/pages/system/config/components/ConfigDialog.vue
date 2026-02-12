@@ -5,7 +5,6 @@ import { addSysConfigApi, updateSysConfigApi } from "@@/apis/system/config"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElMessage } from "element-plus"
-import { cloneDeep } from "lodash-es"
 
 export interface EmitEvents {
   (e: "success"): void
@@ -81,8 +80,6 @@ function handleCancel() {
 
 function resetForm() {
   formRef.value?.clearValidate()
-  formRef.value?.resetFields()
-  formData.value = cloneDeep({})
 }
 </script>
 

@@ -46,7 +46,7 @@ const handleSelectionChange = (val: RoleForm[]) => (selectedRows.value = val)
 async function handleStatusChange(row: RoleForm) {
   const text = row.status === "0" ? "启用" : "停用"
   try {
-    await ElMessageBox.confirm(`确认要"${text}""${row.roleName}"角色吗?`, "提示", {
+    await ElMessageBox.confirm(`确认要"${text}""${row.roleName}"吗?`, "提示", {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       type: "warning"
