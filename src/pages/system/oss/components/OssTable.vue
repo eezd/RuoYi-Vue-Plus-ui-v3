@@ -8,7 +8,6 @@ import ImagePreview from "@@/components/ImagePreview/index.vue"
 import ImageUpload from "@@/components/ImageUpload/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"
-import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
 
@@ -120,14 +119,15 @@ async function handlePreviewListResource(preview: boolean) {
         <el-button
           type="primary"
           :icon="CirclePlus"
-          :disabled="!checkPermission(['system:role:add'])"
+          v-hasPermi="['system:role:add']"
           @click="handleImage()"
         >
           上传图片
         </el-button>
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length || !checkPermission(['system:role:remove'])"
+          :disabled="!selectedRows.length"
+          v-hasPermi="['system:role:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除

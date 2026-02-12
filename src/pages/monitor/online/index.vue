@@ -2,7 +2,6 @@
 import type { OnlineQuery, OnlineVO } from "@@/apis/monitor/online/types"
 import { forceLogoutSysOnlineApi, getSysOnlineListApi } from "@@/apis/monitor/online"
 import { usePagination } from "@@/composables/usePagination.ts"
-import { checkPermission } from "@@/utils/permission"
 import { Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { ref, watch } from "vue"
@@ -125,7 +124,7 @@ onMounted(async () => {
       <template #operation="{ scope }">
         <el-tooltip content="强退" placement="top">
           <el-button
-            :disabled="!checkPermission(['monitor:online:forceLogout'])"
+            v-hasPermi="['monitor:online:forceLogout']"
             link type="primary" icon="Delete" @click="handleDelete(scope.row)"
           />
         </el-tooltip>

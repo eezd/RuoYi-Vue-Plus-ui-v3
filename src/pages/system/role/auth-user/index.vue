@@ -3,7 +3,6 @@ import type { RoleForm } from "@@/apis/system/role/types.ts"
 import type { UserQuery, UserVO } from "@@/apis/system/user/types.ts"
 import { allocatedSysUserListApi, authSysUserCancelApi, delSysRoleApi } from "@@/apis/system/role"
 import { usePagination } from "@@/composables/usePagination.ts"
-import { checkPermission } from "@@/utils/permission"
 import { CircleClose, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { ref, watch } from "vue"
@@ -196,7 +195,7 @@ onMounted(async () => {
             text
             bg
             size="small"
-            :disabled="!checkPermission(['system:role:remove'])"
+            v-hasPermi="['system:role:remove']"
             @click="cancelAuthUser(scope.row)"
           >
             取消授权

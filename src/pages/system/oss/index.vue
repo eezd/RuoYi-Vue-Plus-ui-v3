@@ -3,7 +3,6 @@ import type { OssQuery, OssVO } from "@@/apis/system/oss/types"
 import { getSysConfigKeyApi } from "@@/apis/system/config"
 import { delSysOssApi, getSysOssListApi } from "@@/apis/system/oss"
 import { usePagination } from "@@/composables/usePagination.ts"
-import { checkPermission } from "@@/utils/permission"
 import { Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { ref, watch } from "vue"
@@ -175,10 +174,10 @@ onMounted(async () => {
     >
       <template #operation="{ scope }">
         <el-tooltip content="下载" placement="top">
-          <el-button :disabled="!checkPermission(['system:oss:download'])" link type="primary" icon="Download" @click="handleDownload(scope.row)" />
+          <el-button v-hasPermi="['system:oss:download']" link type="primary" icon="Download" @click="handleDownload(scope.row)" />
         </el-tooltip>
         <el-tooltip content="删除" placement="top">
-          <el-button :disabled="!checkPermission(['system:oss:remove'])" link type="primary" icon="Delete" @click="handleDelete(scope.row)" />
+          <el-button v-hasPermi="['system:oss:remove']" link type="primary" icon="Delete" @click="handleDelete(scope.row)" />
         </el-tooltip>
       </template>
     </OssTable>

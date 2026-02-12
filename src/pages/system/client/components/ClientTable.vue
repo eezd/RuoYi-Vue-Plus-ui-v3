@@ -5,7 +5,6 @@ import { changeSysStatusApi } from "@@/apis/system/client"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
-import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
 
@@ -70,21 +69,22 @@ async function handleStatusChange(row: ClientVO) {
         <el-button
           type="primary"
           :icon="CirclePlus"
-          :disabled="!checkPermission(['system:client:add'])"
+          v-hasPermi="['system:client:add']"
           @click="openAddDialog()"
         >
           新增
         </el-button>
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length || !checkPermission(['system:client:remove'])"
+          :disabled="!selectedRows.length"
+          v-hasPermi="['system:client:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除
         </el-button>
         <el-button
           type="warning" plain icon="Download"
-          :disabled="!checkPermission(['system:client:export'])"
+          v-hasPermi="['system:client:export']"
           @click="handleExport()"
         >
           导出
@@ -116,7 +116,7 @@ async function handleStatusChange(row: ClientVO) {
         <el-table-column prop="timeout" label="Token固定超时时间" align="center" :show-overflow-tooltip="true" />
         <el-table-column prop="status" label="状态" align="center">
           <template #default="scope">
-            <el-switch v-model="scope.row.status" active-value="0" inactive-value="1" :disabled="!checkPermission(['system:client:edit'])" @change="handleStatusChange(scope.row)" />
+            <el-switch v-model="scope.row.status" active-value="0" inactive-value="1" v-hasPermi="['system:client:edit']" @change="handleStatusChange(scope.row)" />
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作" :width="isMobile ? 100 : 130" align="center">

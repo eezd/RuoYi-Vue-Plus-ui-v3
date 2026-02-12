@@ -6,7 +6,6 @@ import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { formatDateTime } from "@@/utils"
-import { checkPermission } from "@@/utils/permission"
 import { RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
 
@@ -80,24 +79,30 @@ async function handleUnlock() {
       <div :style="isMobile ? 'display:flex; gap: 10px; flex-wrap: wrap;' : ''">
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length || !checkPermission(['system:logininfor:remove'])"
+          :disabled="!selectedRows.length"
+          v-hasPermi="['system:logininfor:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除
         </el-button>
         <el-button
           type="danger" plain icon="WarnTriangleFilled"
-          :disabled="!checkPermission(['system:logininfor:remove'])"
+          v-hasPermi="['system:logininfor:remove']"
           @click="handleClean()"
         >
           清空
         </el-button>
-        <el-button type="primary" plain icon="Unlock" :disabled="selectedRows.length !== 1 || !checkPermission(['system:logininfor:unlock'])" @click="handleUnlock()">
+        <el-button
+          type="primary" plain icon="Unlock"
+          :disabled="selectedRows.length !== 1"
+          v-hasPermi="['system:logininfor:unlock']"
+          @click="handleUnlock()"
+        >
           解锁
         </el-button>
         <el-button
           type="warning" plain icon="Download"
-          :disabled="!checkPermission(['system:logininfor:export'])"
+          v-hasPermi="['system:logininfor:export']"
           @click="handleExport()"
         >
           导出

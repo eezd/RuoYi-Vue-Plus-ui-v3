@@ -3,7 +3,6 @@ import type { OssConfigForm, OssConfigVO } from "@@/apis/system/ossConfig/types"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import { changeSysOssConfigStatusApi } from "@@/apis/system/ossConfig"
 import { useDevice } from "@@/composables/useDevice.ts"
-import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
 
@@ -67,14 +66,15 @@ async function handleStatusChange(row: OssConfigVO) {
         <el-button
           type="primary"
           :icon="CirclePlus"
-          :disabled="!checkPermission(['system:dict:add'])"
+          v-hasPermi="['system:dict:add']"
           @click="openAddDialog()"
         >
           新增
         </el-button>
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length || !checkPermission(['system:dict:remove'])"
+          :disabled="!selectedRows.length"
+          v-hasPermi="['system:dict:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除

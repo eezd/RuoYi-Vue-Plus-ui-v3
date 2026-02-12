@@ -3,7 +3,6 @@ import type { DictDataForm } from "@@/apis/system/dict/data/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"
-import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
 
@@ -51,21 +50,22 @@ const handleSelectionChange = (val: DictDataForm[]) => (selectedRows.value = val
         <el-button
           type="primary"
           :icon="CirclePlus"
-          :disabled="!checkPermission(['system:dict:add'])"
+          v-hasPermi="['system:dict:add']"
           @click="openAddDialog()"
         >
           新增字典
         </el-button>
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length || !checkPermission(['system:dict:remove'])"
+          :disabled="!selectedRows.length"
+          v-hasPermi="['system:dict:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除
         </el-button>
         <el-button
           type="warning" plain icon="Download"
-          :disabled="!checkPermission(['system:dict:export'])"
+          v-hasPermi="['system:dict:export']"
           @click="handleExport()"
         >
           导出

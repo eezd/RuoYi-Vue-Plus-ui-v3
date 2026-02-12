@@ -267,19 +267,19 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="openUpdateDialog(scope.row)" :disabled="!checkPermission(['system:role:edit'])">
+                <el-dropdown-item @click="openUpdateDialog(scope.row)" v-if="checkPermission(['system:role:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
                   修改
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleAuthUser(scope.row)" :disabled="!checkPermission(['system:role:edit'])">
+                <el-dropdown-item @click="handleAuthUser(scope.row)" v-if="checkPermission(['system:role:edit'])">
                   <el-icon color="#F56C6C">
                     <User />
                   </el-icon>
                   分配用户
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleDelete(scope.row)" :disabled="!checkPermission(['system:role:remove'])">
+                <el-dropdown-item @click="handleDelete(scope.row)" v-if="checkPermission(['system:role:remove'])">
                   <el-icon color="#F56C6C">
                     <Delete />
                   </el-icon>

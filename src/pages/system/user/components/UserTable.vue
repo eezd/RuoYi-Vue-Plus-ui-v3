@@ -127,14 +127,15 @@ function submitFileForm() {
         <el-button
           type="primary"
           :icon="CirclePlus"
-          :disabled="!checkPermission(['system:user:add'])"
+          v-hasPermi="['system:user:add']"
           @click="openAddDialog()"
         >
           新增
         </el-button>
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length || !checkPermission(['system:user:remove'])"
+          :disabled="!selectedRows.length"
+          v-hasPermi="['system:user:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除
@@ -177,7 +178,7 @@ function submitFileForm() {
         <el-table-column prop="phonenumber" label="手机号码" align="center" />
         <el-table-column prop="status" label="状态" align="center">
           <template #default="scope">
-            <el-switch v-model="scope.row.status" active-value="0" inactive-value="1" :disabled="!checkPermission(['system:user:edit'])" @change="handleStatusChange(scope.row)" />
+            <el-switch v-model="scope.row.status" active-value="0" inactive-value="1" v-hasPermi="['system:user:edit']" @change="handleStatusChange(scope.row)" />
           </template>
         </el-table-column>
         <el-table-column label="创建时间" align="center" prop="createTime" width="160">

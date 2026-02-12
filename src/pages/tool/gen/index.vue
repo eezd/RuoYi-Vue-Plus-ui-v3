@@ -291,25 +291,25 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="handleUpdate(scope.row)" :disabled="!checkPermission(['tool:gen:edit'])">
+                <el-dropdown-item @click="handleUpdate(scope.row)" v-if="checkPermission(['tool:gen:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
                   修改
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleDelete(scope.row)" :disabled="!checkPermission(['tool:gen:remove'])">
+                <el-dropdown-item @click="handleDelete(scope.row)" v-if="checkPermission(['tool:gen:remove'])">
                   <el-icon color="#F56C6C">
                     <Delete />
                   </el-icon>
                   删除
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleSynchDb(scope.row)" :disabled="!checkPermission(['tool:gen:edit'])">
+                <el-dropdown-item @click="handleSynchDb(scope.row)" v-if="checkPermission(['tool:gen:edit'])">
                   <el-icon color="#409EFF">
                     <Refresh />
                   </el-icon>
                   同步
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleGenTable(scope.row)" :disabled="!checkPermission(['tool:gen:code'])">
+                <el-dropdown-item @click="handleGenTable(scope.row)" v-if="checkPermission(['tool:gen:code'])">
                   <el-icon color="#409EFF">
                     <Download />
                   </el-icon>

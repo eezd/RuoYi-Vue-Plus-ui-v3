@@ -4,7 +4,6 @@ import type { PaginationData } from "@@/composables/usePagination.ts"
 import { changeSysRoleStatusApi } from "@@/apis/system/role"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"
-import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
 
@@ -67,21 +66,22 @@ async function handleStatusChange(row: RoleForm) {
         <el-button
           type="primary"
           :icon="CirclePlus"
-          :disabled="!checkPermission(['system:role:add'])"
+          v-hasPermi="['system:role:add']"
           @click="openAddDialog()"
         >
           新增
         </el-button>
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length || !checkPermission(['system:role:remove'])"
+          :disabled="!selectedRows.length"
+          v-hasPermi="['system:role:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除
         </el-button>
         <el-button
           type="warning" plain icon="Download"
-          :disabled="!checkPermission(['system:role:export'])"
+          v-hasPermi="['system:role:export']"
           @click="handleExport()"
         >
           导出
@@ -101,7 +101,7 @@ async function handleStatusChange(row: RoleForm) {
         <el-table-column prop="roleSort" label="显示顺序" align="center" />
         <el-table-column prop="status" label="状态" align="center">
           <template #default="scope">
-            <el-switch v-model="scope.row.status" active-value="0" inactive-value="1" :disabled="!checkPermission(['system:role:edit'])" @change="handleStatusChange(scope.row)" />
+            <el-switch v-model="scope.row.status" active-value="0" inactive-value="1" v-hasPermi="['system:role:edit']" @change="handleStatusChange(scope.row)" />
           </template>
         </el-table-column>
         <el-table-column label="创建时间" align="center" prop="createTime" width="160">

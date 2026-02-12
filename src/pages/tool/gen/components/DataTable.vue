@@ -53,7 +53,7 @@ const handleSelectionChange = (val: TableVO[]) => (selectedRows.value = val)
         <el-button
           type="primary"
           :icon="CirclePlus"
-          :disabled="!checkPermission(['tool:gen:import'])"
+          v-hasPermi="['tool:gen:import']"
           @click="openImportDialog()"
         >
           导入
@@ -77,7 +77,8 @@ const handleSelectionChange = (val: TableVO[]) => (selectedRows.value = val)
         </el-button>
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length || !checkPermission(['tool:gen:remove'])"
+          :disabled="!selectedRows.length"
+          v-hasPermi="['tool:gen:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除

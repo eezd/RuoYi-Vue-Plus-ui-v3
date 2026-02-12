@@ -408,25 +408,25 @@ onMounted(async () => {
                 </span>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item @click="openUpdateDialog(scope.row)" :disabled="!checkPermission(['system:user:edit'])">
+                    <el-dropdown-item @click="openUpdateDialog(scope.row)" v-if="checkPermission(['system:user:edit'])">
                       <el-icon color="#409EFF">
                         <edit />
                       </el-icon>
                       修改
                     </el-dropdown-item>
-                    <el-dropdown-item @click="handleResetPwd(scope.row)" :disabled="!checkPermission(['system:user:resetPwd'])">
+                    <el-dropdown-item @click="handleResetPwd(scope.row)" v-if="checkPermission(['system:user:resetPwd'])">
                       <el-icon color="#409EFF">
                         <Key />
                       </el-icon>
                       重置密码
                     </el-dropdown-item>
-                    <el-dropdown-item @click="handleAuthRole(scope.row)" :disabled="!checkPermission(['system:user:edit'])">
+                    <el-dropdown-item @click="handleAuthRole(scope.row)" v-if="checkPermission(['system:user:edit'])">
                       <el-icon color="#409EFF">
                         <CircleCheck />
                       </el-icon>
                       分配角色
                     </el-dropdown-item>
-                    <el-dropdown-item @click="handleDelete(scope.row)" :disabled="!checkPermission(['system:user:remove'])">
+                    <el-dropdown-item @click="handleDelete(scope.row)" v-if="checkPermission(['system:user:remove'])">
                       <el-icon color="#F56C6C">
                         <Delete />
                       </el-icon>
