@@ -60,8 +60,8 @@ const productData = ref({
     {{ checkPermission(['system:user:add']) }}
     <br>
     <br>
-    2. v-permission="['system:user:add']" 这种同样是检查权限的指令, 区别在于它可以直接<a class="color-red">控制元素的显示与隐藏</a>
-    <el-button v-permission="['system:user:add']">
+    2. v-hasPermi="['system:user:add']" 这种同样是检查权限的指令, 区别在于它可以直接<a class="color-red">控制元素的显示与隐藏</a>
+    <el-button v-hasPermi="['system:user:add']">
       新增用户按钮
     </el-button>
     <br>

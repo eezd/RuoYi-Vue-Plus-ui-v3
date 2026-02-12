@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { MenuForm, MenuQuery, MenuVO } from "@@/apis/system/menu/types.ts"
-import type { FormInstance } from "element-plus"
 import { delSysMenuApi, getSysMenuApi, getSysMenuListApi } from "@@/apis/system/menu"
 import { useDict } from "@@/composables/useDict.ts"
 import { MenuTypeEnum } from "@@/enums/MenuTypeEnum.ts"
@@ -68,7 +67,7 @@ const searchData = reactive({
   menuName: "",
   status: ""
 } as MenuQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 
 function resetSearch() {
   searchFormRef.value?.resetFields()

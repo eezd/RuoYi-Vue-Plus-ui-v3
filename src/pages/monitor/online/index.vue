@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { OnlineQuery, OnlineVO } from "@@/apis/monitor/online/types"
-import type { FormInstance } from "element-plus"
 import { forceLogoutSysOnlineApi, getSysOnlineListApi } from "@@/apis/monitor/online"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
@@ -25,7 +24,7 @@ const searchData = reactive({
   ipaddr: "",
   userName: ""
 } as OnlineQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 function resetSearch() {
   searchFormRef.value?.resetFields()
   getTableData()

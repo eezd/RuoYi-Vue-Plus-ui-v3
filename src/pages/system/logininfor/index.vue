@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { LoginInfoQuery, LoginInfoVO } from "@@/apis/monitor/loginInfo/types.ts"
-import type { FormInstance } from "element-plus"
 import { delSysLoginInfoApi, getSysLoginInfoListApi } from "@@/apis/monitor/loginInfo"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
@@ -36,7 +35,7 @@ const searchData = reactive({
     endTime: undefined
   }
 } as LoginInfoQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 
 const dateRange = ref<[DateModelType, DateModelType]>(["", ""])
 watch(dateRange, ([newBeginTime, newEndTime]) => {

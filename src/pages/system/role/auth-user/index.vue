@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { RoleForm } from "@@/apis/system/role/types.ts"
 import type { UserQuery, UserVO } from "@@/apis/system/user/types.ts"
-import type { FormInstance } from "element-plus"
 import { allocatedSysUserListApi, authSysUserCancelApi, delSysRoleApi } from "@@/apis/system/role"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
@@ -45,7 +44,7 @@ const searchData = reactive({
   phonenumber: undefined,
   roleId: route.params.roleId as string
 } as UserQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 
 function resetSearch() {
   searchFormRef.value?.resetFields()

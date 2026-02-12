@@ -20,6 +20,7 @@ export interface UserQuery extends PageQuery {
   status?: string
   roleId?: string | number
   userIds?: string | number | (string | number)[] | undefined
+  deptId?: string | number
   params?: {
     beginTime?: string
     endTime?: string

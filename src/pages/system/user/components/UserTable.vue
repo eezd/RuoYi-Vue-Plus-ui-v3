@@ -7,7 +7,8 @@ import { formatDateTime } from "@@/utils"
 import { checkPermission } from "@@/utils/permission"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ElMessage } from "element-plus"
-import { ref } from "vue"
+import { globalHeaders } from "@/http/axios"
+import { download } from "@/http/download"
 
 const emit = defineEmits<EmitEvents>()
 /**
@@ -59,6 +60,64 @@ async function handleStatusChange(row: UserForm) {
     row.status = row.status === "0" ? "1" : "0"
   }
 }
+
+/**
+ * 导出
+ */
+function importTemplate() {
+  const timestamp = new Date().getTime()
+  download(
+    "/system/user/importTemplate",
+    { },
+    `user_template_${timestamp}.xlsx`
+  )
+}
+
+// #region 用户导入
+const uploadRef = useTemplateRef("uploadRef")
+/** 用户导入 */
+const uploadData = reactive<ImportOption>({
+  // 弹出层标题
+  title: "用户导入",
+  // 是否显示弹出层
+  visible: false,
+  // 上传状态
+  loading: false,
+  // 是否更新已经存在的用户数据
+  updateSupport: 0,
+  // 设置上传的请求头部
+  headers: globalHeaders(),
+  // 上传的地址
+  url: `${import.meta.env.VITE_BASE_URL}/system/user/importData`
+})
+
+/** 导入按钮操作 */
+function handleImport() {
+  uploadData.title = "用户导入"
+  uploadData.visible = true
+}
+
+/** 文件上传中处理 */
+function handleFileUploadProgress() {
+  uploadData.loading = true
+}
+
+/** 文件上传成功处理 */
+function handleFileSuccess(response: any, file: UploadFile) {
+  uploadData.visible = false
+  uploadData.loading = false
+  uploadRef.value?.handleRemove(file)
+  ElMessageBox.alert(`<div style='overflow: auto;overflow-x: hidden;max-height: 70vh;padding: 10px 20px 0;'>${response.msg}</div>`, "导入结果", {
+    dangerouslyUseHTMLString: true
+  })
+  getTableData()
+}
+
+/** 提交上传文件 */
+function submitFileForm() {
+  uploadRef.value?.submit()
+}
+// #endregion
 </script>
 
 <template>
@@ -80,13 +139,28 @@ async function handleStatusChange(row: UserForm) {
         >
           批量删除
         </el-button>
-        <el-button
-          type="warning" plain icon="Download"
-          :disabled="!checkPermission(['system:user:export'])"
-          @click="handleExport()"
-        >
-          导出
-        </el-button>
+        <el-dropdown class="ml-[12px]">
+          <el-button plain type="info">
+            更多
+            <el-icon class="el-icon--right">
+              <arrow-down />
+            </el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item icon="Download" @click="importTemplate">
+                下载模板
+              </el-dropdown-item>
+              <!-- 注意 由于el-dropdown-item标签是延迟加载的 所以v-has-permi自定义标签不生效 需要使用v-if调用方法执行 -->
+              <el-dropdown-item v-if="checkPermission(['system:user:import'])" icon="Top" @click="handleImport">
+                导入数据
+              </el-dropdown-item>
+              <el-dropdown-item v-if="checkPermission(['system:user:export'])" icon="Download" @click="handleExport">
+                导出数据
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
       <div>
         <el-tooltip content="刷新当前页">
@@ -95,17 +169,18 @@ async function handleStatusChange(row: UserForm) {
       </div>
     </div>
     <div class="table-wrapper">
-      <el-table :data="tableData" @selection-change="handleSelectionChange">
+      <el-table :data="tableData" @selection-change="handleSelectionChange" border>
         <el-table-column type="selection" width="50" align="center" />
         <el-table-column prop="userName" label="用户名称" align="center" />
         <el-table-column prop="nickName" label="用户昵称" align="center" />
+        <el-table-column prop="deptName" label="部门" align="center" />
         <el-table-column prop="phonenumber" label="手机号码" align="center" />
         <el-table-column prop="status" label="状态" align="center">
           <template #default="scope">
             <el-switch v-model="scope.row.status" active-value="0" inactive-value="1" :disabled="!checkPermission(['system:user:edit'])" @change="handleStatusChange(scope.row)" />
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" align="center" prop="createTime" min-width="180">
+        <el-table-column label="创建时间" align="center" prop="createTime" width="160">
           <template #default="scope">
             <span>{{ formatDateTime(scope.row.createTime) }}</span>
           </template>
@@ -130,6 +205,49 @@ async function handleStatusChange(row: UserForm) {
       />
     </div>
   </el-card>
+
+  <el-dialog v-model="uploadData.visible" :title="uploadData.title" @closed="uploadData.visible = false" destroy-on-close append-to-bod width="350px">
+    <el-upload
+      ref="uploadRef"
+      :limit="1"
+      accept=".xlsx, .xls"
+      :headers="uploadData.headers"
+      :action="`${uploadData.url}?updateSupport=${uploadData.updateSupport}`"
+      :disabled="uploadData.isUploading"
+      :on-progress="handleFileUploadProgress"
+      :on-success="handleFileSuccess"
+      :auto-upload="false"
+      drag
+    >
+      <el-icon class="el-icon--upload">
+        <Upload />
+      </el-icon>
+      <div class="el-upload__text">
+        将文件拖到此处，或<em>点击上传</em>
+      </div>
+      <template #tip>
+        <div class="text-center el-upload__tip">
+          <div class="el-upload__tip">
+            <el-checkbox v-model="uploadData.updateSupport" />是否更新已经存在的用户数据
+          </div>
+          <span>仅允许导入xls、xlsx格式文件。</span>
+          <el-link type="primary" underline="never" style="font-size: 12px; vertical-align: baseline" @click="importTemplate">
+            下载模板
+          </el-link>
+        </div>
+      </template>
+    </el-upload>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button type="primary" @click="submitFileForm" :loading="uploadData.loading">
+          确 定
+        </el-button>
+        <el-button @click="uploadData.visible = false">
+          取 消
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <style lang="scss" scoped>

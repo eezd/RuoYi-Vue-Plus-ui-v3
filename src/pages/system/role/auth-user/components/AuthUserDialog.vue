@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { UserQuery, UserVO } from "@@/apis/system/user/types.ts"
-import type { FormInstance } from "element-plus"
 import { authSysUserSelectAll, unallocatedSysUserListApi } from "@@/apis/system/role"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
@@ -59,7 +58,7 @@ const searchData = reactive({
   userName: "",
   phonenumber: ""
 } as UserQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 
 function resetSearch() {
   searchFormRef.value?.resetFields()

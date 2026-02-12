@@ -2,19 +2,26 @@
 import type { RoleVO } from "@@/apis/system/role/types.ts"
 import type { UserForm } from "@@/apis/system/user/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
+import type { DeptTreeVO } from "@/common/apis/system/dept/types"
+import type { PostVO } from "@/common/apis/system/post/types"
 import { addSysUserApi, updateSysUserApi } from "@@/apis/system/user"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElInput } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref } from "vue"
+import { getSysPostOptionselectApi } from "@/common/apis/system/post"
 
+interface Props {
+  enabledDeptOptions: DeptTreeVO[]
+}
+const { enabledDeptOptions } = defineProps<Props>()
+
+const emit = defineEmits<EmitEvents>()
 export interface EmitEvents {
   (e: "success"): void
   (e: "cancel"): void
 }
-const emit = defineEmits<EmitEvents>()
-
 /**
  * defineModel
  */
@@ -35,39 +42,40 @@ const { sys_normal_disable, sys_user_sex } = toRefs<any>(useDict("sys_normal_dis
 const formRef = ref<FormInstance | null>(null)
 const formRules: FormRules<UserForm> = {
   userName: [
+    { required: true, message: "用户名称不能为空", trigger: "blur" },
     {
-      required: true,
-      trigger: "blur",
-      message: "用户名称必填"
+      min: 2,
+      max: 20,
+      message: "用户名称长度必须介于 2 和 20 之间",
+      trigger: "blur"
     }
   ],
-  nickName: [
+  nickName: [{ required: true, message: "用户昵称不能为空", trigger: "blur" }],
+  email: [
     {
-      required: true,
-      trigger: "blur",
-      message: "用户昵称必填"
+      type: "email",
+      message: "请输入正确的邮箱地址",
+      trigger: ["blur", "change"]
     }
   ],
-  roleIds: [
+  phonenumber: [
     {
-      required: true,
-      trigger: "blur",
-      message: "角色必填"
+      pattern: /^1[3-9]\d{9}$/,
+      message: "请输入正确的手机号码",
+      trigger: "blur"
     }
   ],
+  roleIds: [{ required: true, message: "用户角色不能为空", trigger: "blur" }],
   password: formData.value.userId === undefined
     ? [
-        {
-          required: true,
-          trigger: "blur",
-          message: "密码必填"
-        },
+        { required: true, message: "用户密码不能为空", trigger: "blur" },
         {
           min: 5,
           max: 20,
-          message: "密码长度必须 5 到 20 位",
+          message: "用户密码长度必须介于 5 和 20 之间",
           trigger: "blur"
-        }
+        },
+        { pattern: /^[^<>"'|\\]+$/, message: "不能包含非法字符：< > \" ' \\ |", trigger: "blur" }
       ]
     : []
 }
@@ -102,6 +110,14 @@ function resetForm() {
   formRef.value?.resetFields()
   formData.value = cloneDeep({})
 }
+
+// 岗位选项
+const postOptions = ref<PostVO[]>([])
+async function handleDeptChange(value: number | string) {
+  const response = await getSysPostOptionselectApi(value)
+  postOptions.value = response.data
+  formData.value.postIds = []
+}
 </script>
 
 <template>
@@ -123,6 +139,17 @@ function resetForm() {
     </template>
     <div class="drawer-content">
       <el-form ref="formRef" class="content-form" v-loading="dialog.loading" label-width="auto" :model="formData" :rules="formRules" label-position="left">
+        <el-form-item prop="deptId" label="归属部门">
+          <el-tree-select
+            v-model="formData.deptId"
+            :data="enabledDeptOptions"
+            :props="{ value: 'id', label: 'label', children: 'children' }"
+            value-key="id"
+            placeholder="请选择归属部门"
+            check-strictly
+            @change="handleDeptChange"
+          />
+        </el-form-item>
         <el-form-item prop="userName" label="用户名称">
           <ElInput v-model="formData.userName" placeholder="请输入用户名称" :disabled="!dialog.isEditable" />
         </el-form-item>
@@ -149,6 +176,17 @@ function resetForm() {
               {{ dict.label }}
             </el-radio>
           </el-radio-group>
+        </el-form-item>
+        <el-form-item prop="postIds" label="岗位">
+          <el-select v-model="formData.postIds" multiple placeholder="请选择岗位" :disabled="!dialog.isEditable">
+            <el-option
+              v-for="item in postOptions"
+              :key="item.postId"
+              :label="item.postName"
+              :value="item.postId"
+              :disabled="item.status === '1'"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item prop="roleIds" label="角色">
           <el-select v-model="formData.roleIds" filterable multiple placeholder="请选择角色" :disabled="!dialog.isEditable">

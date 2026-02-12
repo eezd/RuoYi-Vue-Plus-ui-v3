@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { OssConfigForm, OssConfigQuery } from "@@/apis/system/ossConfig/types"
-import type { FormInstance } from "element-plus"
 import { delSysOssConfigApi, getSysOssConfigApi, getSysOssConfigListApi } from "@@/apis/system/ossConfig"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
@@ -37,7 +36,7 @@ const searchData = reactive({
   bucketName: "",
   status: ""
 } as OssConfigQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 function resetSearch() {
   searchFormRef.value?.resetFields()
   getTableData()

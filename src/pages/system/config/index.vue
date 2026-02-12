@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { ConfigForm, ConfigQuery } from "@@/apis/system/config/types.ts"
-import type { FormInstance } from "element-plus"
 import { delConfigApi, getSysConfigApi, getSysConfigListApi } from "@@/apis/system/config"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
@@ -44,7 +43,7 @@ const searchData = reactive({
     endTime: undefined
   }
 } as ConfigQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 
 const dateRange = ref<[DateModelType, DateModelType]>(["", ""])
 watch(dateRange, ([newBeginTime, newEndTime]) => {

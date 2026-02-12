@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { ClientForm, ClientQuery } from "@@/apis/system/client/types.ts"
-import type { FormInstance } from "element-plus"
 import { delSysClientApi, getSysClientApi, getSysClientListApi } from "@@/apis/system/client"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
@@ -41,7 +40,7 @@ const searchData = reactive({
   clientSecret: "",
   status: ""
 } as ClientQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 function resetSearch() {
   searchFormRef.value?.resetFields()
   getTableData()

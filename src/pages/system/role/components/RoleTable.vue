@@ -104,7 +104,7 @@ async function handleStatusChange(row: RoleForm) {
             <el-switch v-model="scope.row.status" active-value="0" inactive-value="1" :disabled="!checkPermission(['system:role:edit'])" @change="handleStatusChange(scope.row)" />
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" align="center" prop="createTime" min-width="180">
+        <el-table-column label="创建时间" align="center" prop="createTime" width="160">
           <template #default="scope">
             <span>{{ formatDateTime(scope.row.createTime) }}</span>
           </template>

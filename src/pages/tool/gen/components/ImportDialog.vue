@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { DbTableQuery, DbTableVO } from "@@/apis/tool/gen/types"
-import type { FormInstance } from "element-plus"
 import { getSysGenDataNames, getSysGenDbListApi, importSysGenTable } from "@@/apis/tool/gen"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
@@ -37,7 +36,7 @@ const searchData = reactive({
   tableName: "",
   tableComment: ""
 } as DbTableQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 
 function resetSearch() {
   searchFormRef.value?.resetFields()

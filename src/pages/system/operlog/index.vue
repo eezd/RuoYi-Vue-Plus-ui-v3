@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { OperLogForm, OperLogQuery, OperLogVO } from "@@/apis/monitor/operlog/types.ts"
-import type { FormInstance } from "element-plus"
 import { delSysOperlogApi, getSysOperlogListApi } from "@@/apis/monitor/operlog"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
@@ -46,7 +45,7 @@ const searchData = reactive({
     endTime: undefined
   }
 } as OperLogQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 
 const dateRange = ref<[DateModelType, DateModelType]>(["", ""])
 watch(dateRange, ([newBeginTime, newEndTime]) => {

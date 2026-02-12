@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { DictDataForm, DictDataQuery } from "@@/apis/system/dict/data/types.ts"
 import type { DictTypeVO } from "@@/apis/system/dict/type/types.ts"
-import type { FormInstance } from "element-plus"
 import { delSysDictDataApi, getSysDictDataCodeApi, getSysDictDataListApi } from "@@/apis/system/dict/data"
 import { getSysDictOptionSelectApi, getSysDictTypeApi } from "@@/apis/system/dict/type"
 import { usePagination } from "@@/composables/usePagination.ts"
@@ -48,7 +47,7 @@ const searchData = reactive({
   dictType: "",
   dictLabel: ""
 } as DictDataQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 
 const typeOptions = ref<DictTypeVO[]>([])
 /**

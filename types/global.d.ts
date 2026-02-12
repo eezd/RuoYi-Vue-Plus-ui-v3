@@ -154,5 +154,20 @@ declare global {
      */
     dark: boolean
   }
+
+  /**
+   * 导入属性
+   */
+  declare interface ImportOption extends UploadOption {
+    /** 弹出层标题 */
+    title: string
+    /** 是否显示弹出层 */
+    visible: boolean
+    /** 上传状态 */
+    loading: boolean
+    updateSupport: number
+    /** 其他参数 */
+    [key: string]: any
+  }
 }
 export {}

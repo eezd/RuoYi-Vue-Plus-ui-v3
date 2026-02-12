@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { DictTypeForm, DictTypeQuery } from "@@/apis/system/dict/type/types.ts"
-import type { FormInstance } from "element-plus"
 import { delSysDictTypeApi, getSysDictListTypeApi, getSysDictTypeApi } from "@@/apis/system/dict/type"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
@@ -40,7 +39,7 @@ const searchData = reactive({
     endTime: undefined
   }
 } as DictTypeQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 
 const dateRange = ref<[DateModelType, DateModelType]>(["", ""])
 watch(dateRange, ([newBeginTime, newEndTime]) => {

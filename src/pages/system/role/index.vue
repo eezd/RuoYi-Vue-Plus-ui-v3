@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { MenuTreeOption } from "@@/apis/system/menu/types.ts"
 import type { RoleForm, RoleQuery, RoleVO } from "@@/apis/system/role/types.ts"
-import type { FormInstance } from "element-plus"
 import { treeselectApi } from "@@/apis/system/menu"
 import { delSysRoleApi, getSysRoleApi, getSysRolelistApi } from "@@/apis/system/role"
 import { useDict } from "@@/composables/useDict.ts"
@@ -53,7 +52,7 @@ const searchData = reactive({
     endTime: undefined
   }
 } as RoleQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 
 const dateRange = ref<[DateModelType, DateModelType]>(["", ""])
 watch(dateRange, ([newBeginTime, newEndTime]) => {

@@ -85,7 +85,7 @@ const { sys_normal_disable } = toRefs<any>(useDict("sys_show_hide", "sys_normal_
             <DictTag :options="sys_normal_disable" :value="scope.row.status" />
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" align="center" prop="createTime" min-width="180">
+        <el-table-column label="创建时间" align="center" prop="createTime" width="160">
           <template #default="scope">
             <span>{{ formatDateTime(scope.row.createTime) }}</span>
           </template>

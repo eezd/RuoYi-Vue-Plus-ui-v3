@@ -41,11 +41,11 @@ const permission: Directive = {
 
       hasPermission || el.parentNode?.removeChild(el)
     } else {
-      throw new Error(`参数必须是一个数组且长度大于 0,参考:v-permission="['monitor:online:forceLogout']"`)
+      throw new Error(`参数必须是一个数组且长度大于 0,参考:v-hasPermi="['monitor:online:forceLogout']"`)
     }
   }
 }
 
 export function installPermissionDirective(app: App) {
-  app.directive("permission", permission)
+  app.directive("hasPermi", permission)
 }

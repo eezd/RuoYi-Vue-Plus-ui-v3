@@ -1,3 +1,4 @@
+import type { DeptTreeVO } from "../dept/types.ts"
 import type { RoleVO } from "../role/types.ts"
 import type { UserForm, UserInfo, UserInfoVO, UserQuery, UserVO } from "./types.ts"
 import { parseStrEmpty } from "@@/utils"
@@ -187,5 +188,26 @@ export function updateAuthRoleApi(data: { userId: string, roleIds: string }) {
     url: "/system/user/authRole",
     method: "put",
     params: data
+  })
+}
+
+/**
+ * 查询当前部门的所有用户信息
+ * @param deptId
+ */
+export function getSysUserListByDeptIdApi(deptId: string | number) {
+  return request<ApiResponseData<UserVO[]>>({
+    url: `/system/user/list/dept/${deptId}`,
+    method: "get"
+  })
+}
+
+/**
+ * 查询部门下拉树结构
+ */
+export function getSysDeptTreeSelectApi() {
+  return request<ApiResponseData<DeptTreeVO[]>>({
+    url: "/system/user/deptTree",
+    method: "get"
   })
 }

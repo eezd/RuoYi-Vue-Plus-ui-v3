@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { TableQuery, TableVO } from "@@/apis/tool/gen/types"
-import type { FormInstance } from "element-plus"
 import { delSysGenTable, genSysGenCode, getSysGenDataNames, getSysGenListApi, previewSysGenTable, synchSysGenDb } from "@@/apis/tool/gen"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
@@ -59,7 +58,7 @@ const searchData = reactive({
     endTime: undefined
   }
 } as TableQuery)
-const searchFormRef = ref<FormInstance | null>(null)
+const searchFormRef = useTemplateRef("searchFormRef")
 
 const dateRange = ref<[DateModelType, DateModelType]>(["", ""])
 watch(dateRange, ([newBeginTime, newEndTime]) => {

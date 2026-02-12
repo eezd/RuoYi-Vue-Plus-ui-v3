@@ -171,7 +171,7 @@ async function handlePreviewListResource(preview: boolean) {
             <span v-if="!checkFileSuffix(scope.row.fileSuffix) || !previewListResource" v-text="scope.row.url" />
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" align="center" prop="createTime" min-width="180">
+        <el-table-column label="创建时间" align="center" prop="createTime" width="160">
           <template #default="scope">
             <span>{{ formatDateTime(scope.row.createTime) }}</span>
           </template>
