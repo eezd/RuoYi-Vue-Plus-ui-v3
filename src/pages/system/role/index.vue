@@ -306,7 +306,7 @@ onMounted(async () => {
           >
             查看
           </el-button>
-          <el-dropdown trigger="hover">
+          <el-dropdown trigger="hover" v-if="scope.row.roleId !== 1">
             <span class="el-dropdown-link">
               <el-icon color="#409EFF"><more-filled /></el-icon>
             </span>

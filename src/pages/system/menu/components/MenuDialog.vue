@@ -1,18 +1,15 @@
 <script lang="ts" setup>
 import type { MenuForm } from "@@/apis/system/menu/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
+import type { FormActionEmits } from "types/common"
 import type { MenuOptionsType } from "../index.vue"
 import { addSysMenuApi, updateSysMenuApi } from "@@/apis/system/menu"
+import IconSelect from "@@/components/IconSelect/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElMessage } from "element-plus"
-import { ref } from "vue"
 
-export interface EmitEvents {
-  (e: "success"): void
-  (e: "cancel"): void
-}
-const emit = defineEmits<EmitEvents>()
+const emit = defineEmits<FormActionEmits>()
 
 /**
  * defineModel
@@ -103,7 +100,7 @@ function resetForm() {
     </template>
     <div class="drawer-content">
       <el-form ref="formRef" v-loading="dialog.loading" label-width="auto" :model="formData" :rules="formRules" label-position="left">
-        <el-row>
+        <el-row :gutter="10">
           <el-col :span="24">
             <el-form-item label="上级菜单">
               <el-tree-select
@@ -131,6 +128,11 @@ function resetForm() {
               </el-radio-group>
             </el-form-item>
           </el-col>
+          <el-col v-if="formData.menuType !== 'F'" :span="24">
+            <el-form-item label="菜单图标" prop="icon">
+              <IconSelect v-model="formData.icon" />
+            </el-form-item>
+          </el-col>
           <el-col :span="isMobile ? 24 : 12">
             <el-form-item label="菜单名称" prop="menuName">
               <el-input v-model="formData.menuName" placeholder="请输入菜单名称" />
@@ -139,6 +141,56 @@ function resetForm() {
           <el-col :span="isMobile ? 24 : 12">
             <el-form-item label="显示排序" prop="orderNum">
               <el-input-number v-model="formData.orderNum" controls-position="right" :min="0" />
+            </el-form-item>
+          </el-col>
+          <el-col v-if="formData.menuType !== 'F'" :span="12">
+            <el-form-item>
+              <template #label>
+                <span>
+                  <el-tooltip content="选择是外链则路由地址需要以`http(s)://`开头" placement="top">
+                    <el-icon>
+                      <question-filled />
+                    </el-icon> </el-tooltip>是否外链
+                </span>
+              </template>
+              <el-radio-group v-model="formData.isFrame">
+                <el-radio value="0">
+                  是
+                </el-radio>
+                <el-radio value="1">
+                  否
+                </el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+          <el-col v-if="formData.menuType !== 'F'" :span="12">
+            <el-form-item prop="path">
+              <template #label>
+                <span>
+                  <el-tooltip content="访问的路由地址，如：`user`，如外网地址需内链访问则以`http(s)://`开头" placement="top">
+                    <el-icon>
+                      <question-filled />
+                    </el-icon>
+                  </el-tooltip>
+                  路由地址
+                </span>
+              </template>
+              <el-input v-model="formData.path" placeholder="请输入路由地址" />
+            </el-form-item>
+          </el-col>
+          <el-col v-if="formData.menuType === 'C'" :span="12">
+            <el-form-item prop="component">
+              <template #label>
+                <span>
+                  <el-tooltip content="访问的组件路径，如：`system/user/index`，默认在`views`目录下" placement="top">
+                    <el-icon>
+                      <question-filled />
+                    </el-icon>
+                  </el-tooltip>
+                  组件路径
+                </span>
+              </template>
+              <el-input v-model="formData.component" placeholder="请输入组件路径" />
             </el-form-item>
           </el-col>
           <el-col v-if="formData.menuType !== 'M'" :span="isMobile ? 24 : 12">
@@ -154,6 +206,43 @@ function resetForm() {
                   权限字符
                 </span>
               </template>
+            </el-form-item>
+          </el-col>
+          <el-col v-if="formData.menuType === 'C'" :span="12">
+            <el-form-item>
+              <el-input v-model="formData.queryParam" placeholder="请输入路由参数" maxlength="255" />
+              <template #label>
+                <span>
+                  <el-tooltip content="访问路由的默认传递参数，如：`{&quot;id&quot;: 1, &quot;name&quot;: &quot;ry&quot;}`" placement="top">
+                    <el-icon>
+                      <question-filled />
+                    </el-icon>
+                  </el-tooltip>
+                  路由参数
+                </span>
+              </template>
+            </el-form-item>
+          </el-col>
+          <el-col v-if="formData.menuType === 'C'" :span="12">
+            <el-form-item>
+              <template #label>
+                <span>
+                  <el-tooltip content="选择是则会被`keep-alive`缓存，需要匹配组件的`name`和地址保持一致" placement="top">
+                    <el-icon>
+                      <question-filled />
+                    </el-icon>
+                  </el-tooltip>
+                  是否缓存
+                </span>
+              </template>
+              <el-radio-group v-model="formData.isCache">
+                <el-radio value="0">
+                  缓存
+                </el-radio>
+                <el-radio value="1">
+                  不缓存
+                </el-radio>
+              </el-radio-group>
             </el-form-item>
           </el-col>
           <el-col v-if="formData.menuType !== 'F'" :span="isMobile ? 24 : 12">

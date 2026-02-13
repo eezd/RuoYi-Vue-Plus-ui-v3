@@ -9,50 +9,41 @@ import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import MenuCascadeDeleteDialog from "./components/MenuCascadeDeleteDialog.vue"
-import DictDataDialog from "./components/MenuDialog.vue"
-import DictTable from "./components/MenuTable.vue"
+import MenuDialog from "./components/MenuDialog.vue"
+import MenuTable from "./components/MenuTable.vue"
 
 defineOptions({
   name: "AdminSysMenu"
 })
 
-export interface MenuTableRow extends MenuVO {
-  /** 是否有子菜单（用于 el-table 懒加载） */
-  hasChildren?: boolean
-}
-/** 菜单子列表映射类型 */
-interface MenuChildrenMap {
-  [parentId: string | number]: MenuTableRow[]
-}
-/** 菜单展开状态信息 */
-interface MenuExpandInfo {
-  row: MenuTableRow
-  treeNode: unknown
-  resolve: (data: MenuTableRow[]) => void
-}
-/** 菜单展开映射类型 */
-interface MenuExpandMap {
-  [menuId: string | number]: MenuExpandInfo | undefined
-}
 export interface MenuOptionsType {
   menuId: number | string
   menuName: string
   children: MenuOptionsType[] | undefined
 }
 
-const loading = ref(true)
-
 const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 
-const menuTableRef = ref<ElTableInstance | null>(null)
+const loading = ref(true)
+
+const menuTableComponentRef = useTemplateRef("menuTableComponentRef")
 
 // 表格数据
-const tableData = ref<MenuTableRow[]>([])
-const menuChildrenListMap = ref<MenuChildrenMap>({})
-const menuExpandMap = ref<MenuExpandMap>({})
 const menuOptions = ref<MenuOptionsType[]>([])
 
-const DEFAULT_FORM_DATA = { orderNum: 1, menuType: MenuTypeEnum.M }
+const DEFAULT_FORM_DATA = {
+  path: "",
+  menuId: undefined,
+  parentId: 0,
+  menuName: "",
+  icon: "",
+  menuType: MenuTypeEnum.M,
+  orderNum: 1,
+  isFrame: "1",
+  isCache: "0",
+  visible: "0",
+  status: "0"
+}
 // 表单数据
 const formData = ref<Partial<MenuForm>>(cloneDeep(DEFAULT_FORM_DATA))
 const dialog = reactive<DialogOption>({
@@ -83,79 +74,17 @@ async function getTableData(): Promise<void> {
   try {
     loading.value = true
     const res = await getSysMenuListApi(searchData)
-
-    const tempMap: MenuChildrenMap = {}
-
-    // 存储 父菜单:子菜单列表
-    for (const menu of res.data) {
-      const parentId = menu.parentId
-      if (!tempMap[parentId]) {
-        tempMap[parentId] = []
-      }
-      tempMap[parentId].push(menu)
-    }
-    // 创建一个当前所有 menuId 的 Set，用于查找父菜单是否存在于当前数据中
-    const menuIdSet = new Set<string | number>()
-    // 设置有没有子菜单
-    for (const menu of res.data as MenuTableRow[]) {
-      menu.hasChildren = tempMap[menu.menuId]?.length > 0
-      menuIdSet.add(menu.menuId)
-    }
-    menuChildrenListMap.value = tempMap
-    // 找出所有父ID不在当前菜单ID集合中的菜单项，作为新的顶层菜单
-    tableData.value = res.data.filter(menu => !menuIdSet.has(menu.parentId))
-    // 根据新数据重新加载子菜单数据
-    refreshAllExpandMenuData()
-
-    // 更新菜单下拉树数据
-    await getTreeselect()
+    menuTableComponentRef.value?.setTableData(res.data)
+    await getTreeSelect()
   } catch {
-    tableData.value = []
+    menuTableComponentRef.value?.setTableData([])
   } finally {
     loading.value = false
   }
 }
-/** 获取子菜单列表 */
-async function getChildrenList(row: MenuTableRow, treeNode: unknown, resolve: (data: MenuTableRow[]) => void) {
-  menuExpandMap.value[row.menuId] = { row, treeNode, resolve }
-  const children = menuChildrenListMap.value[row.menuId] || []
-  // 菜单的子菜单清空后关闭展开
-  if (children.length === 0) {
-    // fix: 处理当菜单只有一个子菜单并被删除，需要将父菜单的展开状态关闭
-    menuTableRef.value?.updateKeyChildren(row.menuId.toString(), children)
-  }
-  resolve(children)
-}
-/** 收起菜单时从menuExpandMap中删除对应菜单id数据 */
-async function expandMenuHandle(row: MenuTableRow, expanded: boolean) {
-  if (!expanded) {
-    menuExpandMap.value[row.menuId] = undefined
-  }
-}
-/** 刷新展开的菜单数据 */
-function refreshLoadTree(parentId: string | number) {
-  const expandInfo = menuExpandMap.value[parentId]
-  if (expandInfo) {
-    const { row, treeNode, resolve } = expandInfo
-    if (row) {
-      getChildrenList(row, treeNode, resolve)
-      if (row.parentId) {
-        const grandpaMenu = menuExpandMap.value[row.parentId]
-        if (!grandpaMenu) return
-        getChildrenList(grandpaMenu.row, grandpaMenu.treeNode, grandpaMenu.resolve)
-      }
-    }
-  }
-}
-/** 重新加载所有已展开的菜单的数据 */
-function refreshAllExpandMenuData() {
-  for (const menuId in menuExpandMap.value) {
-    refreshLoadTree(menuId)
-  }
-}
 
 /** 查询菜单下拉树结构 */
-async function getTreeselect() {
+async function getTreeSelect() {
   menuOptions.value = []
   const response = await getSysMenuListApi()
   const menu: MenuOptionsType = { menuId: 0, menuName: "主类目", children: [] }
@@ -169,6 +98,7 @@ async function getTreeselect() {
 async function handleDelete(row: MenuForm) {
   if (!row.menuId) {
     ElMessage.error("id为空")
+    return
   }
   const message = `正在删除：${row.menuName}，确认删除？`
   try {
@@ -188,68 +118,31 @@ async function handleDelete(row: MenuForm) {
 }
 // #endregion
 
-// #region 弹窗操作
 /**
- * 打开新增弹窗
- */
-function openAddDialog() {
-  formData.value = cloneDeep(DEFAULT_FORM_DATA)
-  dialog.title = "新增菜单"
-  dialog.loading = false
-  dialog.isEditable = true
-  dialog.visible = true
-}
-
-/**
- * 打开新增子弹窗
- */
-function openAddSubDialog(parentId: number) {
-  formData.value = cloneDeep(DEFAULT_FORM_DATA)
-  formData.value.parentId = parentId
-  dialog.loading = false
-  dialog.title = "新增子菜单"
-  dialog.isEditable = true
-  dialog.visible = true
-}
-
-/**
- * 打开修改弹窗
+ * 统一处理数据弹窗
  *
- * @param row
+ * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)、"sub"(新增子菜单)
+ * @param row 可选参数,编辑或查看时传入对应的菜单项
  */
-async function openUpdateDialog(row: MenuForm) {
-  dialog.loading = true
-  dialog.title = "修改菜单"
-  dialog.isEditable = true
+async function handleOpenDialog(type: "add" | "edit" | "show" | "sub", row?: MenuVO) {
   dialog.visible = true
-  try {
-    formData.value = cloneDeep({})
-    const { data } = await getSysMenuApi(row.menuId)
-    formData.value = data as MenuForm
-  } finally {
-    dialog.loading = false
+  dialog.isEditable = type !== "show"
+  dialog.title = { add: "新增菜单", edit: "修改菜单", show: "查看菜单", sub: "新增子菜单" }[type]
+
+  formData.value = cloneDeep(DEFAULT_FORM_DATA)
+
+  if ((type === "edit" || type === "show") && row) {
+    dialog.loading = true
+    try {
+      const { data } = await getSysMenuApi(row.menuId)
+      formData.value = data as MenuForm
+    } finally {
+      dialog.loading = false
+    }
+  } else if (type === "sub" && row) {
+    formData.value.parentId = row.menuId
   }
 }
-
-/**
- * 打开查看弹窗
- *
- * @param row
- */
-async function openShowDialog(row: MenuForm) {
-  dialog.loading = true
-  dialog.title = "查看菜单"
-  dialog.isEditable = false
-  dialog.visible = true
-  try {
-    formData.value = cloneDeep({})
-    const { data } = await getSysMenuApi(row.menuId)
-    formData.value = data as MenuForm
-  } finally {
-    dialog.loading = false
-  }
-}
-// #endregion
 
 // #region 联删除
 const menuCascadeDeleteDialog = reactive<DialogOption>({
@@ -269,7 +162,6 @@ async function openCascadeDeleteDialog() {
 
 onMounted(async () => {
   await getTableData()
-  loading.value = false
 })
 </script>
 
@@ -298,16 +190,12 @@ onMounted(async () => {
     </el-card>
 
     <!-- 表格 -->
-    <DictTable
-      v-model:menu-table-ref="menuTableRef"
+    <MenuTable
+      ref="menuTableComponentRef"
       v-model:loading="loading"
-      v-model:table-data="tableData"
-      @open-add-dialog="openAddDialog"
+      @open-add-dialog="handleOpenDialog('add')"
       @open-cascade-delete-dialog="openCascadeDeleteDialog"
       @get-table-data="getTableData"
-      @get-children-list="getChildrenList"
-      @expand-menu-handle="expandMenuHandle"
-      @handle-delete="handleDelete"
     >
       <template #operation="{ scope }">
         <div style="display: flex; align-items: center; gap: 10px">
@@ -317,7 +205,7 @@ onMounted(async () => {
             text
             bg
             size="small"
-            @click="openShowDialog(scope.row)"
+            @click="handleOpenDialog('show', scope.row)"
           >
             查看
           </el-button>
@@ -327,13 +215,13 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="openAddSubDialog(scope.row.menuId)" v-if="checkPermission(['system:menu:add'])">
+                <el-dropdown-item @click="handleOpenDialog('sub', scope.row)" v-if="checkPermission(['system:menu:add'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
                   新增子菜单
                 </el-dropdown-item>
-                <el-dropdown-item @click="openUpdateDialog(scope.row)" v-if="checkPermission(['system:menu:edit'])">
+                <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['system:menu:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
@@ -350,10 +238,10 @@ onMounted(async () => {
           </el-dropdown>
         </div>
       </template>
-    </DictTable>
+    </MenuTable>
 
     <!-- 数据弹窗 -->
-    <DictDataDialog
+    <MenuDialog
       v-model:dialog="dialog"
       v-model:form-data="formData"
       v-model:menu-options="menuOptions"

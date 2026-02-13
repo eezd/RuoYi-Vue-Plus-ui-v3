@@ -1,13 +1,10 @@
 <script lang="ts" setup>
+import type { FormActionEmits } from "types/common"
 import type { MenuOptionsType } from "../index.vue"
 import { cascadeDelSysMenuApi } from "@@/apis/system/menu"
 import { ElMessage } from "element-plus"
 
-export interface EmitEvents {
-  (e: "success"): void
-  (e: "cancel"): void
-}
-const emit = defineEmits<EmitEvents>()
+const emit = defineEmits<FormActionEmits>()
 
 /**
  * defineModel
@@ -34,7 +31,6 @@ async function handleSubmit() {
     dialog.value.loading = true
     await cascadeDelSysMenuApi(menuIds)
     ElMessage.success("删除成功")
-    resetCancelCascade()
     dialog.value.visible = false
     emit("success")
   } finally {
@@ -43,18 +39,17 @@ async function handleSubmit() {
 }
 
 function handleCancel() {
-  resetCancelCascade()
   dialog.value.visible = false
   emit("cancel")
 }
 
-function resetCancelCascade() {
+function handleClosed() {
   menuTreeRef.value?.setCheckedKeys([])
 }
 </script>
 
 <template>
-  <el-dialog v-model="dialog.visible" :title="dialog.title" @closed="handleCancel" destroy-on-close append-to-bod width="750px">
+  <el-dialog v-model="dialog.visible" :title="dialog.title" @closed="handleClosed" destroy-on-close append-to-body width="750px">
     <el-tree
       ref="menuTreeRef"
       class="tree-border"
