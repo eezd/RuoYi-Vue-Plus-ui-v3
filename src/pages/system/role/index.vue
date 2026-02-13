@@ -26,7 +26,7 @@ const loading = ref(true)
 
 // 表格数据
 const tableData = ref<RoleForm[]>([])
-const DEFAULT_FORM_DATA = {
+const DEFAULT_FORM_DATA: Partial<RoleForm> = {
   roleId: undefined,
   roleSort: 1,
   status: "0",
@@ -41,7 +41,6 @@ const DEFAULT_FORM_DATA = {
 }
 // 表单数据
 const formData = ref<Partial<RoleForm>>(cloneDeep(DEFAULT_FORM_DATA))
-
 const dialog = reactive<DialogOption>({
   title: "",
   visible: false,

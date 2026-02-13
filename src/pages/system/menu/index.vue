@@ -31,7 +31,7 @@ const menuTableComponentRef = useTemplateRef("menuTableComponentRef")
 // 表格数据
 const menuOptions = ref<MenuOptionsType[]>([])
 
-const DEFAULT_FORM_DATA = {
+const DEFAULT_FORM_DATA: Partial<MenuForm> = {
   path: "",
   menuId: undefined,
   parentId: 0,

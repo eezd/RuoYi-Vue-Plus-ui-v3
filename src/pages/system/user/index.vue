@@ -26,7 +26,7 @@ const loading = ref(true)
 
 // 表格数据
 const tableData = ref<UserVO[]>([])
-const DEFAULT_FORM_DATA = {
+const DEFAULT_FORM_DATA: Partial<UserForm> = {
   userId: undefined,
   deptId: undefined,
   userName: "",

@@ -1,17 +1,14 @@
 <script lang="ts" setup>
 import type { ClientForm } from "@@/apis/system/client/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
+import type { FormActionEmits } from "types/common"
 import { addSysClientApi, updateSysClientApi } from "@@/apis/system/client"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElMessage } from "element-plus"
 import { ref } from "vue"
 
-export interface EmitEvents {
-  (e: "success"): void
-  (e: "cancel"): void
-}
-const emit = defineEmits<EmitEvents>()
+const emit = defineEmits<FormActionEmits>()
 
 /**
  * defineModel
