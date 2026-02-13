@@ -19,10 +19,19 @@ defineOptions({
 const { sys_yes_no } = toRefs<any>(useDict("sys_yes_no"))
 
 const loading = ref(true)
+
 // 表格数据
 const tableData = ref<ConfigForm[]>([])
+const DEFAULT_FORM_DATA: Partial<ConfigForm> = {
+  configId: undefined,
+  configName: "",
+  configKey: "",
+  configValue: "",
+  configType: "Y",
+  remark: ""
+}
 // 表单数据
-const formData = ref<Partial<ConfigForm>>(cloneDeep({}))
+const formData = ref<Partial<ConfigForm>>(cloneDeep(DEFAULT_FORM_DATA))
 const dialog = reactive<DialogOption>({
   title: "",
   visible: false,
@@ -112,59 +121,35 @@ async function handleDelete(row: ConfigForm | ConfigForm[]) {
 function handleExport() {
   const timestamp = new Date().getTime()
   download(
-    "/system/Config/type/export",
+    "/system/config/export",
     { ...searchData },
-    `Config_${timestamp}.xlsx`
+    `config_${timestamp}.xlsx`
   )
 }
 // #endregion
 
 // #region 弹窗操作
 /**
- * 打开新增弹窗
- */
-function openAddDialog() {
-  formData.value = cloneDeep({})
-  dialog.title = "新增参数"
-  dialog.isEditable = true
-  dialog.visible = true
-}
-
-/**
- * 打开修改弹窗
+ * 统一处理数据弹窗
  *
- * @param row
+ * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
+ * @param row 可选参数,编辑或查看时传入对应的菜单项
  */
-async function openUpdateDialog(row: ConfigForm) {
-  dialog.loading = true
-  dialog.title = "修改参数"
-  dialog.isEditable = true
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: ConfigForm) {
   dialog.visible = true
-  try {
-    formData.value = cloneDeep({})
-    const { data } = await getSysConfigApi(row.configId)
-    formData.value = data as ConfigForm
-  } finally {
-    dialog.loading = false
-  }
-}
+  dialog.isEditable = type !== "show"
+  dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]
 
-/**
- * 打开查看弹窗
- *
- * @param row
- */
-async function openShowDialog(row: ConfigForm) {
-  dialog.loading = true
-  dialog.title = "查看参数"
-  dialog.isEditable = false
-  dialog.visible = true
-  try {
-    formData.value = cloneDeep({})
-    const { data } = await getSysConfigApi(row.configId)
-    formData.value = data as ConfigForm
-  } finally {
-    dialog.loading = false
+  formData.value = cloneDeep(DEFAULT_FORM_DATA)
+
+  if ((type === "edit" || type === "show") && row) {
+    dialog.loading = true
+    try {
+      const { data } = await getSysConfigApi(row.configId)
+      Object.assign(formData.value, data)
+    } finally {
+      dialog.loading = false
+    }
   }
 }
 // #endregion
@@ -230,7 +215,7 @@ onMounted(async () => {
       v-model:loading="loading"
       v-model:table-data="tableData"
       v-model:pagination-data="paginationData"
-      @open-add-dialog="openAddDialog"
+      @open-add-dialog="handleOpenDialog('add')"
       @get-table-data="getTableData"
       @handle-delete="handleDelete"
       @handle-export="handleExport"
@@ -245,7 +230,7 @@ onMounted(async () => {
             text
             bg
             size="small"
-            @click="openShowDialog(scope.row)"
+            @click="handleOpenDialog('show', scope.row)"
           >
             查看
           </el-button>
@@ -255,7 +240,7 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="openUpdateDialog(scope.row)" v-if="checkPermission(['system:config:edit'])">
+                <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['system:config:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>

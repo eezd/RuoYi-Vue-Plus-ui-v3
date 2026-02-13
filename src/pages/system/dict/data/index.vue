@@ -19,13 +19,21 @@ defineOptions({
 })
 
 const route = useRoute()
-// console.log(route.params.dictId)
 
 const loading = ref(true)
 // 表格数据
 const tableData = ref<DictDataForm[]>([])
+const DEFAULT_FORM_DATA: Partial<DictDataForm> = {
+  dictCode: undefined,
+  dictLabel: "",
+  dictValue: "",
+  cssClass: "",
+  listClass: "primary",
+  dictSort: 0,
+  remark: ""
+}
 // 表单数据
-const formData = ref<Partial<DictDataForm>>(cloneDeep({}))
+const formData = ref<Partial<DictDataForm>>(cloneDeep(DEFAULT_FORM_DATA))
 const dialog = reactive<DialogOption>({
   title: "",
   visible: false,
@@ -38,7 +46,6 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 
 // 保存初始的字典类型, 防止重置时清空
 const defaultDictType = ref("")
-// const DEFAULT_FORM_DATA = { dictType: defaultDictType.value, dictSort: 0 }
 
 // #region 搜索栏
 // 搜索
@@ -127,50 +134,26 @@ function handleExport() {
 
 // #region 弹窗操作
 /**
- * 打开新增弹窗
- */
-function openAddDialog() {
-  formData.value = cloneDeep({ dictType: defaultDictType.value, dictSort: 0 })
-  dialog.title = "新增字典数据"
-  dialog.isEditable = true
-  dialog.visible = true
-}
-
-/**
- * 打开修改弹窗
+ * 统一处理数据弹窗
  *
- * @param row
+ * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
+ * @param row 可选参数,编辑或查看时传入对应的菜单项
  */
-async function openUpdateDialog(row: DictDataForm) {
-  dialog.loading = true
-  dialog.title = "修改字典数据"
-  dialog.isEditable = true
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: DictDataForm) {
   dialog.visible = true
-  try {
-    formData.value = cloneDeep({})
-    const { data } = await getSysDictDataCodeApi(row.dictCode)
-    formData.value = data as DictDataForm
-  } finally {
-    dialog.loading = false
-  }
-}
+  dialog.isEditable = type !== "show"
+  dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]
 
-/**
- * 打开查看弹窗
- *
- * @param row
- */
-async function openShowDialog(row: DictDataForm) {
-  dialog.loading = true
-  dialog.title = "查看字典数据"
-  dialog.isEditable = false
-  dialog.visible = true
-  try {
-    formData.value = cloneDeep({})
-    const { data } = await getSysDictDataCodeApi(row.dictCode)
-    formData.value = data as DictDataForm
-  } finally {
-    dialog.loading = false
+  formData.value = cloneDeep(DEFAULT_FORM_DATA)
+
+  if ((type === "edit" || type === "show") && row) {
+    dialog.loading = true
+    try {
+      const { data } = await getSysDictDataCodeApi(row.dictCode)
+      Object.assign(formData.value, data)
+    } finally {
+      dialog.loading = false
+    }
   }
 }
 // #endregion
@@ -226,7 +209,7 @@ onMounted(async () => {
       v-model:loading="loading"
       v-model:table-data="tableData"
       v-model:pagination-data="paginationData"
-      @open-add-dialog="openAddDialog"
+      @open-add-dialog="handleOpenDialog('add')"
       @get-table-data="getTableData"
       @handle-delete="handleDelete"
       @handle-export="handleExport"
@@ -241,7 +224,7 @@ onMounted(async () => {
             text
             bg
             size="small"
-            @click="openShowDialog(scope.row)"
+            @click="handleOpenDialog('show', scope.row)"
           >
             查看
           </el-button>
@@ -251,7 +234,7 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="openUpdateDialog(scope.row)" v-if="checkPermission(['system:dict:edit'])">
+                <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['system:dict:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>

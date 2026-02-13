@@ -1,18 +1,14 @@
 <script lang="ts" setup>
 import type { DbTableQuery, DbTableVO } from "@@/apis/tool/gen/types"
+import type { FormActionEmits } from "types/common"
 import { getSysGenDataNames, getSysGenDbListApi, importSysGenTable } from "@@/apis/tool/gen"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { formatDateTime } from "@@/utils"
 import { Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage } from "element-plus"
-import { ref } from "vue"
 
-export interface EmitEvents {
-  (e: "success"): void
-  (e: "cancel"): void
-}
-const emit = defineEmits<EmitEvents>()
+const emit = defineEmits<FormActionEmits>()
 
 /**
  * defineModel

@@ -2,11 +2,6 @@
 import { useDevice } from "@@/composables/useDevice.ts"
 import { ElMessage } from "element-plus"
 
-export interface EmitEvents {
-  (e: "success"): void
-  (e: "cancel"): void
-}
-
 /**
  * defineModel
  */

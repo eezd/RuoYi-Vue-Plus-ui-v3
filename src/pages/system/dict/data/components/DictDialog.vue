@@ -1,16 +1,12 @@
 <script lang="ts" setup>
 import type { DictDataForm } from "@@/apis/system/dict/data/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
+import type { FormActionEmits } from "types/common"
 import { addSysDictDataApi, updateSysDictDataApi } from "@@/apis/system/dict/data"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { ElMessage } from "element-plus"
-import { ref } from "vue"
 
-export interface EmitEvents {
-  (e: "success"): void
-  (e: "cancel"): void
-}
-const emit = defineEmits<EmitEvents>()
+const emit = defineEmits<FormActionEmits>()
 
 /**
  * defineModel

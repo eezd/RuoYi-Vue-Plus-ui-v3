@@ -84,6 +84,8 @@ export interface OperLogVO extends BaseEntity {
 }
 
 export interface OperLogForm {
+  tenantId: string
+  deptName: string
   /**
    * 日志主键
    */

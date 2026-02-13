@@ -17,7 +17,21 @@ defineOptions({
 const loading = ref(true)
 // 表格数据
 const tableData = ref<OssConfigForm[]>([])
-const DEFAULT_FORM_DATA = { status: "1", isHttps: "N", accessPolicy: "1" }
+const DEFAULT_FORM_DATA: Partial<OssConfigForm> = {
+  ossConfigId: undefined,
+  configKey: "",
+  accessKey: "",
+  secretKey: "",
+  bucketName: "",
+  prefix: "",
+  endpoint: "",
+  domain: "",
+  isHttps: "N",
+  accessPolicy: "1",
+  region: "",
+  status: "1",
+  remark: ""
+}
 // 表单数据
 const formData = ref<Partial<OssConfigForm>>(cloneDeep(DEFAULT_FORM_DATA))
 const dialog = reactive<DialogOption>({
@@ -93,50 +107,26 @@ async function handleDelete(row: OssConfigForm | OssConfigForm[]) {
 
 // #region 弹窗操作
 /**
- * 打开新增弹窗
+ * 统一处理数据弹窗
+ *
+ * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
+ * @param row 可选参数,编辑或查看时传入对应的菜单项
  */
-function openAddDialog() {
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: OssConfigForm) {
+  dialog.visible = true
+  dialog.isEditable = type !== "show"
+  dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]
+
   formData.value = cloneDeep(DEFAULT_FORM_DATA)
-  dialog.title = "新增对象存储配置"
-  dialog.isEditable = true
-  dialog.visible = true
-}
 
-/**
- * 打开修改弹窗
- *
- * @param row
- */
-async function openUpdateDialog(row: OssConfigForm) {
-  dialog.loading = true
-  dialog.title = "修改对象存储配置"
-  dialog.isEditable = true
-  dialog.visible = true
-  try {
-    formData.value = cloneDeep({})
-    const { data } = await getSysOssConfigApi(row.ossConfigId)
-    formData.value = data as OssConfigForm
-  } finally {
-    dialog.loading = false
-  }
-}
-
-/**
- * 打开查看弹窗
- *
- * @param row
- */
-async function openShowDialog(row: OssConfigForm) {
-  dialog.loading = true
-  dialog.title = "查看对象存储配置"
-  dialog.isEditable = false
-  dialog.visible = true
-  try {
-    formData.value = cloneDeep({})
-    const { data } = await getSysOssConfigApi(row.ossConfigId)
-    formData.value = data as OssConfigForm
-  } finally {
-    dialog.loading = false
+  if ((type === "edit" || type === "show") && row) {
+    dialog.loading = true
+    try {
+      const { data } = await getSysOssConfigApi(row.ossConfigId)
+      Object.assign(formData.value, data)
+    } finally {
+      dialog.loading = false
+    }
   }
 }
 // #endregion
@@ -192,7 +182,7 @@ onMounted(async () => {
       v-model:loading="loading"
       v-model:table-data="tableData"
       v-model:pagination-data="paginationData"
-      @open-add-dialog="openAddDialog"
+      @open-add-dialog="handleOpenDialog('add')"
       @get-table-data="getTableData"
       @handle-delete="handleDelete"
       @handle-current-change="handleCurrentChange"
@@ -206,7 +196,7 @@ onMounted(async () => {
             text
             bg
             size="small"
-            @click="openShowDialog(scope.row)"
+            @click="handleOpenDialog('show', scope.row)"
           >
             查看
           </el-button>
@@ -216,7 +206,7 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="openUpdateDialog(scope.row)" v-if="checkPermission(['system:dict:edit'])">
+                <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['system:dict:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>

@@ -1,17 +1,14 @@
 <script lang="ts" setup>
 import type { OssConfigForm } from "@@/apis/system/ossConfig/types"
 import type { FormInstance, FormRules } from "element-plus"
+import type { FormActionEmits } from "types/common"
 import { addSysOssConfigApi, updateSysOssConfigApi } from "@@/apis/system/ossConfig"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { ElMessage } from "element-plus"
 import { ref } from "vue"
 import { useDict } from "@/common/composables/useDict"
 
-export interface EmitEvents {
-  (e: "success"): void
-  (e: "cancel"): void
-}
-const emit = defineEmits<EmitEvents>()
+const emit = defineEmits<FormActionEmits>()
 
 /**
  * defineModel

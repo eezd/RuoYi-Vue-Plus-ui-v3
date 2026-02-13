@@ -20,8 +20,29 @@ const { sys_oper_type, sys_common_status } = toRefs<any>(useDict("sys_oper_type"
 const loading = ref(true)
 // 表格数据
 const tableData = ref<OperLogVO[]>([])
+const DEFAULT_FORM_DATA: Partial<OperLogForm> = {
+  operId: undefined,
+  tenantId: undefined,
+  title: "",
+  businessType: 0,
+  businessTypes: undefined,
+  method: "",
+  requestMethod: "",
+  operatorType: 0,
+  operName: "",
+  deptName: "",
+  operUrl: "",
+  operIp: "",
+  operLocation: "",
+  operParam: "",
+  jsonResult: "",
+  status: 0,
+  errorMsg: "",
+  operTime: "",
+  costTime: 0
+}
 // 表单数据
-const formData = ref<Partial<OperLogForm>>(cloneDeep({}))
+const formData = ref<Partial<OperLogForm>>(cloneDeep(DEFAULT_FORM_DATA))
 // 数据弹窗
 const dialog = reactive<DialogOption>({
   title: "",

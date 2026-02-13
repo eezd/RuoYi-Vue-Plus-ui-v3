@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { NoticeForm } from "@@/apis/system/notice/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
+import type { FormActionEmits } from "types/common"
 import { addSysNoticeApi, updateSysNoticeApi } from "@@/apis/system/notice"
 import Editor from "@@/components/Editor/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
@@ -8,11 +9,7 @@ import { useDict } from "@@/composables/useDict.ts"
 import { ElMessage } from "element-plus"
 import { ref } from "vue"
 
-export interface EmitEvents {
-  (e: "success"): void
-  (e: "cancel"): void
-}
-const emit = defineEmits<EmitEvents>()
+const emit = defineEmits<FormActionEmits>()
 
 /**
  * defineModel
