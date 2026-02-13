@@ -147,53 +147,29 @@ function handleExport() {
 
 // #region 弹窗操作
 /**
- * 打开新增弹窗
+ * 统一处理数据弹窗
+ *
+ * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
+ * @param row 可选参数,编辑或查看时传入对应的菜单项
  */
-function openAddDialog() {
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: RoleForm) {
+  dialog.visible = true
+  dialog.isEditable = type !== "show"
+  dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]
+
   formData.value = cloneDeep(DEFAULT_FORM_DATA)
-  dialog.title = "新增"
-  dialog.isEditable = true
-  dialog.visible = true
-}
 
-/**
- * 打开修改弹窗
- */
-async function openUpdateDialog(row: RoleForm) {
-  dialog.loading = true
-  dialog.title = "修改"
-  dialog.isEditable = true
-  dialog.visible = true
-  try {
-    formData.value = cloneDeep(DEFAULT_FORM_DATA)
-    const roleId = row?.roleId
-    const { data } = await getSysRoleApi(roleId)
-    Object.assign(formData.value, data)
-    formData.value.roleSort = Number(formData.value.roleSort)
-  } finally {
-    dialog.loading = false
+  if ((type === "edit" || type === "show") && row) {
+    dialog.loading = true
+    try {
+      const { data } = await getSysRoleApi(row.roleId)
+      Object.assign(formData.value, data)
+      formData.value.roleSort = Number(formData.value.roleSort)
+    } finally {
+      dialog.loading = false
+    }
   }
 }
-
-/**
- * 打开查看弹窗
- */
-async function openShowDialog(row: RoleForm) {
-  dialog.loading = true
-  dialog.title = "查看"
-  dialog.isEditable = false
-  dialog.visible = true
-  try {
-    formData.value = cloneDeep(DEFAULT_FORM_DATA)
-    const roleId = row?.roleId
-    const { data } = await getSysRoleApi(roleId)
-    Object.assign(formData.value, data)
-    formData.value.roleSort = Number(formData.value.roleSort)
-  } finally {
-    dialog.loading = false
-  }
-}
-
 /**
  * 打开数据权限弹窗
  */
@@ -287,7 +263,7 @@ onMounted(async () => {
       v-model:loading="loading"
       v-model:table-data="tableData"
       v-model:pagination-data="paginationData"
-      @open-add-dialog="openAddDialog"
+      @open-add-dialog="handleOpenDialog('add')"
       @get-table-data="getTableData"
       @handle-delete="handleDelete"
       @handle-export="handleExport"
@@ -302,7 +278,7 @@ onMounted(async () => {
             text
             bg
             size="small"
-            @click="openShowDialog(scope.row)"
+            @click="handleOpenDialog('show', scope.row)"
           >
             查看
           </el-button>
@@ -312,7 +288,7 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="openUpdateDialog(scope.row)" v-if="checkPermission(['system:role:edit'])">
+                <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['system:role:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>

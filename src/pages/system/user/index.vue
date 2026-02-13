@@ -147,64 +147,36 @@ function handleExport() {
 
 // #region 弹窗操作
 /**
- * 打开新增弹窗
+ * 统一处理数据弹窗
+ *
+ * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
+ * @param row 可选参数,编辑或查看时传入对应的用户项
  */
-async function openAddDialog() {
-  dialog.loading = true
-  dialog.title = "新增"
-  dialog.isEditable = true
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: UserForm) {
   dialog.visible = true
-  try {
-    formData.value = cloneDeep(DEFAULT_FORM_DATA)
-    const { data } = await getSysUserApi()
-    roleOptions.value = data.roles
-    formData.value.password = initPassword.value.toString()
-  } finally {
-    dialog.loading = false
-  }
-}
+  dialog.isEditable = type !== "show"
+  dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]
 
-/**
- * 打开修改弹窗
- */
-async function openUpdateDialog(row: UserForm) {
-  dialog.loading = true
-  dialog.title = "修改"
-  dialog.isEditable = true
-  dialog.visible = true
-  try {
-    formData.value = cloneDeep(DEFAULT_FORM_DATA)
-    const userId = row?.userId
-    const { data } = await getSysUserApi(userId)
-    Object.assign(formData.value, data.user)
-    roleOptions.value = Array.from(
-      new Map([...data.roles, ...data.user.roles].map(role => [role.roleId, role])).values()
-    )
-    formData.value.roleIds = data.roleIds
-    formData.value.password = ""
-  } finally {
-    dialog.loading = false
-  }
-}
+  formData.value = cloneDeep(DEFAULT_FORM_DATA)
 
-/**
- * 打开查看弹窗
- */
-async function openShowDialog(row: UserForm) {
   dialog.loading = true
-  dialog.title = "查看"
-  dialog.isEditable = false
-  dialog.visible = true
   try {
-    formData.value = cloneDeep(DEFAULT_FORM_DATA)
-    const userId = row?.userId
-    const { data } = await getSysUserApi(userId)
-    Object.assign(formData.value, data.user)
-    roleOptions.value = Array.from(
-      new Map([...data.roles, ...data.user.roles].map(role => [role.roleId, role])).values()
-    )
-    formData.value.roleIds = data.roleIds
-    formData.value.password = ""
+    if (type === "add") {
+      // 新增逻辑
+      const { data } = await getSysUserApi()
+      roleOptions.value = data.roles
+      formData.value.password = initPassword.value.toString()
+    } else if ((type === "edit" || type === "show") && row) {
+      // 编辑或查看逻辑
+      const userId = row.userId
+      const { data } = await getSysUserApi(userId)
+      Object.assign(formData.value, data.user)
+      roleOptions.value = Array.from(
+        new Map([...data.roles, ...data.user.roles].map(role => [role.roleId, role])).values()
+      )
+      formData.value.roleIds = data.roleIds
+      formData.value.password = ""
+    }
   } finally {
     dialog.loading = false
   }
@@ -381,7 +353,7 @@ onMounted(async () => {
           v-model:loading="loading"
           v-model:table-data="tableData"
           v-model:pagination-data="paginationData"
-          @open-add-dialog="openAddDialog"
+          @open-add-dialog="handleOpenDialog('add')"
           @get-table-data="getTableData"
           @handle-delete="handleDelete"
           @handle-export="handleExport"
@@ -396,7 +368,7 @@ onMounted(async () => {
                 text
                 bg
                 size="small"
-                @click="openShowDialog(scope.row)"
+                @click="handleOpenDialog('show', scope.row)"
               >
                 查看
               </el-button>
@@ -406,7 +378,7 @@ onMounted(async () => {
                 </span>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item @click="openUpdateDialog(scope.row)" v-if="checkPermission(['system:user:edit'])">
+                    <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['system:user:edit'])">
                       <el-icon color="#409EFF">
                         <edit />
                       </el-icon>
