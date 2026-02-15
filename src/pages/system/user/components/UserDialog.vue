@@ -10,7 +10,7 @@ import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElInput } from "element-plus"
 import { ref } from "vue"
-import { getSysPostOptionselectApi } from "@/common/apis/system/post"
+import { getSysPostOptionSelectApi } from "@/common/apis/system/post"
 
 interface Props {
   enabledDeptOptions: DeptTreeVO[]
@@ -109,7 +109,7 @@ function resetForm() {
 // 岗位选项
 const postOptions = ref<PostVO[]>([])
 async function handleDeptChange(value: number | string) {
-  const response = await getSysPostOptionselectApi(value)
+  const response = await getSysPostOptionSelectApi(value)
   postOptions.value = response.data
   formData.value.postIds = []
 }

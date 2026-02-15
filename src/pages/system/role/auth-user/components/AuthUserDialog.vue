@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { UserQuery, UserVO } from "@@/apis/system/user/types.ts"
-import { authSysUserSelectAll, unallocatedSysUserListApi } from "@@/apis/system/role"
+import { assignRoleToUsersApi, getRoleUnauthorizedUsersListApi } from "@@/apis/system/role"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
@@ -40,7 +40,7 @@ async function handleSubmit() {
     ElMessage.success("请选择要分配的用户")
     return
   }
-  await authSysUserSelectAll({ roleId: roleId.value, userIds: ids })
+  await assignRoleToUsersApi({ roleId: roleId.value as number, userIds: ids })
   ElMessage.success("分配成功")
   emit("success")
   dialog.value.visible = false
@@ -70,7 +70,7 @@ async function getTableData(): Promise<void> {
   try {
     dialog.value.loading = true
     searchData.roleId = roleId.value
-    const { rows, total } = await unallocatedSysUserListApi({
+    const { rows, total } = await getRoleUnauthorizedUsersListApi({
       ...searchData,
       pageNum: paginationData.currentPage,
       pageSize: paginationData.pageSize

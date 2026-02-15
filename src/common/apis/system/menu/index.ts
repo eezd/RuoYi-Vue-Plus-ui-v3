@@ -18,7 +18,7 @@ export function getSysMenuApi(menuId: string | number) {
 }
 
 // 查询菜单下拉树结构
-export function treeselectApi() {
+export function getMenuTreeSelectApi() {
   return request<ApiResponseData<MenuTreeOption[]>>({
     url: "/system/menu/treeselect",
     method: "get"
@@ -26,7 +26,7 @@ export function treeselectApi() {
 }
 
 // 根据角色ID查询菜单下拉树结构
-export function roleMenuTreeselectApi(roleId: string | number) {
+export function getMenuTreeSelectByRoleIdApi(roleId: string | number) {
   return request<ApiResponseData<RoleMenuTree>>({
     url: `/system/menu/roleMenuTreeselect/${roleId}`,
     method: "get"
@@ -34,7 +34,7 @@ export function roleMenuTreeselectApi(roleId: string | number) {
 }
 
 // 根据角色ID查询菜单下拉树结构
-export function tenantPackageMenuTreeselectApi(packageId: string | number) {
+export function getMenuTreeSelectByPackageIdApi(packageId: string | number) {
   return request<ApiResponseData<RoleMenuTree>>({
     url: `/system/menu/tenantPackageMenuTreeselect/${packageId}`,
     method: "get"
@@ -68,7 +68,7 @@ export function delSysMenuApi(menuId: string | number) {
 }
 
 // 级联删除菜单
-export function cascadeDelSysMenuApi(menuIds: Array<string | number>) {
+export function delSysMenuCascadeApi(menuIds: Array<string | number>) {
   return request<ApiResponseData<null>>({
     url: `/system/menu/cascade/${menuIds}`,
     method: "delete"

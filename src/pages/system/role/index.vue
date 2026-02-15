@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { MenuTreeOption } from "@@/apis/system/menu/types.ts"
 import type { RoleForm, RoleQuery, RoleVO } from "@@/apis/system/role/types.ts"
-import { treeselectApi } from "@@/apis/system/menu"
+import { getMenuTreeSelectApi } from "@@/apis/system/menu"
 import { delSysRoleApi, getSysRoleApi, getSysRolelistApi } from "@@/apis/system/role"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
@@ -208,7 +208,7 @@ watch(
 // #endregion
 
 async function getMenuTreeselect() {
-  const res = await treeselectApi()
+  const res = await getMenuTreeSelectApi()
   menuOptions.value = res.data
 }
 

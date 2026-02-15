@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { RoleForm } from "@@/apis/system/role/types.ts"
 import type { UserQuery, UserVO } from "@@/apis/system/user/types.ts"
-import { allocatedSysUserListApi, authSysUserCancelApi, delSysRoleApi } from "@@/apis/system/role"
+import { delSysRoleApi, getRoleAuthorizedUsersListApi, revokeRoleFromUserApi } from "@@/apis/system/role"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { CircleClose, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
@@ -58,7 +58,7 @@ function resetSearch() {
 async function getTableData(): Promise<void> {
   try {
     loading.value = true
-    const { rows, total } = await allocatedSysUserListApi({
+    const { rows, total } = await getRoleAuthorizedUsersListApi({
       ...searchData,
       pageNum: paginationData.currentPage,
       pageSize: paginationData.pageSize
@@ -129,7 +129,7 @@ async function cancelAuthUser(row: UserVO) {
     cancelButtonText: "取消",
     type: "warning"
   })
-  await authSysUserCancelApi({ userId: row.userId, roleId: searchData.roleId })
+  await revokeRoleFromUserApi({ userId: row.userId as number, roleId: searchData.roleId as number })
   await getTableData()
   ElMessage.success("取消授权成功")
 }

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ConfigForm, ConfigQuery } from "@@/apis/system/config/types.ts"
-import { delConfigApi, getSysConfigApi, getSysConfigListApi } from "@@/apis/system/config"
+import { delSysConfigApi, getSysConfigApi, getSysConfigListApi } from "@@/apis/system/config"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
@@ -106,7 +106,7 @@ async function handleDelete(row: ConfigForm | ConfigForm[]) {
       type: "warning"
     })
     loading.value = true
-    const res = await delConfigApi(deleteIds)
+    const res = await delSysConfigApi(deleteIds)
     ElMessage.success(res.msg)
     await getTableData()
   } catch {

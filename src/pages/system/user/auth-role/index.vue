@@ -89,10 +89,10 @@ function handleSelectAll(selection: RoleVO[]) {
 
 /** 提交表单 */
 async function submitForm() {
-  loading.value = true
   const userId = formData.value.userId
   const rIds = Array.from(roleIds.value).join(",")
 
+  loading.value = true
   try {
     await updateAuthRoleApi({ userId: userId as string, roleIds: rIds })
     ElMessage.success("授权成功")

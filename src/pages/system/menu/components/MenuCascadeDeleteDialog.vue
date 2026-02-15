@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { FormActionEmits } from "types/common"
 import type { MenuOptionsType } from "../index.vue"
-import { cascadeDelSysMenuApi } from "@@/apis/system/menu"
+import { delSysMenuCascadeApi } from "@@/apis/system/menu"
 import { ElMessage } from "element-plus"
 
 const emit = defineEmits<FormActionEmits>()
@@ -29,7 +29,7 @@ async function handleSubmit() {
   }
   try {
     dialog.value.loading = true
-    await cascadeDelSysMenuApi(menuIds)
+    await delSysMenuCascadeApi(menuIds)
     ElMessage.success("删除成功")
     dialog.value.visible = false
     emit("success")

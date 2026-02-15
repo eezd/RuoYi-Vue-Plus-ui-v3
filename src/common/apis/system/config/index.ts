@@ -57,7 +57,7 @@ export function updateSysConfigByKeyApi(key: string, value: any) {
 }
 
 // 删除参数配置
-export function delConfigApi(configId: string | number | Array<string | number>) {
+export function delSysConfigApi(configId: string | number | Array<string | number>) {
   return request<ApiResponseData<null>>({
     url: `/system/config/${configId}`,
     method: "delete"

@@ -1,5 +1,5 @@
 import type { UserQuery, UserVO } from "../user/types.ts"
-import type { RoleDeptTree, RoleQuery, RoleVO } from "./types.ts"
+import type { RoleDeptTree, RoleForm, RoleQuery, RoleVO } from "./types.ts"
 import { request } from "@/http/axios.ts"
 
 export function getSysRolelistApi(query: RoleQuery) {
@@ -34,7 +34,7 @@ export function getSysRoleApi(roleId: string | number) {
 /**
  * 新增角色
  */
-export function addSysRoleApi(data: any) {
+export function addSysRoleApi(data: RoleForm) {
   return request<ApiResponseData<null>>({
     url: "/system/role",
     method: "post",
@@ -46,7 +46,7 @@ export function addSysRoleApi(data: any) {
  * 修改角色
  * @param data
  */
-export function updateSysRoleApi(data: any) {
+export function updateSysRoleApi(data: RoleForm) {
   return request<ApiResponseData<null>>({
     url: "/system/role",
     method: "put",
@@ -93,7 +93,7 @@ export function delSysRoleApi(roleId: Array<string | number> | string | number) 
 /**
  * 查询角色已授权用户列表
  */
-export function allocatedSysUserListApi(query: UserQuery) {
+export function getRoleAuthorizedUsersListApi(query: UserQuery) {
   return request<ApiResponsePageData<UserVO[]>>({
     url: "/system/role/authUser/allocatedList",
     method: "get",
@@ -104,7 +104,7 @@ export function allocatedSysUserListApi(query: UserQuery) {
 /**
  * 查询角色未授权用户列表
  */
-export function unallocatedSysUserListApi(query: UserQuery) {
+export function getRoleUnauthorizedUsersListApi(query: UserQuery) {
   return request<ApiResponsePageData<UserVO[]>>({
     url: "/system/role/authUser/unallocatedList",
     method: "get",
@@ -115,7 +115,10 @@ export function unallocatedSysUserListApi(query: UserQuery) {
 /**
  * 取消用户授权角色
  */
-export function authSysUserCancelApi(data: any) {
+export function revokeRoleFromUserApi(data: {
+  roleId: number
+  userId: number
+}) {
   return request<ApiResponseData<null>>({
     url: "/system/role/authUser/cancel",
     method: "put",
@@ -126,7 +129,10 @@ export function authSysUserCancelApi(data: any) {
 /**
  * 批量取消用户授权角色
  */
-export function authSysUserCancelAll(data: any) {
+export function revokeRoleFromUsersApi(data: {
+  roleId: number
+  userIds: number[] | string
+}) {
   return request<ApiResponseData<null>>({
     url: "/system/role/authUser/cancelAll",
     method: "put",
@@ -137,7 +143,10 @@ export function authSysUserCancelAll(data: any) {
 /**
  * 授权用户选择
  */
-export function authSysUserSelectAll(data: any) {
+export function assignRoleToUsersApi(data: {
+  roleId: number
+  userIds: number[] | string
+}) {
   return request<ApiResponseData<null>>({
     url: "/system/role/authUser/selectAll",
     method: "put",

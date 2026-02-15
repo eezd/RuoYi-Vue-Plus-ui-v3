@@ -3,7 +3,7 @@ import type { MenuTreeOption, RoleMenuTree } from "@@/apis/system/menu/types.ts"
 import type { RoleForm } from "@@/apis/system/role/types.ts"
 import type { FormRules } from "element-plus"
 import type { FormActionEmits } from "types/common"
-import { roleMenuTreeselectApi } from "@@/apis/system/menu"
+import { getMenuTreeSelectByRoleIdApi } from "@@/apis/system/menu"
 import { addSysRoleApi, updateSysRoleApi } from "@@/apis/system/role"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
@@ -88,7 +88,7 @@ function resetForm() {
 }
 
 function getRoleMenuTreeselect(roleId: string | number) {
-  return roleMenuTreeselectApi(roleId).then((res): RoleMenuTree => {
+  return getMenuTreeSelectByRoleIdApi(roleId).then((res): RoleMenuTree => {
     menuOptions.value = res.data.menus
     return res.data
   })

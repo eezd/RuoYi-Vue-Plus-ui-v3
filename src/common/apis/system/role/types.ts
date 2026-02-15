@@ -15,7 +15,7 @@ export interface RoleDeptTree {
 }
 
 export interface RoleVO extends BaseEntity {
-  roleId: string | number
+  roleId: string
   roleName: string
   roleKey: string
   roleSort: number
@@ -42,7 +42,7 @@ export interface RoleQuery extends PageQuery {
 }
 
 export interface RoleForm {
-  roleId: string | number
+  roleId: string
   roleName: string
   roleKey: string
   roleSort: number

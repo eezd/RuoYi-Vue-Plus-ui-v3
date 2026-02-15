@@ -11,8 +11,8 @@ export interface PostVO extends BaseEntity {
 }
 
 export interface PostForm {
-  postId: number | string | undefined
-  deptId: number | string | undefined
+  postId: number | string
+  deptId: number | string
   postCode: string
   postName: string
   postCategory: string

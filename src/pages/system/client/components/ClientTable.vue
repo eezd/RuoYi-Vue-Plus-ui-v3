@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ClientForm, ClientVO } from "@@/apis/system/client/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
-import { changeSysStatusApi } from "@@/apis/system/client"
+import { changeSysClientStatusApi } from "@@/apis/system/client"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
@@ -54,7 +54,7 @@ async function handleStatusChange(row: ClientVO) {
       cancelButtonText: "取消",
       type: "warning"
     })
-    await changeSysStatusApi(row.clientId, row.status)
+    await changeSysClientStatusApi(row.clientId, row.status)
     ElMessage.success(`${text}成功`)
   } catch {
     row.status = row.status === "0" ? "1" : "0"

@@ -31,7 +31,7 @@ export interface UserQuery extends PageQuery {
  * 用户返回对象
  */
 export interface UserVO extends BaseEntity {
-  userId: string | number
+  userId: number | string
   tenantId: string
   deptId: number
   userName: string
@@ -59,7 +59,7 @@ export interface UserVO extends BaseEntity {
  */
 export interface UserForm {
   id: string
-  userId: string
+  userId: number | string
   deptId: number
   userName: string
   nickName: string

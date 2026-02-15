@@ -20,7 +20,7 @@ export function getSysPostApi(postId: string | number) {
 }
 
 // 获取岗位选择框列表
-export function getSysPostOptionselectApi(deptId?: number | string, postIds?: (number | string)[]) {
+export function getSysPostOptionSelectApi(deptId?: number | string, postIds?: (number | string)[]) {
   return request<ApiResponseData<PostVO[]>>({
     url: "/system/post/optionselect",
     method: "get",

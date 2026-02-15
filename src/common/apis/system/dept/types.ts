@@ -2,9 +2,9 @@
  * 部门查询参数
  */
 export interface DeptQuery extends PageQuery {
-  deptName?: string
-  deptCategory?: string
-  status?: number
+  deptName: string
+  deptCategory: string
+  status: number
 }
 
 /**
