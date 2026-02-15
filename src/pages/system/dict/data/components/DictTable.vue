@@ -5,6 +5,7 @@ import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
+import { useTagsViewStore } from "@/pinia/stores/tags-view"
 
 const emit = defineEmits<EmitEvents>()
 /**
@@ -37,10 +38,17 @@ const getTableData = () => emit("getTableData")
 // #endregion
 
 const { isMobile } = useDevice()
+const router = useRouter()
+const tagsViewStore = useTagsViewStore()
 
 const selectedRows = ref<DictDataForm[]>([])
 
 const handleSelectionChange = (val: DictDataForm[]) => (selectedRows.value = val)
+
+function close() {
+  tagsViewStore.delVisitedView(router.currentRoute.value)
+  router.back()
+}
 </script>
 
 <template>
@@ -70,6 +78,12 @@ const handleSelectionChange = (val: DictDataForm[]) => (selectedRows.value = val
         >
           导出
         </el-button>
+        <el-button
+          type="warning" plain icon="Close"
+          @click="close()"
+        >
+          返回
+        </el-button>
       </div>
       <div>
         <el-tooltip content="刷新当前页">
@@ -80,7 +94,7 @@ const handleSelectionChange = (val: DictDataForm[]) => (selectedRows.value = val
     <div class="table-wrapper">
       <el-table :data="tableData" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="50" align="center" />
-        <el-table-column prop="dictCode" label="字典编码" align="center" />
+        <!-- <el-table-column prop="dictCode" label="字典编码" align="center" /> -->
         <el-table-column prop="dictLabel" label="字典标签" align="center">
           <template #default="scope">
             <span

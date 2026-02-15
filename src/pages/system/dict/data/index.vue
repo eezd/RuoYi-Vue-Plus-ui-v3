@@ -145,6 +145,7 @@ async function handleOpenDialog(type: "add" | "edit" | "show", row?: DictDataFor
   dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]
 
   formData.value = cloneDeep(DEFAULT_FORM_DATA)
+  formData.value.dictType = defaultDictType.value
 
   if ((type === "edit" || type === "show") && row) {
     dialog.loading = true

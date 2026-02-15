@@ -5,6 +5,8 @@ import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
+import { refreshSysDictCacheApi } from "@/common/apis/system/dict/type"
+import { useDictStore } from "@/pinia/stores/dict"
 
 const emit = defineEmits<EmitEvents>()
 /**
@@ -41,6 +43,13 @@ const { isMobile } = useDevice()
 const selectedRows = ref<DictTypeForm[]>([])
 
 const handleSelectionChange = (val: DictTypeForm[]) => (selectedRows.value = val)
+
+/** 刷新缓存按钮操作 */
+async function handleRefreshCache() {
+  await refreshSysDictCacheApi()
+  ElMessage.success("刷新成功")
+  useDictStore().cleanDict()
+}
 </script>
 
 <template>
@@ -70,6 +79,13 @@ const handleSelectionChange = (val: DictTypeForm[]) => (selectedRows.value = val
         >
           导出
         </el-button>
+        <el-button
+          type="danger" plain icon="Delete"
+          v-hasPermi="['system:dict:remove']"
+          @click="handleRefreshCache()"
+        >
+          刷新缓存
+        </el-button>
       </div>
       <div>
         <el-tooltip content="刷新当前页">
@@ -83,7 +99,7 @@ const handleSelectionChange = (val: DictTypeForm[]) => (selectedRows.value = val
         <el-table-column prop="dictName" label="字典名称" align="center" />
         <el-table-column label="字典类型" align="center">
           <template #default="scope">
-            <router-link :to="`/admin/system/dict-data/${scope.row.dictId}`" class="link-type">
+            <router-link :to="`/system/dict-data/index/${scope.row.dictId}`" class="link-type">
               <span>{{ scope.row.dictType }}</span>
             </router-link>
           </template>

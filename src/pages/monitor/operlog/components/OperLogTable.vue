@@ -64,21 +64,21 @@ async function handleClean() {
         <el-button
           type="danger" plain icon="Delete"
           :disabled="!selectedRows.length"
-          v-hasPermi="['system:operlog:remove']"
+          v-hasPermi="['monitor:operlog:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除
         </el-button>
         <el-button
           type="danger" plain icon="WarnTriangleFilled"
-          v-hasPermi="['system:operlog:remove']"
+          v-hasPermi="['monitor:operlog:remove']"
           @click="handleClean()"
         >
           清空
         </el-button>
         <el-button
           type="warning" plain icon="Download"
-          v-hasPermi="['system:operlog:export']"
+          v-hasPermi="['monitor:operlog:export']"
           @click="handleExport()"
         >
           导出

@@ -34,7 +34,7 @@ const DEFAULT_FORM_DATA: Partial<ClientForm> = {
   status: undefined
 }
 // 表单数据
-const formData = ref<Partial<ClientForm>>(cloneDeep({}))
+const formData = ref<Partial<ClientForm>>(cloneDeep(DEFAULT_FORM_DATA))
 const dialog = reactive<DialogOption>({
   title: "",
   visible: false,

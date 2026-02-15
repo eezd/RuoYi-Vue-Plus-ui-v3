@@ -46,7 +46,7 @@ const selectedRows = ref<OssVO[]>([])
 const handleSelectionChange = (val: OssVO[]) => (selectedRows.value = val)
 
 function handleOssConfig() {
-  router.push("/admin/system/oss-config")
+  router.push("/system/oss-config/index")
 }
 
 const formRef = ref<ElFormInstance>()
