@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import type { MenuVO } from "@/common/apis/system/menu/types"
+import type { DeptVO } from "@/common/apis/system/dept/types"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { formatDateTime } from "@@/utils"
-import { CirclePlus, Delete, RefreshRight } from "@element-plus/icons-vue"
+import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 
-interface MenuTableRow extends MenuVO {
+interface DeptTableRow extends DeptVO {
   /** 是否有子菜单（用于 el-table 懒加载） */
   hasChildren?: boolean
 }
@@ -39,13 +39,13 @@ const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 
 const tableRef = useTemplateRef("tableRef")
 
-const internalTableData = ref<MenuTableRow[]>([]) // 表格显示的顶层数据
-const childrenListMap = ref<Record<string | number, MenuTableRow[]>>({})
-const expandMap = ref<Record<string | number, { row: MenuTableRow, treeNode: unknown, resolve: (data: MenuTableRow[]) => void } | undefined>>({})
+const internalTableData = ref<DeptTableRow[]>([]) // 表格显示的顶层数据
+const childrenListMap = ref<Record<string | number, DeptTableRow[]>>({})
+const expandMap = ref<Record<string | number, { row: DeptTableRow, treeNode: unknown, resolve: (data: DeptTableRow[]) => void } | undefined>>({})
 
-function setTableData(list: MenuTableRow[]) {
+function setTableData(list: DeptTableRow[]) {
   if (!list || !Array.isArray(list)) return // 增加非空校验
-  const tempMap: Record<string | number, MenuTableRow[]> = {}
+  const tempMap: Record<string | number, DeptTableRow[]> = {}
 
   // 构建父子映射
   for (const item of list) {
@@ -59,8 +59,8 @@ function setTableData(list: MenuTableRow[]) {
   // 标记是否有子节点 (hasChildren)
   const idSet = new Set<string | number>()
   for (const item of list) {
-    item.hasChildren = (tempMap[item.menuId]?.length || 0) > 0
-    idSet.add(item.menuId)
+    item.hasChildren = (tempMap[item.deptId]?.length || 0) > 0
+    idSet.add(item.deptId)
   }
 
   childrenListMap.value = tempMap
@@ -71,18 +71,18 @@ function setTableData(list: MenuTableRow[]) {
 }
 
 /** 统一处理懒加载刷新 */
-function resolveChildren(menuId: string | number) {
-  const expandInfo = expandMap.value[menuId]
+function resolveChildren(deptId: string | number) {
+  const expandInfo = expandMap.value[deptId]
   if (!expandInfo || !expandInfo.resolve) return
 
   try {
-    const children = childrenListMap.value[menuId] || []
+    const children = childrenListMap.value[deptId] || []
     if (tableRef.value) {
       const store = (tableRef.value as any).store
       if (store?.states?.lazyTreeNodeMap?.value) {
         // 如果子节点被删光了，同步 UI 状态
         if (children.length === 0) {
-          store.states.lazyTreeNodeMap.value[menuId] = []
+          store.states.lazyTreeNodeMap.value[deptId] = []
         }
       }
     }
@@ -91,24 +91,24 @@ function resolveChildren(menuId: string | number) {
   }
 }
 
-function load(row: MenuTableRow, treeNode: unknown, resolve: (data: MenuTableRow[]) => void) {
-  expandMap.value[row.menuId] = { row, treeNode, resolve }
-  resolve(childrenListMap.value[row.menuId] || [])
+function load(row: DeptTableRow, treeNode: unknown, resolve: (data: DeptTableRow[]) => void) {
+  expandMap.value[row.deptId] = { row, treeNode, resolve }
+  resolve(childrenListMap.value[row.deptId] || [])
 }
 
 /** 展开/收起监听 */
-function onExpandChange(row: MenuTableRow, expanded: boolean) {
+function onExpandChange(row: DeptTableRow, expanded: boolean) {
   if (!expanded) {
-    expandMap.value[row.menuId] = undefined
+    expandMap.value[row.deptId] = undefined
   }
 }
 
 /** 刷新所有展开的节点 (供内部使用) */
 function refreshAllExpandData() {
   // 只获取那些有实际值的 key 进行遍历
-  Object.keys(expandMap.value).forEach((menuId) => {
-    if (expandMap.value[menuId]) {
-      resolveChildren(menuId)
+  Object.keys(expandMap.value).forEach((deptId) => {
+    if (expandMap.value[deptId]) {
+      resolveChildren(deptId)
     }
   })
 }
@@ -125,18 +125,10 @@ defineExpose({
         <el-button
           type="primary"
           :icon="CirclePlus"
-          v-hasPermi="['system:menu:add']"
+          v-hasPermi="['system:dept:add']"
           @click="openAddDialog()"
         >
-          新增菜单
-        </el-button>
-        <el-button
-          type="danger"
-          :icon="Delete"
-          v-hasPermi="['system:menu:remove']"
-          @click="openCascadeDeleteDialog()"
-        >
-          级联删除
+          新增部门
         </el-button>
       </div>
       <div>
@@ -149,7 +141,7 @@ defineExpose({
       <el-table
         ref="tableRef"
         :data="internalTableData"
-        row-key="menuId"
+        row-key="deptId"
         border
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
         :default-expand-all="false"
@@ -157,16 +149,10 @@ defineExpose({
         :load="load"
         @expand-change="onExpandChange"
       >
-        <el-table-column prop="menuName" label="菜单名称" min-width="200" />
-        <el-table-column prop="icon" label="图标" align="center" width="100">
-          <template #default="scope">
-            <SvgIcon :name="scope.row.icon || ''" />
-          </template>
-        </el-table-column>
-        <el-table-column prop="orderNum" label="排序" align="center" min-width="80" />
-        <el-table-column prop="perms" label="权限标识" align="center" min-width="200" :show-overflow-tooltip="true" />
-        <el-table-column prop="component" label="组件路径" align="center" min-width="200" :show-overflow-tooltip="true" />
-        <el-table-column prop="status" label="状态" min-width="80" align="center">
+        <el-table-column prop="deptName" label="部门名称" />
+        <el-table-column prop="deptCategory" label="类别编码" align="center" />
+        <el-table-column prop="orderNum" label="排序" align="center" />
+        <el-table-column prop="status" label="状态" align="center">
           <template #default="scope">
             <DictTag :options="sys_normal_disable" :value="scope.row.status" />
           </template>
