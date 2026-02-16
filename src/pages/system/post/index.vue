@@ -1,9 +1,6 @@
 <script lang="ts" setup>
-import type { RoleVO } from "@@/apis/system/role/types.ts"
-import type { UserForm, UserQuery, UserVO } from "@@/apis/system/user/types.ts"
 import type { DeptTreeVO, DeptVO } from "@/common/apis/system/dept/types"
-import { getSysConfigKeyApi } from "@@/apis/system/config"
-import { delSysUserApi, getSysDeptTreeSelectApi, getSysUserApi, getSysUserListApi, resetSysUserPwdApi } from "@@/apis/system/user"
+import type { PostForm, PostQuery, PostVO } from "@/common/apis/system/post/types"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
@@ -11,37 +8,34 @@ import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref, watch } from "vue"
+import { delSysPostApi, getSysPostApi, getSysPostListApi } from "@/common/apis/system/post"
+import { getSysDeptTreeSelectApi } from "@/common/apis/system/user"
 import { download } from "@/http/download"
-import UserDialog from "./components/UserDialog.vue"
-import UserTable from "./components/UserTable.vue"
+import PostDialog from "./components/PostDialog.vue"
+import PostTable from "./components/PostTable.vue"
 
 defineOptions({
-  name: "AdminSysUser"
+  name: "AdminSysPost"
 })
 
-const router = useRouter()
 const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 
 const loading = ref(true)
 
 // 表格数据
-const tableData = ref<UserVO[]>([])
-const DEFAULT_FORM_DATA: Partial<UserForm> = {
-  userId: undefined,
+const tableData = ref<PostVO[]>([])
+const DEFAULT_FORM_DATA: Partial<PostForm> = {
+  postId: undefined,
   deptId: undefined,
-  userName: "",
-  nickName: undefined,
-  password: "",
-  phonenumber: undefined,
-  email: undefined,
-  sex: undefined,
+  postCode: "",
+  postName: "",
+  postCategory: "",
+  postSort: 0,
   status: "0",
-  remark: "",
-  postIds: [],
-  roleIds: []
+  remark: ""
 }
 // 表单数据
-const formData = ref<Partial<UserForm>>(cloneDeep(DEFAULT_FORM_DATA))
+const formData = ref<Partial<PostForm>>(cloneDeep(DEFAULT_FORM_DATA))
 
 const dialog = reactive<DialogOption>({
   title: "",
@@ -50,36 +44,21 @@ const dialog = reactive<DialogOption>({
   isEditable: false
 })
 
-const roleOptions = ref<RoleVO[]>([])
-const initPassword = ref<string>("")
-
 // 分页
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
 // #region 搜索栏
 const searchData = reactive({
-  userName: "",
-  phonenumber: "",
-  status: "",
-  deptId: "",
-  roleId: "",
-  params: {
-    beginTime: undefined,
-    endTime: undefined
-  }
-} as UserQuery)
+  deptId: undefined,
+  belongDeptId: undefined,
+  postCode: "",
+  postName: "",
+  postCategory: "",
+  status: ""
+} as PostQuery)
 const searchFormRef = useTemplateRef("searchFormRef")
-
-const dateRange = ref<[DateModelType, DateModelType]>(["", ""])
-watch(dateRange, ([newBeginTime, newEndTime]) => {
-  searchData.params = {}
-  searchData.params.beginTime = newBeginTime.toLocaleString()
-  searchData.params.endTime = newEndTime.toLocaleString()
-})
-
 async function resetSearch() {
   searchFormRef.value?.resetFields()
-  dateRange.value = ["", ""]
   await getTableData()
 }
 // #endregion
@@ -91,7 +70,7 @@ async function resetSearch() {
 async function getTableData(): Promise<void> {
   try {
     loading.value = true
-    const { rows, total } = await getSysUserListApi({
+    const { rows, total } = await getSysPostListApi({
       ...searchData,
       pageNum: paginationData.currentPage,
       pageSize: paginationData.pageSize
@@ -108,12 +87,12 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: UserForm | UserForm[]) {
+async function handleDelete(row: PostForm | PostForm[]) {
   const items = Array.isArray(row) ? row : [row]
-  const deleteIds = items.map(item => item.userId)
+  const deleteIds = items.map(item => item.postId)
   const message = Array.isArray(row)
     ? `正在删除 ${row.length} 条数据，确认删除？`
-    : `正在删除：${row.userName}，确认删除？`
+    : `正在删除：${row.postName}，确认删除？`
 
   try {
     await ElMessageBox.confirm(message, "提示", {
@@ -122,7 +101,7 @@ async function handleDelete(row: UserForm | UserForm[]) {
       type: "warning"
     })
     loading.value = true
-    const res = await delSysUserApi(deleteIds)
+    const res = await delSysPostApi(deleteIds)
     ElMessage.success(res.msg)
     await getTableData()
   } catch {
@@ -137,9 +116,9 @@ async function handleDelete(row: UserForm | UserForm[]) {
 function handleExport() {
   const timestamp = new Date().getTime()
   download(
-    "/system/user/export",
+    "/system/post/export",
     { ...searchData },
-    `user_${timestamp}.xlsx`
+    `post_${timestamp}.xlsx`
   )
 }
 
@@ -152,7 +131,7 @@ function handleExport() {
  * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
  * @param row 可选参数,编辑或查看时传入对应的用户项
  */
-async function handleOpenDialog(type: "add" | "edit" | "show", row?: UserForm) {
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: PostForm) {
   dialog.visible = true
   dialog.isEditable = type !== "show"
   dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]
@@ -161,55 +140,15 @@ async function handleOpenDialog(type: "add" | "edit" | "show", row?: UserForm) {
 
   dialog.loading = true
   try {
-    if (type === "add") {
-      // 新增逻辑
-      const { data } = await getSysUserApi()
-      roleOptions.value = data.roles
-      formData.value.password = initPassword.value.toString()
-    } else if ((type === "edit" || type === "show") && row) {
-      const userId = row.userId
-      const { data } = await getSysUserApi(userId)
-      Object.assign(formData.value, data.user)
-      roleOptions.value = Array.from(
-        new Map([...data.roles, ...data.user.roles].map(role => [role.roleId, role])).values()
-      )
-      formData.value.roleIds = data.roleIds
-      formData.value.password = ""
+    if ((type === "edit" || type === "show") && row) {
+      const postId = row.postId
+      const { data } = await getSysPostApi(postId)
+      Object.assign(formData.value, data)
     }
   } finally {
     dialog.loading = false
   }
 }
-
-/** 重置密码按钮操作 */
-async function handleResetPwd(row: UserVO) {
-  try {
-    const { value } = await ElMessageBox.prompt(`请输入"${row.userName}"的新密码`, "提示", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      closeOnClickModal: false,
-      inputPattern: /^.{5,20}$/,
-      inputErrorMessage: "用户密码长度必须介于 5 和 20 之间",
-      inputValidator: (value) => {
-        if (/[<>"'|\\]/.test(value)) {
-          return "不能包含非法字符：< > \" ' \\ |"
-        }
-        return true
-      }
-    })
-    await resetSysUserPwdApi(row.userId, value)
-    ElMessage.success(`修改成功，新密码是：${value}`)
-  } catch (err) {
-    // 如果用户取消了输入，err 会是一个取消标识
-    console.log("密码重置操作被取消或发生错误:", err)
-  }
-}
-/** 跳转角色分配 */
-function handleAuthRole(row: UserVO) {
-  const userId = row.userId
-  router.push(`/system/user-auth/role/${userId}`)
-}
-
 // #endregion
 
 // #region 左侧部门树
@@ -279,9 +218,6 @@ watch(
 onMounted(async () => {
   await getDeptTree()
   await getTableData()
-  await getSysConfigKeyApi("sys.user.initPassword").then((response) => {
-    initPassword.value = response.data
-  })
   loading.value = false
 })
 </script>
@@ -311,30 +247,29 @@ onMounted(async () => {
         <!-- 查询表单 -->
         <el-card v-loading="loading" shadow="never" class="search-wrapper">
           <el-form ref="searchFormRef" :inline="true" :model="searchData">
-            <el-form-item prop="userName" label="用户名称">
-              <el-input v-model="searchData.userName" placeholder="请输入用户名称" @keyup.enter="getTableData" />
+            <el-form-item prop="postCode" label="岗位编码">
+              <el-input v-model="searchData.postCode" placeholder="请输入岗位编码" @keyup.enter="getTableData" />
             </el-form-item>
-            <el-form-item prop="nickName" label="用户昵称">
-              <el-input v-model="searchData.nickName" placeholder="请输入用户昵称" @keyup.enter="getTableData" />
+            <el-form-item prop="postCategory" label="类别编码">
+              <el-input v-model="searchData.postCategory" placeholder="请输入类别编码" @keyup.enter="getTableData" />
             </el-form-item>
-            <el-form-item prop="phonenumber" label="手机号码">
-              <el-input v-model="searchData.phonenumber" placeholder="请输入手机号码" @keyup.enter="getTableData" />
+            <el-form-item prop="postName" label="岗位名称">
+              <el-input v-model="searchData.postName" placeholder="请输入岗位名称" @keyup.enter="getTableData" />
+            </el-form-item>
+            <el-form-item prop="deptId" label="部门" class="min-w-[200px]">
+              <el-tree-select
+                v-model="searchData.deptId"
+                :data="deptOptions"
+                :props="{ value: 'id', label: 'label', children: 'children' }"
+                value-key="id"
+                placeholder="请选择部门"
+                check-strictly
+              />
             </el-form-item>
             <el-form-item prop="status" label="状态">
-              <el-select class="min-w-[100px]" v-model="searchData.status" placeholder="角色状态" clearable>
+              <el-select class="min-w-[100px]" v-model="searchData.status" placeholder="状态" clearable>
                 <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value" />
               </el-select>
-            </el-form-item>
-            <el-form-item label="创建时间" style="width: 308px">
-              <el-date-picker
-                v-model="dateRange"
-                value-format="YYYY-MM-DD HH:mm:ss"
-                type="daterange"
-                range-separator="-"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
-              />
             </el-form-item>
             <el-form-item>
               <el-button type="primary" :icon="Search" @click="getTableData">
@@ -348,7 +283,7 @@ onMounted(async () => {
         </el-card>
 
         <!-- 表格 -->
-        <UserTable
+        <PostTable
           v-model:loading="loading"
           v-model:table-data="tableData"
           v-model:pagination-data="paginationData"
@@ -377,25 +312,13 @@ onMounted(async () => {
                 </span>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['system:user:edit'])">
+                    <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['system:post:edit'])">
                       <el-icon color="#409EFF">
                         <edit />
                       </el-icon>
                       修改
                     </el-dropdown-item>
-                    <el-dropdown-item @click="handleResetPwd(scope.row)" v-if="checkPermission(['system:user:resetPwd'])">
-                      <el-icon color="#409EFF">
-                        <Key />
-                      </el-icon>
-                      重置密码
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="handleAuthRole(scope.row)" v-if="checkPermission(['system:user:edit'])">
-                      <el-icon color="#409EFF">
-                        <CircleCheck />
-                      </el-icon>
-                      分配角色
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="handleDelete(scope.row)" v-if="checkPermission(['system:user:remove'])">
+                    <el-dropdown-item @click="handleDelete(scope.row)" v-if="checkPermission(['system:post:remove'])">
                       <el-icon color="#F56C6C">
                         <Delete />
                       </el-icon>
@@ -406,14 +329,14 @@ onMounted(async () => {
               </el-dropdown>
             </div>
           </template>
-        </UserTable>
+        </PostTable>
       </el-col>
 
       <!-- 数据弹窗 -->
-      <UserDialog
+      <PostDialog
         v-model:dialog="dialog"
         v-model:form-data="formData"
-        v-model:role-options="roleOptions"
+        v-model:dept-options="deptOptions"
         :enabled-dept-options="enabledDeptOptions"
         @success="getTableData"
       />

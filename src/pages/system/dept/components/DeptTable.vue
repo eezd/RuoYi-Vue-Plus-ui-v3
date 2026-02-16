@@ -25,11 +25,9 @@ const loading = defineModel<boolean>("loading", { required: true })
 // #region EmitEvents
 export interface EmitEvents {
   openAddDialog: []
-  openCascadeDeleteDialog: []
   getTableData: []
 }
 const openAddDialog = () => emit("openAddDialog")
-const openCascadeDeleteDialog = () => emit("openCascadeDeleteDialog")
 const getTableData = () => emit("getTableData")
 // #endregion
 

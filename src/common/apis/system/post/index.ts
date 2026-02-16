@@ -4,7 +4,7 @@ import { request } from "@/http/axios.ts"
 
 // 查询岗位列表
 export function getSysPostListApi(query: PostQuery) {
-  return request<ApiResponseData<PostVO[]>>({
+  return request<ApiResponsePageData<PostVO[]>>({
     url: "/system/post/list",
     method: "get",
     params: query
