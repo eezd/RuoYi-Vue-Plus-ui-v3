@@ -72,20 +72,30 @@ export const usePermissionStore = defineStore("permission", () => {
    */
   const filterAsyncRouter = (asyncRouterMap: RouteRecordRaw[], lastRouter?: RouteRecordRaw, type = false): RouteRecordRaw[] => {
     return asyncRouterMap.filter((route) => {
-      if (type && route.children) {
-        route.children = filterChildren(route.children, undefined)
-      }
-      // Layout ParentView 组件特殊处理
-      if (route.component?.toString() === "Layout") {
-        route.component = Layout
-      } else if (route.component?.toString() === "ParentView") {
-        route.component = ParentView
-      } else if (route.component?.toString() === "InnerLink") {
-        route.component = InnerLink
+      const component = route.component as any
+      // 如果 component 是对象，尝试从对象属性中识别，或者直接使用该对象
+      if (typeof component === "object" && component !== null) {
+        const componentStr = (component as any).__file || ""
+        if (componentStr.includes("layouts/index.vue")) {
+          route.component = Layout
+        } else if (componentStr.includes("ParentView/index.vue")) {
+          route.component = ParentView
+        } else if (componentStr.includes("InnerLink/index.vue")) {
+          route.component = InnerLink
+        }
+        // 如果已经是一个有效的组件对象且不属于上述特殊视图，则保持原样或交给 loadView 处理
       } else {
-        route.component = loadView(route.component, route.name as string)
+        if (component === "Layout") {
+          route.component = Layout
+        } else if (component === "ParentView") {
+          route.component = ParentView
+        } else if (component === "InnerLink") {
+          route.component = InnerLink
+        } else {
+          route.component = loadView(component as string, route.name as string)
+        }
       }
-      if (route.children != null && route.children && route.children.length) {
+      if (route.children && route.children.length) {
         route.children = filterAsyncRouter(route.children, route, type)
       } else {
         delete route.children
@@ -94,18 +104,19 @@ export const usePermissionStore = defineStore("permission", () => {
       return true
     })
   }
-  const filterChildren = (childrenMap: RouteRecordRaw[], lastRouter?: RouteRecordRaw): RouteRecordRaw[] => {
-    let children: RouteRecordRaw[] = []
-    childrenMap.forEach((el) => {
-      el.path = lastRouter ? `${lastRouter.path}/${el.path}` : el.path
-      if (el.children && el.children.length && el.component?.toString() === "ParentView") {
-        children = children.concat(filterChildren(el.children, el))
-      } else {
-        children.push(el)
-      }
-    })
-    return children
-  }
+
+  // const filterChildren = (childrenMap: RouteRecordRaw[], lastRouter?: RouteRecordRaw): RouteRecordRaw[] => {
+  //   let children: RouteRecordRaw[] = []
+  //   childrenMap.forEach((el) => {
+  //     el.path = lastRouter ? `${lastRouter.path}/${el.path}` : el.path
+  //     if (el.children && el.children.length && el.component?.toString() === "ParentView") {
+  //       children = children.concat(filterChildren(el.children, el))
+  //     } else {
+  //       children.push(el)
+  //     }
+  //   })
+  //   return children
+  // }
   return {
     routes,
     topbarRouters,

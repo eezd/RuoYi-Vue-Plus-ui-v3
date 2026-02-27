@@ -198,10 +198,8 @@ async function handlePreviewListResource(preview: boolean) {
       />
     </div>
   </el-card>
-  {{ formData }}
   <!-- 添加或修改OSS对象存储对话框 -->
   <el-dialog v-model="dialog.visible" @closed="handleDialogClosed" :title="dialog.title" width="500px" append-to-body>
-    {{ formData }}
     <el-form ref="formRef" :model="formData" :rules="formRules" label-width="80px">
       <el-form-item label="文件名">
         <FileUpload v-if="type === 0" v-model:file-ids="formData.file" />
