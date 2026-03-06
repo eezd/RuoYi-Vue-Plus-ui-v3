@@ -12,7 +12,7 @@ export function getSysTenantPackageListApi(query?: TenantPkgQuery) {
 
 // 查询租户套餐下拉选列表
 export function getSysTenantPackageSelectListApi() {
-  return request<ApiResponsePageData<TenantPkgVO[]>>({
+  return request<ApiResponseData<TenantPkgVO[]>>({
     url: "/system/tenant/package/selectList",
     method: "get"
   })
@@ -20,7 +20,7 @@ export function getSysTenantPackageSelectListApi() {
 
 // 查询租户套餐详细
 export function getSysTenantPackageApi(packageId: string | number) {
-  return request<ApiResponsePageData<TenantPkgVO>>({
+  return request<ApiResponseData<TenantPkgVO>>({
     url: `/system/tenant/package/${packageId}`,
     method: "get"
   })

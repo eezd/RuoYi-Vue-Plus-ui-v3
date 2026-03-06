@@ -21,6 +21,10 @@ export interface TenantQuery extends PageQuery {
   contactUserName: string
   contactPhone: string
   companyName: string
+  params?: {
+    beginTime?: string
+    endTime?: string
+  }
 }
 
 export interface TenantForm {

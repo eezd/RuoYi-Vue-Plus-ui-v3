@@ -14,7 +14,7 @@ export interface TenantPkgQuery extends PageQuery {
 export interface TenantPkgForm {
   packageId: string | number
   packageName: string
-  menuIds: string
+  menuIds: Array<string | number>
   remark: string
   menuCheckStrictly: boolean
 }
