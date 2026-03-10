@@ -27,7 +27,7 @@ const loading = ref(true)
 const tableComponentRef = useTemplateRef("tableComponentRef")
 
 // 表格数据
-const selectOptions = ref<DeptOptionsType[]>([])
+const treeData = ref<DeptOptionsType[]>([])
 
 const DEFAULT_FORM_DATA: Partial<DeptForm> = {
   deptId: undefined,
@@ -83,7 +83,7 @@ async function getTableData(): Promise<void> {
 /** 查询菜单下拉树结构 */
 async function getTreeSelect() {
   const response = await getSysDeptListApi()
-  selectOptions.value = handleTree<DeptOptionsType>(response.data, "deptId")
+  treeData.value = handleTree<DeptOptionsType>(response.data, "deptId")
 }
 
 /**
@@ -102,7 +102,7 @@ async function handleDelete(row: DeptForm) {
       type: "warning"
     })
     loading.value = true
-    const res = await delSysDeptApi(row.deptId as any)
+    const res = await delSysDeptApi(row.deptId)
     ElMessage.success(res.msg)
     await getTableData()
   } catch {
@@ -224,7 +224,7 @@ onMounted(async () => {
     <DeptDialog
       v-model:dialog="dialog"
       v-model:form-data="formData"
-      v-model:select-options="selectOptions"
+      v-model:tree-data="treeData"
       @success="getTableData"
     />
   </div>

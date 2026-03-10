@@ -20,8 +20,8 @@ const formData = defineModel<Partial<CategoryForm>>(
     required: true
   }
 )
-const selectOptions = defineModel<CategoryOptionsType[]>(
-  "selectOptions",
+const treeData = defineModel<CategoryOptionsType[]>(
+  "treeData",
   {
     required: true
   }
@@ -89,7 +89,7 @@ function resetForm() {
         <el-form-item label="上级菜单">
           <el-tree-select
             v-model="formData.parentId"
-            :data="selectOptions"
+            :data="treeData"
             :props="{ value: 'categoryId', label: 'categoryName', children: 'children' }"
             value-key="categoryId"
             placeholder="选择上级菜单"

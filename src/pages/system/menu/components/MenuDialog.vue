@@ -22,8 +22,8 @@ const formData = defineModel<Partial<MenuForm>>(
     required: true
   }
 )
-const menuOptions = defineModel<MenuOptionsType[]>(
-  "menuOptions",
+const treeData = defineModel<MenuOptionsType[]>(
+  "treeData",
   {
     required: true
   }
@@ -105,7 +105,7 @@ function resetForm() {
             <el-form-item label="上级菜单">
               <el-tree-select
                 v-model="formData.parentId"
-                :data="menuOptions"
+                :data="treeData"
                 :props="{ value: 'menuId', label: 'menuName', children: 'children' }"
                 value-key="menuId"
                 placeholder="选择上级菜单"

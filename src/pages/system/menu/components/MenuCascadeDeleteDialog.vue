@@ -11,8 +11,8 @@ const emit = defineEmits<FormActionEmits>()
  */
 // #region defineModel
 const dialog = defineModel<DialogOption>("dialog", { required: true })
-const menuOptions = defineModel<MenuOptionsType[]>(
-  "menuOptions",
+const treeData = defineModel<MenuOptionsType[]>(
+  "treeData",
   {
     required: true
   }
@@ -53,7 +53,7 @@ function handleClosed() {
     <el-tree
       ref="menuTreeRef"
       class="tree-border"
-      :data="menuOptions"
+      :data="treeData"
       show-checkbox
       node-key="menuId"
       :check-strictly="false"

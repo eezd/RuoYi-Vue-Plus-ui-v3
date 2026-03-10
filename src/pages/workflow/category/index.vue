@@ -24,7 +24,7 @@ const loading = ref(true)
 const tableComponentRef = useTemplateRef("tableComponentRef")
 
 // 表格数据
-const selectOptions = ref<CategoryOptionsType[]>([])
+const treeData = ref<CategoryOptionsType[]>([])
 
 const DEFAULT_FORM_DATA: Partial<CategoryForm> = {
   categoryId: undefined,
@@ -73,7 +73,7 @@ async function getTableData(): Promise<void> {
 /** 查询菜单下拉树结构 */
 async function getTreeSelect() {
   const response = await getWorkflowCategoryListApi()
-  selectOptions.value = handleTree<CategoryOptionsType>(response.data, "categoryId")
+  treeData.value = handleTree<CategoryOptionsType>(response.data, "categoryId")
 }
 
 /**
@@ -92,7 +92,7 @@ async function handleDelete(row: CategoryForm) {
       type: "warning"
     })
     loading.value = true
-    const res = await delWorkflowCategoryApi(row.categoryId as any)
+    const res = await delWorkflowCategoryApi(row.categoryId)
     ElMessage.success(res.msg)
     await getTableData()
   } catch {
@@ -206,7 +206,7 @@ onMounted(async () => {
     <CategoryDialog
       v-model:dialog="dialog"
       v-model:form-data="formData"
-      v-model:select-options="selectOptions"
+      v-model:tree-data="treeData"
       @success="getTableData"
     />
   </div>

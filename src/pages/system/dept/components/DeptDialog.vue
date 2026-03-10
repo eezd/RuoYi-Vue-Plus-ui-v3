@@ -23,8 +23,8 @@ const formData = defineModel<Partial<DeptForm>>(
     required: true
   }
 )
-const selectOptions = defineModel<DeptOptionsType[]>(
-  "selectOptions",
+const treeData = defineModel<DeptOptionsType[]>(
+  "treeData",
   {
     required: true
   }
@@ -111,7 +111,7 @@ watch(
         <el-form-item prop="parentId" label="上级部门">
           <el-tree-select
             v-model="formData.parentId"
-            :data="selectOptions"
+            :data="treeData"
             :props="{ value: 'deptId', label: 'deptName', children: 'children' }"
             value-key="deptId"
             placeholder="选择上级菜单"

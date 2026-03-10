@@ -29,7 +29,7 @@ const loading = ref(true)
 const tableComponentRef = useTemplateRef("tableComponentRef")
 
 // 表格数据
-const menuOptions = ref<MenuOptionsType[]>([])
+const treeData = ref<MenuOptionsType[]>([])
 
 const DEFAULT_FORM_DATA: Partial<MenuForm> = {
   path: "",
@@ -85,11 +85,11 @@ async function getTableData(): Promise<void> {
 
 /** 查询菜单下拉树结构 */
 async function getTreeSelect() {
-  menuOptions.value = []
+  treeData.value = []
   const response = await getSysMenuListApi()
   const menu: MenuOptionsType = { menuId: 0, menuName: "主类目", children: [] }
   menu.children = handleTree<MenuOptionsType>(response.data, "menuId")
-  menuOptions.value.push(menu)
+  treeData.value.push(menu)
 }
 
 /**
@@ -108,7 +108,7 @@ async function handleDelete(row: MenuForm) {
       type: "warning"
     })
     loading.value = true
-    const res = await delSysMenuApi(row.menuId as any)
+    const res = await delSysMenuApi(row.menuId)
     ElMessage.success(res.msg)
     await getTableData()
   } catch {
@@ -244,14 +244,14 @@ onMounted(async () => {
     <MenuDialog
       v-model:dialog="dialog"
       v-model:form-data="formData"
-      v-model:menu-options="menuOptions"
+      v-model:tree-data="treeData"
       @success="getTableData"
     />
 
     <!-- 数据弹窗 -->
     <MenuCascadeDeleteDialog
       v-model:dialog="menuCascadeDeleteDialog"
-      v-model:menu-options="menuOptions"
+      v-model:tree-data="treeData"
       @success="getTableData"
     />
   </div>
