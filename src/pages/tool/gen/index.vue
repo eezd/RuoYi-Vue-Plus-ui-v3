@@ -134,7 +134,7 @@ async function handleDelete(row: TableVO | TableVO[]) {
  */
 function handleUpdate(row: TableVO) {
   const tableId = row?.tableId
-  router.push({ path: `/admin/tool/gen-edit/${tableId}`, query: { pageNum: searchData.pageNum } })
+  router.push({ path: `/tool/gen-edit/index/${tableId}`, query: { pageNum: searchData.pageNum } })
 }
 
 /** 生成代码操作 */
