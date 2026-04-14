@@ -1,4 +1,5 @@
-export const errorCode: any = {
+// HTTP 状态码默认提示文案。
+export const errorCode: Record<string | number, string> & { default: string } = {
   400: "请求错误",
   401: "未授权",
   403: "拒绝访问",
@@ -12,4 +13,5 @@ export const errorCode: any = {
   505: "HTTP 版本不受支持",
   default: "系统未知错误，请反馈给管理员"
 }
+
 export default errorCode

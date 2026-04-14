@@ -1,43 +1,49 @@
 import CryptoJS from "crypto-js"
 
+const RANDOM_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+const AES_KEY_LENGTH = 32
+
 /**
- * 随机生成32位的字符串
+ * 随机生成 32 位字符串；优先使用浏览器安全随机数，兼容不支持 crypto 的环境。
  */
 function generateRandomString() {
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-  let result = ""
-  const charactersLength = characters.length
-  for (let i = 0; i < 32; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength))
+  const values = new Uint32Array(AES_KEY_LENGTH)
+  if (globalThis.crypto?.getRandomValues) {
+    globalThis.crypto.getRandomValues(values)
+  } else {
+    for (let i = 0; i < values.length; i++) {
+      values[i] = Math.floor(Math.random() * RANDOM_CHARS.length)
+    }
   }
-  return result
+
+  return Array.from(values, value => RANDOM_CHARS[value % RANDOM_CHARS.length]).join("")
 }
 
 /**
- * 随机生成aes 密钥
+ * 随机生成 AES 密钥。
  */
 export function generateAesKey() {
   return CryptoJS.enc.Utf8.parse(generateRandomString())
 }
 
 /**
- * 加密base64
+ * 加密 base64。
  */
 export function encryptBase64(str: CryptoJS.lib.WordArray) {
   return CryptoJS.enc.Base64.stringify(str)
 }
 
 /**
- * 解密base64
+ * 解密 base64。
  */
 export function decryptBase64(str: string) {
   return CryptoJS.enc.Base64.parse(str)
 }
 
 /**
- * 使用密钥对数据进行加密
- * @param message
- * @param aesKey
+ * 使用 AES 密钥加密数据。
+ * @param message 待加密明文
+ * @param aesKey AES 密钥
  */
 export function encryptWithAes(message: string, aesKey: CryptoJS.lib.WordArray) {
   const encrypted = CryptoJS.AES.encrypt(message, aesKey, {
@@ -48,9 +54,9 @@ export function encryptWithAes(message: string, aesKey: CryptoJS.lib.WordArray) 
 }
 
 /**
- * 使用密钥对数据进行解密
- * @param message
- * @param aesKey
+ * 使用 AES 密钥解密数据。
+ * @param message 待解密密文
+ * @param aesKey AES 密钥
  */
 export function decryptWithAes(message: string, aesKey: CryptoJS.lib.WordArray) {
   const decrypted = CryptoJS.AES.decrypt(message, aesKey, {

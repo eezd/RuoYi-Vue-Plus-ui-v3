@@ -1,23 +1,30 @@
 import dayjs from "dayjs"
 
-/** 格式化时间 */
+type QueryRecord = Record<string, unknown>
+type DictValue = string | number | boolean
+interface DictOption {
+  value: DictValue
+  label?: string | number
+}
+type TreeNode = Record<string, unknown>
+
+/** 格式化日期时间；空值统一显示为 N/A。 */
 export function formatDateTime(time: string | number | Date | null | undefined) {
   return time ? dayjs(new Date(time)).format("YYYY-MM-DD HH:mm:ss") : "N/A"
 }
 
-/** 用 JS 获取全局 css 变量 */
+/** 获取全局 CSS 变量值。 */
 export function getCssVariableValue(cssVariableName: string) {
-  let cssVariableValue = ""
   try {
     // 没有拿到值时，会返回空串
-    cssVariableValue = getComputedStyle(document.documentElement).getPropertyValue(cssVariableName)
+    return getComputedStyle(document.documentElement).getPropertyValue(cssVariableName)
   } catch (error) {
     console.error(error)
+    return ""
   }
-  return cssVariableValue
 }
 
-/** 用 JS 设置全局 CSS 变量 */
+/** 设置全局 CSS 变量值。 */
 export function setCssVariableValue(cssVariableName: string, cssVariableValue: string) {
   try {
     document.documentElement.style.setProperty(cssVariableName, cssVariableValue)
@@ -27,153 +34,166 @@ export function setCssVariableValue(cssVariableName: string, cssVariableValue: s
 }
 
 /**
- * 参数处理
- * @param {*} params  参数
+ * 将查询参数序列化为 query string 片段。
+ * 会跳过 null、undefined 和空字符串，并兼容一层嵌套对象。
+ * @param params 查询参数
  */
-export function tansParams(params: any) {
+export function tansParams(params: unknown) {
+  if (!isRecord(params)) return ""
+
   let result = ""
-  for (const propName of Object.keys(params)) {
+  Object.keys(params).forEach((propName) => {
     const value = params[propName]
-    const part = `${encodeURIComponent(propName)}=`
-    if (value !== null && value !== "" && typeof value !== "undefined") {
-      if (typeof value === "object") {
-        for (const key of Object.keys(value)) {
-          if (value[key] !== null && value[key] !== "" && typeof value[key] !== "undefined") {
-            const params = `${propName}[${key}]`
-            const subPart = `${encodeURIComponent(params)}=`
-            result += `${subPart + encodeURIComponent(value[key])}&`
-          }
-        }
-      } else {
-        result += `${part + encodeURIComponent(value)}&`
-      }
+    if (isEmptyParamValue(value)) return
+
+    if (isRecord(value) || Array.isArray(value)) {
+      Object.keys(value).forEach((key) => {
+        const itemValue = value[key as keyof typeof value]
+        if (isEmptyParamValue(itemValue)) return
+
+        const nestedKey = `${propName}[${key}]`
+        result += `${encodeURIComponent(nestedKey)}=${encodeURIComponent(String(itemValue))}&`
+      })
+      return
     }
-  }
+
+    result += `${encodeURIComponent(propName)}=${encodeURIComponent(String(value))}&`
+  })
+
   return result
 }
 
-// 验证是否为blob格式
-export function blobValidate(data: any) {
-  return data.type !== "application/json"
+// 判断响应内容是否为可下载 Blob，而不是后端返回的 JSON 错误信息。
+export function blobValidate(data: Pick<Blob, "type"> | null | undefined) {
+  return data != null && data.type !== "application/json"
 }
 
 /**
- * 构造树型结构数据
- * @param {*} data 数据源
- * @param {*} id id字段 默认 'id'
- * @param {*} parentId 父节点字段 默认 'parentId'
- * @param {*} children 孩子节点字段 默认 'children'
+ * 构造树型结构数据，并按 sortOrder 递归排序。
+ * @param data 数据源
+ * @param id id 字段 默认 "id"
+ * @param parentId 父节点字段 默认 "parentId"
+ * @param children 孩子节点字段 默认 "children"
  */
-export function handleTree<T>(data: any[], id?: string, parentId?: string, children?: string): T[] {
-  const config: {
-    id: string
-    parentId: string
-    childrenList: string
-  } = {
+export function handleTree<T = TreeNode>(data: unknown[], id?: string, parentId?: string, children?: string): T[] {
+  const config = {
     id: id || "id",
     parentId: parentId || "parentId",
     childrenList: children || "children"
   }
+  const nodes = data.filter(isRecord) as TreeNode[]
+  const childrenListMap = new Map<unknown, TreeNode>()
+  const tree: TreeNode[] = []
 
-  const childrenListMap: any = {}
-  const tree: T[] = []
-  for (const d of data) {
-    const id = d[config.id]
-    childrenListMap[id] = d
-    if (!d[config.childrenList]) {
-      d[config.childrenList] = []
+  nodes.forEach((node) => {
+    childrenListMap.set(node[config.id], node)
+    if (!Array.isArray(node[config.childrenList])) {
+      node[config.childrenList] = []
     }
-  }
+  })
 
-  for (const d of data) {
-    const parentId = d[config.parentId]
-    const parentObj = childrenListMap[parentId]
-    if (!parentObj) {
-      tree.push(d)
-    } else {
-      parentObj[config.childrenList].push(d)
+  nodes.forEach((node) => {
+    const parentNode = childrenListMap.get(node[config.parentId])
+    if (!parentNode) {
+      tree.push(node)
+      return
     }
-  }
 
-  // 递归排序每一层的 children，并按 sortOrder 排序
-  const sortTree = (nodes: any[]) => {
-    return nodes
-      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)) // 按照 sortOrder 排序，如果不存在则默认为 0
-      .map((node) => {
-        if (node[config.childrenList] && node[config.childrenList].length > 0) {
-          node[config.childrenList] = sortTree(node[config.childrenList]) // 递归排序子节点
-        }
-        return node
-      })
-  }
+    const childNodes = parentNode[config.childrenList]
+    if (Array.isArray(childNodes)) {
+      childNodes.push(node)
+    }
+  })
 
-  return sortTree(tree)
+  return sortTree(tree, config.childrenList) as T[]
 }
 
-// 转换字符串，undefined,null等转化为""
-export function parseStrEmpty(str: any) {
+// 转换字符串，undefined、null 等后端占位值统一转化为 ""。
+export function parseStrEmpty(str: unknown) {
   if (!str || str === "undefined" || str === "null") {
     return ""
   }
   return str
 }
 
-// 回显数据字典
-export function selectDictLabel(datas: any, value: number | string) {
-  if (value === undefined) {
-    return ""
-  }
-  const actions: Array<string | number> = []
-  Object.keys(datas).some((key) => {
-    if (datas[key].value === `${value}`) {
-      actions.push(datas[key].label)
-      return true
-    }
-    return false
-  })
-  if (actions.length === 0) {
-    actions.push(value)
-  }
-  return actions.join("")
+// 根据字典值回显单个字典标签。
+export function selectDictLabel(datas: unknown, value: number | string) {
+  if (value === undefined) return ""
+
+  const matched = normalizeDictOptions(datas).find(item => String(item.value) === String(value))
+  return matched && matched.label !== undefined && matched.label !== null ? String(matched.label) : String(value)
 }
 
-// 回显数据字典（字符串数组）
-export function selectDictLabels(datas: any, value: any, separator: any) {
-  if (value === undefined || value.length === 0) {
-    return ""
-  }
-  if (Array.isArray(value)) {
-    value = value.join(",")
-  }
-  const actions: any[] = []
-  const currentSeparator = undefined === separator ? "," : separator
-  const temp = value.split(currentSeparator)
+// 根据字典值回显多个字典标签。
+export function selectDictLabels(datas: unknown, value: unknown, separator: string = ",") {
+  if (value === undefined || value === null || value === "") return ""
 
-  Object.keys(temp).some((val) => {
-    let match = false
-    Object.keys(datas).some((key) => {
-      if (datas[key].value === `${temp[val]}`) {
-        actions.push(datas[key].label + currentSeparator)
-        match = true
-        return true
-      }
-      return false
+  const values = Array.isArray(value) ? value.map(String) : String(value).split(separator)
+  const dictOptions = normalizeDictOptions(datas)
+
+  return values
+    .filter(item => item !== "")
+    .map((item) => {
+      const matched = dictOptions.find(dict => String(dict.value) === item)
+      return matched && matched.label !== undefined && matched.label !== null ? String(matched.label) : item
     })
-    if (!match) {
-      actions.push(temp[val] + currentSeparator)
-    }
-
-    return match
-  })
-
-  return actions.join("").substring(0, actions.join("").length - 1)
+    .join(separator)
 }
 
 /**
- * 判断url是否是http或https
+ * 判断 url 是否是 http 或 https 绝对地址。
  * @returns {boolean}
  * @param url
  */
 export function isHttp(url: string): boolean {
-  return url.includes("http://") || url.includes("https://")
+  return /^https?:\/\//i.test(url)
+}
+
+function isRecord(value: unknown): value is QueryRecord {
+  return value !== null && typeof value === "object" && !isBlob(value) && !(value instanceof Date)
+}
+
+function isBlob(value: unknown): value is Blob {
+  return typeof Blob !== "undefined" && value instanceof Blob
+}
+
+function isEmptyParamValue(value: unknown) {
+  return value === null || value === "" || typeof value === "undefined"
+}
+
+function sortTree(nodes: TreeNode[], childrenKey: string): TreeNode[] {
+  return nodes
+    // 递归排序每一层的 children，并按 sortOrder 排序；如果不存在则默认为 0
+    .sort((a, b) => getSortOrder(a) - getSortOrder(b))
+    .map((node) => {
+      const children = node[childrenKey]
+      if (Array.isArray(children) && children.length > 0) {
+        // 递归排序子节点
+        node[childrenKey] = sortTree(children.filter(isRecord) as TreeNode[], childrenKey)
+      }
+      return node
+    })
+}
+
+function getSortOrder(node: TreeNode) {
+  const sortOrder = Number(node.sortOrder ?? 0)
+  return Number.isFinite(sortOrder) ? sortOrder : 0
+}
+
+function normalizeDictOptions(datas: unknown): DictOption[] {
+  if (!datas || typeof datas !== "object") return []
+
+  return Object.values(datas)
+    .filter(isDictOption)
+    .map(item => ({
+      value: item.value,
+      label: item.label
+    }))
+}
+
+function isDictOption(value: unknown): value is DictOption {
+  if (!value || typeof value !== "object") return false
+
+  const option = value as Partial<DictOption>
+  return ["string", "number", "boolean"].includes(typeof option.value)
 }

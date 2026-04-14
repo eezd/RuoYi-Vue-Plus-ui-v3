@@ -1,22 +1,20 @@
-// 密钥对生成 http://web.chacuo.net/netrsakeypair
-
+// 密钥对生成：http://web.chacuo.net/netrsakeypair
 import JSEncrypt from "jsencrypt"
 
 const publicKey = import.meta.env.VITE_APP_RSA_PUBLIC_KEY
-
-// 前端不建议存放私钥 不建议解密数据 因为都是透明的意义不大
+// 前端私钥是透明的，仅保留兼容旧调用；不建议依赖前端解密敏感数据。
 const privateKey = import.meta.env.VITE_APP_RSA_PRIVATE_KEY
 
-// 加密
-export function encrypt(txt: string) {
+// RSA 公钥加密
+export function encrypt(txt: string): string | false {
   const encryptor = new JSEncrypt()
-  encryptor.setPublicKey(publicKey) // 设置公钥
-  return encryptor.encrypt(txt) // 对数据进行加密
+  encryptor.setPublicKey(publicKey)
+  return encryptor.encrypt(txt)
 }
 
-// 解密
-export function decrypt(txt: string) {
+// RSA 私钥解密
+export function decrypt(txt: string): string | false {
   const encryptor = new JSEncrypt()
-  encryptor.setPrivateKey(privateKey) // 设置私钥
-  return encryptor.decrypt(txt) // 对数据进行解密
+  encryptor.setPrivateKey(privateKey)
+  return encryptor.decrypt(txt)
 }

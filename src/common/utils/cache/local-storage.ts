@@ -1,5 +1,3 @@
-// 统一处理 localStorage
-
 import type { ThemeName } from "@@/composables/useTheme"
 import type { SidebarClosed, SidebarOpened } from "@@/constants/app-key"
 import type { LayoutsConfig } from "@/layouts/config"
@@ -7,10 +5,9 @@ import type { TagView } from "@/pinia/stores/tags-view"
 import { CacheKey } from "@@/constants/cache-key"
 import { LanguageEnum } from "@/common/enums/LanguageEnum"
 
-// #region 系统布局配置
+// 系统布局配置
 export function getLayoutsConfig() {
-  const json = localStorage.getItem(CacheKey.CONFIG_LAYOUT)
-  return json ? (JSON.parse(json) as LayoutsConfig) : null
+  return parseLocalStorageJSON<LayoutsConfig | null>(CacheKey.CONFIG_LAYOUT, null)
 }
 
 export function setLayoutsConfig(settings: LayoutsConfig) {
@@ -20,9 +17,8 @@ export function setLayoutsConfig(settings: LayoutsConfig) {
 export function removeLayoutsConfig() {
   localStorage.removeItem(CacheKey.CONFIG_LAYOUT)
 }
-// #endregion
 
-// #region 侧边栏状态
+// 侧边栏折叠状态
 export function getSidebarStatus() {
   return localStorage.getItem(CacheKey.SIDEBAR_STATUS)
 }
@@ -30,9 +26,8 @@ export function getSidebarStatus() {
 export function setSidebarStatus(sidebarStatus: SidebarOpened | SidebarClosed) {
   localStorage.setItem(CacheKey.SIDEBAR_STATUS, sidebarStatus)
 }
-// #endregion
 
-// #region 正在应用的主题名称
+// 当前应用主题
 export function getActiveThemeName() {
   return localStorage.getItem(CacheKey.ACTIVE_THEME_NAME) as ThemeName | null
 }
@@ -40,17 +35,15 @@ export function getActiveThemeName() {
 export function setActiveThemeName(themeName: ThemeName) {
   localStorage.setItem(CacheKey.ACTIVE_THEME_NAME, themeName)
 }
-// #endregion
 
-// #region 标签栏
+// 标签栏缓存
 export function getVisitedViews() {
-  const json = localStorage.getItem(CacheKey.VISITED_VIEWS)
-  return JSON.parse(json ?? "[]") as TagView[]
+  return parseLocalStorageJSON<TagView[]>(CacheKey.VISITED_VIEWS, [])
 }
 
 export function setVisitedViews(views: TagView[]) {
   views.forEach((view) => {
-    // 删除不必要的属性，防止 JSON.stringify 处理到循环引用
+    // 路由对象存在循环引用，写入 localStorage 前需要去掉运行时字段
     delete view.matched
     delete view.redirectedFrom
   })
@@ -58,16 +51,14 @@ export function setVisitedViews(views: TagView[]) {
 }
 
 export function getCachedViews() {
-  const json = localStorage.getItem(CacheKey.CACHED_VIEWS)
-  return JSON.parse(json ?? "[]") as string[]
+  return parseLocalStorageJSON<string[]>(CacheKey.CACHED_VIEWS, [])
 }
 
 export function setCachedViews(views: string[]) {
   localStorage.setItem(CacheKey.CACHED_VIEWS, JSON.stringify(views))
 }
-// #endregion
 
-// #region 语言
+// 当前语言
 export function getLanguage(): LanguageEnum {
   const value = localStorage.getItem(CacheKey.LANGUAGE)
   if (!value) return LanguageEnum.zh_CN
@@ -80,4 +71,14 @@ export function getLanguage(): LanguageEnum {
 export function setLanguage(language: LanguageEnum) {
   localStorage.setItem(CacheKey.LANGUAGE, language)
 }
-// #endregion
+
+function parseLocalStorageJSON<T>(key: string, fallback: T): T {
+  const json = localStorage.getItem(key)
+  if (!json) return fallback
+
+  try {
+    return JSON.parse(json) as T
+  } catch {
+    return fallback
+  }
+}
