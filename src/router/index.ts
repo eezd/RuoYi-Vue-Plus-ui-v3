@@ -348,21 +348,33 @@ export const router = createRouter({
   routes: routerConfig.thirdLevelRouteCache ? flatMultiLevelRoutes(constantRoutes) : constantRoutes
 })
 
-/** 重置路由 */
+const runtimeRouteRemoveCallbacks: Array<() => void> = []
+
+export function addRuntimeRoutes(routes: RouteRecordRaw[]) {
+  routes.forEach((route) => {
+    if (route.name && router.hasRoute(route.name)) {
+      return
+    }
+
+    runtimeRouteRemoveCallbacks.push(router.addRoute(route))
+  })
+}
+
 export function resetRouter() {
   try {
-    // 注意：所有动态路由路由必须带有 Name 属性，否则可能会不能完全重置干净
+    while (runtimeRouteRemoveCallbacks.length > 0) {
+      runtimeRouteRemoveCallbacks.pop()?.()
+    }
+
     router.getRoutes().forEach((route) => {
       const { name, meta } = route
-      if (name && meta.permissions?.length) {
-        router.hasRoute(name) && router.removeRoute(name)
+      if (name && meta.permissions?.length && router.hasRoute(name)) {
+        router.removeRoute(name)
       }
     })
   } catch {
-    // 强制刷新浏览器也行，只是交互体验不是很好
     location.reload()
   }
 }
 
-// 注册路由导航守卫
-registerNavigationGuard(router)
+registerNavigationGuard(router, addRuntimeRoutes)

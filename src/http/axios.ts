@@ -1,4 +1,4 @@
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios"
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from "axios"
 import { getToken } from "@@/utils/cache/cookies"
 import axios from "axios"
 import { get } from "lodash-es"
@@ -10,13 +10,26 @@ import errorCode from "@/common/utils/errorCode"
 import { encrypt } from "@/common/utils/jsencrypt"
 import { useUserStore } from "@/pinia/stores/user"
 
-// 是否显示重新登录
 export const isRelogin = { show: false }
 
-// ================= 常量定义 =================
 const HEADER_ENCRYPT_KEY = "encrypt-key"
+const REPEAT_SUBMIT_INTERVAL = 500
 
-// ================= 辅助函数 =================
+interface RequestControlHeaders {
+  isToken?: boolean
+  repeatSubmit?: boolean
+  isEncrypt?: boolean | string
+}
+
+type RequestConfig = AxiosRequestConfig & {
+  headers?: AxiosRequestConfig["headers"] & RequestControlHeaders
+}
+
+interface ApiErrorResponse {
+  code?: number
+  msg?: string
+}
+
 function logout() {
   useUserStore().logout()
   location.reload()
@@ -29,12 +42,11 @@ export function globalHeaders() {
   }
 }
 
-/** 检查是否为重复提交 */
 function checkRepeatSubmit(config: AxiosRequestConfig) {
   const requestObj = {
     url: config.url,
     data: typeof config.data === "object" ? JSON.stringify(config.data) : config.data,
-    time: new Date().getTime()
+    time: Date.now()
   }
 
   const sessionObj = cache.session.getJSON("sessionObj")
@@ -47,30 +59,86 @@ function checkRepeatSubmit(config: AxiosRequestConfig) {
   const s_url = sessionObj.url
   const s_data = sessionObj.data
   const s_time = sessionObj.time
-  const interval = 500 // 间隔时间(ms)
 
-  if (s_data === requestObj.data && requestObj.time - s_time < interval && s_url === requestObj.url) {
+  if (s_data === requestObj.data && requestObj.time - s_time < REPEAT_SUBMIT_INTERVAL && s_url === requestObj.url) {
     const message = "数据正在处理，请勿重复提交"
     console.warn(`[${s_url}]: ${message}`)
-    return message // 返回错误信息
+    return message
   }
 
   cache.session.setJSON("sessionObj", requestObj)
   return true
 }
 
-/** 处理请求加密 */
-function handleEncryption(config: AxiosRequestConfig) {
+function handleEncryption(config: InternalAxiosRequestConfig) {
   const aesKey = generateAesKey()
-  config.headers![HEADER_ENCRYPT_KEY] = encrypt(encryptBase64(aesKey))
+  const encryptedKey = encrypt(encryptBase64(aesKey))
+
+  if (!encryptedKey) {
+    throw new Error("Encrypt request key failed")
+  }
+
+  config.headers[HEADER_ENCRYPT_KEY] = encryptedKey
   config.data = typeof config.data === "object"
     ? encryptWithAes(JSON.stringify(config.data), aesKey)
-    : encryptWithAes(config.data, aesKey)
+    : encryptWithAes(String(config.data ?? ""), aesKey)
 }
 
-// ================= Axios 实例配置 =================
+function normalizeMethod(method?: string) {
+  return method?.toLowerCase()
+}
 
-// 设置全局默认值
+function appendParamsToUrl(url = "", params: unknown) {
+  const queryString = tansParams(params).replace(/&$/, "")
+  if (!queryString) return url
+
+  const separator = url.includes("?")
+    ? url.endsWith("?") || url.endsWith("&") ? "" : "&"
+    : "?"
+
+  return `${url}${separator}${queryString}`
+}
+
+function removeRequestControlHeaders(headers: InternalAxiosRequestConfig["headers"] & RequestControlHeaders) {
+  delete headers.isToken
+  delete headers.repeatSubmit
+  delete headers.isEncrypt
+}
+
+function shouldEncryptRequest(isEncrypt: RequestControlHeaders["isEncrypt"]) {
+  return isEncrypt === true || isEncrypt === "true"
+}
+
+function getApiErrorMessage(apiData: ApiErrorResponse) {
+  return apiData.msg || errorCode[apiData.code as number] || errorCode.default
+}
+
+function resolveAxiosErrorMessage(error: AxiosError<ApiErrorResponse>) {
+  const status = get(error, "response.status") as number | undefined
+  const dataMsg = get(error, "response.data.msg") as string | undefined
+  const rawMessage = error.message || ""
+
+  if (status === 401) {
+    return dataMsg || errorCode[401]
+  }
+
+  if (status && status in errorCode) {
+    return dataMsg || errorCode[status]
+  }
+
+  if (rawMessage === "Network Error") {
+    return "后端接口连接异常"
+  }
+  if (rawMessage.includes("timeout")) {
+    return "系统接口请求超时"
+  }
+  if (rawMessage.includes("Request failed with status code")) {
+    return `系统接口${rawMessage.slice(-3)}异常`
+  }
+
+  return rawMessage || errorCode.default
+}
+
 axios.defaults.headers["Content-Type"] = "application/json;charset=utf-8"
 axios.defaults.headers.clientid = import.meta.env.VITE_APP_CLIENT_ID
 
@@ -84,98 +152,84 @@ function createInstance(): AxiosInstance {
     withCredentials: false
   })
 
-  // --- 请求拦截器 ---
   instance.interceptors.request.use(
     (config) => {
-      config.headers["Content-Language"] = getLanguage()
-      const { isToken, repeatSubmit, isEncrypt } = config.headers || {}
+      const headers = config.headers as InternalAxiosRequestConfig["headers"] & RequestControlHeaders
+      headers["Content-Language"] = getLanguage()
 
+      const { isToken, repeatSubmit, isEncrypt } = headers
+      const method = normalizeMethod(config.method)
       const token = getToken()
+
       if (token && isToken !== false) {
-        config.headers.Authorization = `Bearer ${token}`
+        headers.Authorization = `Bearer ${token}`
       }
 
-      // GET 请求参数序列化
-      if (config.method === "get" && config.params) {
-        let url = `${config.url}?${tansParams(config.params)}`
-        // 去掉最后一个字符（通常是多余的 & 或 ?）
-        url = url.slice(0, -1)
+      if (method === "get" && config.params) {
+        config.url = appendParamsToUrl(config.url, config.params)
         config.params = {}
-        config.url = url
       }
 
-      // 防重复提交处理 (POST/PUT)
-      if (repeatSubmit !== false && (config.method === "post" || config.method === "put")) {
+      if (repeatSubmit !== false && (method === "post" || method === "put")) {
         const result = checkRepeatSubmit(config)
         if (typeof result === "string") {
           return Promise.reject(new Error(result))
         }
       }
 
-      // 加密处理
-      if (import.meta.env.VITE_APP_ENCRYPT === "true" && isEncrypt === "true" && (config.method === "post" || config.method === "put")) {
+      if (import.meta.env.VITE_APP_ENCRYPT === "true" && shouldEncryptRequest(isEncrypt) && (method === "post" || method === "put")) {
         handleEncryption(config)
       }
 
-      // FormData 特殊处理
       if (config.data instanceof FormData) {
-        delete config.headers["Content-Type"]
+        delete headers["Content-Type"]
       }
 
+      removeRequestControlHeaders(headers)
       return config
     },
     error => Promise.reject(error)
   )
 
-  // --- 响应拦截器 ---
   instance.interceptors.response.use(
     (response: AxiosResponse) => {
       const apiData = response.data
-      // 二进制数据直接返回
-      const responseType = response.request?.responseType
+      const responseType = response.config.responseType || response.request?.responseType
       if (responseType === "blob" || responseType === "arraybuffer") return apiData
 
-      // 校验业务 Code
-      const code = apiData.code
+      const code = apiData?.code
       if (code === undefined) {
-        ElMessage.error("非本系统的接口")
-        return Promise.reject(new Error("非本系统的接口"))
+        const message = "非本系统的接口"
+        ElMessage.error(message)
+        return Promise.reject(new Error(message))
       }
 
-      // 业务逻辑判断
       if (code === 200) {
         return apiData
-      } else if (code === 401) {
-        logout()
-        return Promise.reject(new Error("无效的会话，或者会话已过期，请重新登录。"))
-      } else {
-        ElMessage.error(apiData.msg || "Error")
-        return Promise.reject(new Error("Error"))
       }
+
+      if (code === 401) {
+        const message = "无效的会话，或者会话已过期，请重新登录。"
+        logout()
+        return Promise.reject(new Error(message))
+      }
+
+      const message = getApiErrorMessage(apiData)
+      ElMessage.error(message)
+      return Promise.reject(new Error(message))
     },
     (error) => {
-      let { message } = error
-      const status = get(error, "response.status")
-      const dataMsg = get(error, "response.data.msg")
+      const axiosError = error as AxiosError<ApiErrorResponse>
+      const status = get(axiosError, "response.status")
+      const message = resolveAxiosErrorMessage(axiosError)
 
       if (status === 401) {
-        message = dataMsg || errorCode[401]
         logout()
-      } else if (status in errorCode) {
-        message = dataMsg || errorCode[status]
-      } else {
-        if (message === "Network Error") {
-          message = "后端接口连接异常"
-        } else if (message.includes("timeout")) {
-          message = "系统接口请求超时"
-        } else if (message.includes("Request failed with status code")) {
-          message = `系统接口${message.substr(message.length - 3)}异常`
-        }
       }
 
       ElMessage.error(message)
-      error.message = message
-      return Promise.reject(error)
+      axiosError.message = message
+      return Promise.reject(axiosError)
     }
   )
 
@@ -184,6 +238,6 @@ function createInstance(): AxiosInstance {
 
 const instance = createInstance()
 
-export function request<T = any>(config: AxiosRequestConfig): Promise<T> {
+export function request<T = any>(config: RequestConfig): Promise<T> {
   return instance.request(config)
 }

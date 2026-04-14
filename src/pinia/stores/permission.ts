@@ -2,13 +2,29 @@ import type { RouteRecordRaw } from "vue-router"
 import { getRouters } from "@@/apis/menu.ts"
 import InnerLink from "@@/components/InnerLink/index.vue"
 import ParentView from "@@/components/ParentView/index.vue"
+import { cloneDeep } from "lodash-es"
 import auth from "@/common/utils/auth"
 import { createCustomNameComponent } from "@/common/utils/createCustomNameComponent"
 import Layout from "@/layouts/index.vue"
-import { constantRoutes, dynamicRoutes, router } from "@/router"
+import { constantRoutes, dynamicRoutes } from "@/router"
 
-// 匹配pages里面所有的.vue文件
-const modules = import.meta.glob("./../../pages/**/*.vue")
+type AccessRouteRecord = RouteRecordRaw & {
+  permissions?: string[]
+  roles?: string[]
+  children?: AccessRouteRecord[]
+}
+
+type PageModule = () => Promise<unknown>
+
+const modules = import.meta.glob("./../../pages/**/*.vue") as Record<string, PageModule>
+const viewModules = createViewModuleMap(modules)
+const notFoundView = () => import("@/pages/error/404.vue")
+const specialComponents = {
+  Layout,
+  ParentView,
+  InnerLink
+}
+
 export const usePermissionStore = defineStore("permission", () => {
   const routes = ref<RouteRecordRaw[]>([])
   const addRoutes = ref<RouteRecordRaw[]>([])
@@ -16,107 +32,63 @@ export const usePermissionStore = defineStore("permission", () => {
   const topbarRouters = ref<RouteRecordRaw[]>([])
   const sidebarRouters = ref<RouteRecordRaw[]>([])
 
-  const getRoutes = (): RouteRecordRaw[] => {
-    return routes.value as RouteRecordRaw[]
-  }
-  const getDefaultRoutes = (): RouteRecordRaw[] => {
-    return defaultRoutes.value as RouteRecordRaw[]
-  }
-  const getSidebarRoutes = (): RouteRecordRaw[] => {
-    return sidebarRouters.value as RouteRecordRaw[]
-  }
-  const getTopbarRoutes = (): RouteRecordRaw[] => {
-    return topbarRouters.value as RouteRecordRaw[]
-  }
+  const getRoutes = (): RouteRecordRaw[] => routes.value
+  const getDefaultRoutes = (): RouteRecordRaw[] => defaultRoutes.value
+  const getSidebarRoutes = (): RouteRecordRaw[] => sidebarRouters.value
+  const getTopbarRoutes = (): RouteRecordRaw[] => topbarRouters.value
 
   const setRoutes = (newRoutes: RouteRecordRaw[]): void => {
     addRoutes.value = newRoutes
     routes.value = constantRoutes.concat(newRoutes)
   }
-  const setDefaultRoutes = (routes: RouteRecordRaw[]): void => {
-    defaultRoutes.value = constantRoutes.concat(routes)
+  const setDefaultRoutes = (newRoutes: RouteRecordRaw[]): void => {
+    defaultRoutes.value = constantRoutes.concat(newRoutes)
   }
-  const setTopbarRoutes = (routes: RouteRecordRaw[]): void => {
-    topbarRouters.value = routes
+  const setTopbarRoutes = (newRoutes: RouteRecordRaw[]): void => {
+    topbarRouters.value = newRoutes
   }
-  const setSidebarRouters = (routes: RouteRecordRaw[]): void => {
-    sidebarRouters.value = routes
+  const setSidebarRouters = (newRoutes: RouteRecordRaw[]): void => {
+    sidebarRouters.value = newRoutes
   }
+
   const generateRoutes = async (): Promise<RouteRecordRaw[]> => {
-    const res = await getRouters()
-    const { data } = res
-    const sdata = JSON.parse(JSON.stringify(data))
-    const rdata = JSON.parse(JSON.stringify(data))
-    const defaultData = JSON.parse(JSON.stringify(data))
-    const sidebarRoutes = filterAsyncRouter(sdata)
-    const rewriteRoutes = filterAsyncRouter(rdata, undefined, true)
-    const defaultRoutes = filterAsyncRouter(defaultData)
+    const { data } = await getRouters()
+    if (!Array.isArray(data)) {
+      throw new TypeError("菜单路由数据格式异常")
+    }
+
+    const sidebarRoutes = filterAsyncRouter(cloneDeep(data) as AccessRouteRecord[])
+    const rewriteRoutes = filterAsyncRouter(cloneDeep(data) as AccessRouteRecord[])
+    const defaultRouteRecords = filterAsyncRouter(cloneDeep(data) as AccessRouteRecord[])
     const asyncRoutes = filterDynamicRoutes(dynamicRoutes)
-    asyncRoutes.forEach((route) => {
-      router.addRoute(route)
-    })
+
     setRoutes(rewriteRoutes)
     setSidebarRouters(constantRoutes.concat(sidebarRoutes))
     setDefaultRoutes(sidebarRoutes)
-    setTopbarRoutes(defaultRoutes)
-    // 路由name重复检查
+    setTopbarRoutes(defaultRouteRecords)
     duplicateRouteChecker(asyncRoutes, sidebarRoutes)
-    return new Promise<RouteRecordRaw[]>(resolve => resolve(rewriteRoutes))
+
+    return [...asyncRoutes, ...rewriteRoutes]
   }
 
-  /**
-   * 遍历后台传来的路由字符串，转换为组件对象
-   * @param asyncRouterMap 后台传来的路由字符串
-   * @param lastRouter 上一级路由
-   * @param type 是否是重写路由
-   */
-  const filterAsyncRouter = (asyncRouterMap: RouteRecordRaw[], lastRouter?: RouteRecordRaw, type = false): RouteRecordRaw[] => {
-    return asyncRouterMap.filter((route) => {
-      const component = route.component as any
-      // 如果 component 是对象，尝试从对象属性中识别，或者直接使用该对象
-      if (typeof component === "object" && component !== null) {
-        const componentStr = (component as any).__file || ""
-        if (componentStr.includes("layouts/index.vue")) {
-          route.component = Layout
-        } else if (componentStr.includes("ParentView/index.vue")) {
-          route.component = ParentView
-        } else if (componentStr.includes("InnerLink/index.vue")) {
-          route.component = InnerLink
-        }
-        // 如果已经是一个有效的组件对象且不属于上述特殊视图，则保持原样或交给 loadView 处理
-      } else {
-        if (component === "Layout") {
-          route.component = Layout
-        } else if (component === "ParentView") {
-          route.component = ParentView
-        } else if (component === "InnerLink") {
-          route.component = InnerLink
-        } else {
-          route.component = loadView(component as string, route.name as string)
-        }
+  const filterAsyncRouter = (asyncRouterMap: AccessRouteRecord[]): RouteRecordRaw[] => {
+    return asyncRouterMap.map((route) => {
+      const resolvedComponent = resolveRouteComponent(route)
+      if (resolvedComponent) {
+        route.component = resolvedComponent
       }
-      if (route.children && route.children.length) {
-        route.children = filterAsyncRouter(route.children, route, type)
+
+      if (route.children?.length) {
+        route.children = filterAsyncRouter(route.children) as AccessRouteRecord[]
       } else {
         delete route.children
         delete route.redirect
       }
-      return true
+
+      return route
     })
   }
 
-  // const filterChildren = (childrenMap: RouteRecordRaw[], lastRouter?: RouteRecordRaw): RouteRecordRaw[] => {
-  //   let children: RouteRecordRaw[] = []
-  //   childrenMap.forEach((el) => {
-  //     el.path = lastRouter ? `${lastRouter.path}/${el.path}` : el.path
-  //     if (el.children && el.children.length && el.component?.toString() === "ParentView") {
-  //       children = children.concat(filterChildren(el.children, el))
-  //     } else {
-  //       children.push(el)
-  //     }
-  //   })
-  //   return children
-  // }
   return {
     routes,
     topbarRouters,
@@ -134,35 +106,107 @@ export const usePermissionStore = defineStore("permission", () => {
   }
 })
 
-// 动态路由遍历，验证是否具备权限
-export function filterDynamicRoutes(routes: RouteRecordRaw[]) {
-  const res: RouteRecordRaw[] = []
-  routes.forEach((route: any) => {
-    if (route.permissions) {
-      if (auth.hasPermiOr(route.permissions)) {
-        res.push(route)
-      }
-    } else if (route.roles) {
-      if (auth.hasRoleOr(route.roles)) {
-        res.push(route)
-      }
-    }
-  })
-  return res
+function resolveRouteComponent(route: AccessRouteRecord) {
+  const component = (route as { component?: unknown }).component
+
+  if (typeof component !== "string") {
+    return component
+  }
+
+  if (component in specialComponents) {
+    return specialComponents[component as keyof typeof specialComponents]
+  }
+
+  return loadView(component, (route as { name?: string | symbol }).name)
 }
 
-export function loadView(view: any, name: string) {
-  let res
-  for (const path in modules) {
-    const pagesIndex = path.indexOf("/pages/")
-    let dir = path.substring(pagesIndex + 7)
-    dir = dir.substring(0, dir.lastIndexOf(".vue"))
-    if (dir === view) {
-      res = createCustomNameComponent(modules[path], { name })
-      return res
-    }
+export function filterDynamicRoutes(routes: RouteRecordRaw[]) {
+  return routes
+    .map(route => filterDynamicRoute(route as AccessRouteRecord))
+    .filter((route): route is RouteRecordRaw => Boolean(route))
+}
+
+function filterDynamicRoute(route: AccessRouteRecord, inheritedAccess = false): AccessRouteRecord | null {
+  const permissions = getRoutePermissions(route)
+  const roles = getRouteRoles(route)
+  const hasAccessRule = permissions.length > 0 || roles.length > 0
+  const hasAccess = hasAccessRule ? hasRouteAccess(permissions, roles) : inheritedAccess
+
+  if (hasAccessRule && !hasAccess) {
+    return null
   }
-  return res
+
+  const filteredChildren = route.children
+    ?.map(child => filterDynamicRoute(child, hasAccess))
+    .filter((child): child is AccessRouteRecord => Boolean(child)) ?? []
+
+  if (!hasAccessRule && !inheritedAccess && filteredChildren.length === 0) {
+    return null
+  }
+
+  const routeRecord = cloneDeep(route)
+  if (filteredChildren.length > 0) {
+    routeRecord.children = filteredChildren
+  } else {
+    delete routeRecord.children
+  }
+
+  return routeRecord
+}
+
+function getRoutePermissions(route: AccessRouteRecord) {
+  return route.permissions || route.meta?.permissions || []
+}
+
+function getRouteRoles(route: AccessRouteRecord) {
+  return route.roles || (route.meta as { roles?: string[] } | undefined)?.roles || []
+}
+
+function hasRouteAccess(permissions: string[], roles: string[]) {
+  if (permissions.length > 0) {
+    return auth.hasPermiOr(permissions)
+  }
+  if (roles.length > 0) {
+    return auth.hasRoleOr(roles)
+  }
+  return false
+}
+
+export function loadView(view: unknown, name?: string | symbol) {
+  if (typeof view !== "string") {
+    console.error("Invalid route component path:", view)
+    return notFoundView
+  }
+
+  const viewPath = normalizeViewPath(view)
+  const loader = viewModules[viewPath]
+
+  if (!loader) {
+    console.error(`Cannot resolve route component: ${view}`)
+    return notFoundView
+  }
+
+  return createCustomNameComponent(loader, {
+    name: typeof name === "string" ? name : viewPath.replace(/\W/g, "_")
+  })
+}
+
+function createViewModuleMap(sourceModules: Record<string, PageModule>) {
+  const moduleMap: Record<string, PageModule> = {}
+
+  Object.entries(sourceModules).forEach(([path, loader]) => {
+    const pagesIndex = path.indexOf("/pages/")
+    if (pagesIndex === -1) return
+
+    const viewPath = path.slice(pagesIndex + "/pages/".length)
+    moduleMap[normalizeViewPath(viewPath)] = loader
+  })
+
+  return moduleMap
+}
+
+function normalizeViewPath(view: string) {
+  return view.replace(/^\/+/, "").replace(/\.vue$/, "")
 }
 
 interface Route {
@@ -171,32 +215,16 @@ interface Route {
   children?: Route[]
 }
 
-/**
- * 检查路由name是否重复
- * @param localRoutes 本地路由
- * @param routes 动态路由
- */
 function duplicateRouteChecker(localRoutes: Route[], routes: Route[]) {
-  // 展平
-  function flatRoutes(routes: Route[]) {
-    const res: Route[] = []
-    routes.forEach((route) => {
-      if (route.children) {
-        res.push(...flatRoutes(route.children))
-      } else {
-        res.push(route)
-      }
-    })
-    return res
-  }
-
+  const nameSet = new Set<string>()
   const allRoutes = flatRoutes([...localRoutes, ...routes])
 
-  const nameList: string[] = []
-  allRoutes.forEach((route: any) => {
-    const name = route.name.toString()
-    if (name && nameList.includes(name)) {
-      const message = `路由名称: [${name}] 重复, 会造成 404`
+  allRoutes.forEach((route) => {
+    if (!route.name) return
+
+    const name = String(route.name)
+    if (nameSet.has(name)) {
+      const message = `路由名称: [${name}] 重复，可能会造成 404`
       console.error(message)
       ElNotification({
         title: "路由名称重复",
@@ -205,6 +233,21 @@ function duplicateRouteChecker(localRoutes: Route[], routes: Route[]) {
       })
       return
     }
-    nameList.push(route.name.toString())
+
+    nameSet.add(name)
   })
+}
+
+function flatRoutes(routes: Route[]) {
+  const result: Route[] = []
+
+  routes.forEach((route) => {
+    if (route.children?.length) {
+      result.push(...flatRoutes(route.children))
+    } else {
+      result.push(route)
+    }
+  })
+
+  return result
 }
