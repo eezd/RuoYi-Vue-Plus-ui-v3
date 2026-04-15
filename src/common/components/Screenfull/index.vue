@@ -40,14 +40,15 @@ function handleFullscreenChange() {
   isFullscreen.value || classList.remove(CONTENT_LARGE, CONTENT_FULL)
 }
 
-watchEffect(() => {
+onMounted(() => {
   if (isEnabled) {
-    // 挂载组件时自动执行
     screenfull.on("change", handleFullscreenChange)
-    // 卸载组件时自动执行
-    onWatcherCleanup(() => {
-      screenfull.off("change", handleFullscreenChange)
-    })
+  }
+})
+
+onBeforeUnmount(() => {
+  if (isEnabled) {
+    screenfull.off("change", handleFullscreenChange)
   }
 })
 // #endregion

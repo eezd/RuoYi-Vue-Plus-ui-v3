@@ -1,9 +1,18 @@
 <script setup lang="ts">
-import type { UploadInstance, UploadProps, UploadUserFile } from "element-plus"
+import type { UploadInstance, UploadProps } from "element-plus"
+import type { OssUploadResponse, OssUploadUserFile } from "../_utils/ossUpload"
 import { delSysOssApi, getSysOssByIdsApi } from "@@/apis/system/oss"
 import { ElMessage } from "element-plus"
 import { compressAccurately } from "image-conversion"
 import { globalHeaders } from "@/http/axios"
+import {
+  getFileAccept,
+  getUploadOssIds,
+  isAllowedImage,
+  isFileSizeExceeded,
+  normalizeOssFiles
+
+} from "../_utils/ossUpload"
 
 /**
  * defineProps
@@ -41,8 +50,8 @@ const loadingText = defineModel<string>("loadingText", { default: "" })
 const uploadImgUrl = ref(`${import.meta.env.VITE_BASE_URL}/resource/oss/upload`)
 const headers = ref(globalHeaders())
 // 绑定的文件列表
-const fileList = ref<UploadUserFile[]>([])
-const imageUploadRef = useTemplateRef<UploadInstance>("useTemplateRef")
+const fileList = ref<OssUploadUserFile[]>([])
+const imageUploadRef = useTemplateRef<UploadInstance>("imageUploadRef")
 const dialogImageUrl = ref("")
 const dialogVisible = ref(false)
 
@@ -50,7 +59,7 @@ const dialogVisible = ref(false)
 const isInnerUpdate = ref(false)
 
 const showTip = computed(() => props.isShowTip && (props.fileType || props.fileSize))
-const fileAccept = computed(() => props.fileType.map(type => `.${type}`).join(","))
+const fileAccept = computed(() => getFileAccept(props.fileType))
 
 watch(
   () => fileIds.value,
@@ -70,16 +79,7 @@ watch(
     // 只有外部传入新 ID 时才请求接口
     try {
       const res = await getSysOssByIdsApi(ids)
-      const data = res?.data
-      const list = Array.isArray(data) ? data : data ? [data] : []
-
-      // 映射回 el-upload 需要的格式
-      fileList.value = list.map((item: any) => ({
-        name: item.originalName,
-        url: item.url,
-        ossId: item.ossId,
-        uid: item.ossId || Date.now()
-      })) as UploadUserFile[]
+      fileList.value = normalizeOssFiles(res?.data)
     } catch (e) {
       console.error("获取图片列表失败:", e)
     }
@@ -92,10 +92,7 @@ watch(
  * 同时设置 isInnerUpdate = true 阻止 watch 再次请求
  */
 function updateModelValue() {
-  const ids = fileList.value
-    .map((file: any) => file.ossId || (file.response?.data?.ossId))
-    .filter(id => id) // 过滤掉无效 ID
-    .join(",")
+  const ids = getUploadOssIds(fileList.value)
 
   if (fileIds.value !== ids) {
     isInnerUpdate.value = true // 标记为内部更新
@@ -105,18 +102,12 @@ function updateModelValue() {
 
 /** 上传前校验与压缩 */
 const handleBeforeUpload: UploadProps["beforeUpload"] = async (file) => {
-  // 1. 格式校验
-  const fileName = file.name
-  const fileExtension = fileName.slice(fileName.lastIndexOf(".") + 1)
-  const isImg = props.fileType.some(type =>
-    file.type.includes(type) || fileExtension.toLowerCase() === type.toLowerCase()
-  )
-
-  if (!isImg) {
+  if (!isAllowedImage(file, props.fileType)) {
     ElMessage.error(`文件格式不正确, 请上传 ${props.fileType.join("/")} 图片!`)
     return false
   }
-  if (props.fileSize && file.size / 1024 / 1024 > props.fileSize) {
+
+  if (isFileSizeExceeded(file, props.fileSize)) {
     ElMessage.error(`上传图片大小不能超过 ${props.fileSize} MB!`)
     return false
   }
@@ -128,7 +119,7 @@ const handleBeforeUpload: UploadProps["beforeUpload"] = async (file) => {
     try {
       const blob = await compressAccurately(file, props.compressTargetSize)
       // 需要将 blob 转回 File 对象，否则 element-plus 可能无法正确识别 uid
-      const compressedFile = new File([blob], fileName, { type: blob.type })
+      const compressedFile = new File([blob], file.name, { type: blob.type })
       return compressedFile
     } catch {
       loading.value = false
@@ -145,25 +136,27 @@ const handleBeforeUpload: UploadProps["beforeUpload"] = async (file) => {
 /** 上传成功 */
 const handleUploadSuccess: UploadProps["onSuccess"] = (res, file, uploadFiles) => {
   loading.value = false
+  const response = res as OssUploadResponse
 
-  if (res.code === 200) {
+  if (response.code === 200) {
     // 关键：将后端返回的 ossId 挂载到 file 对象上
     // uploadFiles 是当前控件内的所有文件列表（包含之前的和新上传的）
     const successFile = uploadFiles.find(f => f.uid === file.uid)
     if (successFile) {
-      (successFile as any).ossId = res.data.ossId;
-      (successFile as any).url = res.data.url
+      const ossFile = successFile as OssUploadUserFile
+      ossFile.ossId = response.data?.ossId
+      ossFile.url = response.data?.url
     }
 
     // 更新 fileList 并触发 v-model 更新
-    fileList.value = uploadFiles
+    fileList.value = uploadFiles as OssUploadUserFile[]
     updateModelValue()
     ElMessage.success("上传成功")
   } else {
     // 失败处理：从列表中移除该文件
     const index = fileList.value.findIndex(f => f.uid === file.uid)
     if (index !== -1) fileList.value.splice(index, 1)
-    ElMessage.error(res.msg || "上传失败")
+    ElMessage.error(response.msg || "上传失败")
   }
 }
 
@@ -175,7 +168,7 @@ const handleUploadError: UploadProps["onError"] = () => {
 
 /** 删除文件 */
 const handleDelete: UploadProps["beforeRemove"] = async (file) => {
-  const ossId = (file as any).ossId
+  const ossId = (file as OssUploadUserFile).ossId
 
   // 如果是刚上传还是 loading 状态或者没有 ossId，直接移除即可
   if (!ossId) return true
@@ -196,7 +189,7 @@ const handleDelete: UploadProps["beforeRemove"] = async (file) => {
 
 /** 移除文件后的回调（处理数据同步） */
 const handleRemove: UploadProps["onRemove"] = (file, uploadFiles) => {
-  fileList.value = uploadFiles
+  fileList.value = uploadFiles as OssUploadUserFile[]
   updateModelValue()
 }
 

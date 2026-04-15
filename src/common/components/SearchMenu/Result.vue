@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { ComponentPublicInstance } from "vue"
 import type { RouteRecordNameGeneric, RouteRecordRaw } from "vue-router"
 
 interface Props {
@@ -11,9 +12,9 @@ const props = defineProps<Props>()
 /** 选中的菜单 */
 const modelValue = defineModel<RouteRecordNameGeneric | undefined>({ required: true })
 
-const instance = getCurrentInstance()
-
 const scrollbarHeight = ref<number>(0)
+
+const resultItemRefs = ref<HTMLElement[]>([])
 
 /** 菜单的样式 */
 function itemStyle(item: RouteRecordRaw) {
@@ -31,6 +32,12 @@ function handleMouseenter(item: RouteRecordRaw) {
   modelValue.value = item.name
 }
 
+function setResultItemRef(el: Element | ComponentPublicInstance | null, index: number) {
+  if (el instanceof HTMLElement) {
+    resultItemRefs.value[index] = el
+  }
+}
+
 /** 计算滚动可视区高度 */
 function getScrollbarHeight() {
   // el-scrollbar max-height="40vh"
@@ -39,25 +46,26 @@ function getScrollbarHeight() {
 
 /** 根据下标计算到顶部的距离 */
 function getScrollTop(index: number) {
-  const currentInstance = instance?.proxy?.$refs[`resultItemRef${index}`] as HTMLDivElement[]
-  if (!currentInstance) return 0
-  const currentRef = currentInstance[0]
+  const currentRef = resultItemRefs.value[index]
+  if (!currentRef) return 0
   // 128 = 两个 result-item （56 + 56 = 112）高度与上下 margin（8 + 8 = 16）大小之和
   const scrollTop = currentRef.offsetTop + 128
   return scrollTop > scrollbarHeight.value ? scrollTop - scrollbarHeight.value : 0
 }
 
-// 在组件挂载前添加窗口大小变化事件监听器
-onBeforeMount(() => {
-  window.addEventListener("resize", getScrollbarHeight)
-})
+watch(
+  () => props.data.length,
+  (length) => {
+    resultItemRefs.value.length = length
+  }
+)
 
-// 在组件挂载时立即计算滚动可视区高度
 onMounted(() => {
+  // 监听窗口变化，保持键盘切换时的滚动位置准确
+  window.addEventListener("resize", getScrollbarHeight)
   getScrollbarHeight()
 })
 
-// 在组件卸载前移除窗口大小变化事件监听器
 onBeforeUnmount(() => {
   window.removeEventListener("resize", getScrollbarHeight)
 })
@@ -70,8 +78,8 @@ defineExpose({ getScrollTop })
   <div>
     <div
       v-for="(item, index) in props.data"
-      :key="index"
-      :ref="`resultItemRef${index}`"
+      :key="`${String(item.name ?? item.path)}-${index}`"
+      :ref="el => setResultItemRef(el, index)"
       class="result-item"
       :style="itemStyle(item)"
       @mouseenter="handleMouseenter(item)"

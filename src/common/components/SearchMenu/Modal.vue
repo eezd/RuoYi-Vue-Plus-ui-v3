@@ -2,7 +2,7 @@
 import type { RouteRecordNameGeneric, RouteRecordRaw } from "vue-router"
 import { useDevice } from "@@/composables/useDevice"
 import { isExternal } from "@@/utils/validate"
-import { cloneDeep, debounce } from "lodash-es"
+import { debounce } from "lodash-es"
 import { usePermissionStore } from "@/pinia/stores/permission"
 import Footer from "./Footer.vue"
 import Result from "./Result.vue"
@@ -11,6 +11,8 @@ import Result from "./Result.vue"
 const modelValue = defineModel<boolean>({ required: true })
 
 const router = useRouter()
+
+const permissionStore = usePermissionStore()
 
 const { isMobile } = useDevice()
 
@@ -32,26 +34,32 @@ const isPressUpOrDown = ref<boolean>(false)
 /** 控制搜索对话框宽度 */
 const modalWidth = computed(() => (isMobile.value ? "80vw" : "40vw"))
 
-/** 树形菜单 */
-const menus = computed(() => cloneDeep(usePermissionStore().routes))
+/** 扁平菜单缓存，避免每次输入时重复深拷贝路由树 */
+const flatMenus = computed(() => flatTree(permissionStore.routes))
 
 /** 搜索（防抖） */
 const handleSearch = debounce(() => {
-  const flatMenus = flatTree(menus.value)
   const _keywords = keyword.value.toLocaleLowerCase().trim()
-  result.value = flatMenus.filter(menu => keyword.value ? menu.meta?.title?.toLocaleLowerCase().includes(_keywords) : false)
+  result.value = _keywords
+    ? flatMenus.value.filter(menu => menu.meta?.title?.toLocaleLowerCase().includes(_keywords))
+    : []
   // 默认选中搜索结果的第一项
   const length = result.value?.length
   activeRouteName.value = length > 0 ? result.value[0].name : undefined
 }, 500)
 
 /** 将树形菜单扁平化为一维数组，用于菜单搜索 */
-function flatTree(arr: RouteRecordRaw[], result: RouteRecordRaw[] = []) {
-  arr.forEach((item) => {
-    result.push(item)
-    item.children && flatTree(item.children, result)
+function flatTree(routes: readonly RouteRecordRaw[]): RouteRecordRaw[] {
+  const list: RouteRecordRaw[] = []
+
+  routes.forEach((route) => {
+    list.push(route)
+    if (route.children?.length) {
+      list.push(...flatTree(route.children))
+    }
   })
-  return result
+
+  return list
 }
 
 /** 关闭搜索对话框 */
@@ -123,7 +131,7 @@ function handleDown() {
 }
 
 /** 键盘回车键 */
-function handleEnter() {
+async function handleEnter() {
   const { length } = result.value
   if (length === 0) return
   const name = activeRouteName.value
@@ -131,7 +139,7 @@ function handleEnter() {
   if (path && isExternal(path)) return window.open(path, "_blank", "noopener, noreferrer")
   if (!name) return ElMessage.warning("无法通过搜索进入该菜单，请为对应的路由设置唯一的 Name")
   try {
-    router.push({ name })
+    await router.push({ name })
   } catch {
     return ElMessage.warning("该菜单有必填的动态参数，无法通过搜索进入")
   }
@@ -142,6 +150,10 @@ function handleEnter() {
 function handleReleaseUpOrDown() {
   isPressUpOrDown.value = false
 }
+
+onBeforeUnmount(() => {
+  handleSearch.cancel()
+})
 </script>
 
 <template>

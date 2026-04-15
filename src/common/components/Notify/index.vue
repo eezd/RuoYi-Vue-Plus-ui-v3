@@ -12,9 +12,6 @@ interface DataItem {
   list: NotifyItem[]
 }
 
-/** 角标当前值 */
-const badgeValue = computed(() => data.value.reduce((sum, item) => sum + item.list.length, 0))
-
 /** 角标最大值 */
 const badgeMax = 99
 
@@ -25,7 +22,7 @@ const popoverWidth = 350
 const activeName = ref<TabName>("通知")
 
 /** 所有数据 */
-const data = ref<DataItem[]>([
+const data: DataItem[] = [
   // 通知数据
   {
     name: "通知",
@@ -44,7 +41,10 @@ const data = ref<DataItem[]>([
     type: "warning",
     list: todoData
   }
-])
+]
+
+/** 角标当前值 */
+const badgeValue = computed(() => data.reduce((sum, item) => sum + item.list.length, 0))
 
 function handleHistory() {
   ElMessage.success(`跳转到${activeName.value}历史页面`)
@@ -65,7 +65,7 @@ function handleHistory() {
       </template>
       <template #default>
         <el-tabs v-model="activeName" class="demo-tabs" stretch>
-          <el-tab-pane v-for="(item, index) in data" :key="index" :name="item.name">
+          <el-tab-pane v-for="item in data" :key="item.name" :name="item.name">
             <template #label>
               {{ item.name }}
               <el-badge :value="item.list.length" :max="badgeMax" :type="item.type" />

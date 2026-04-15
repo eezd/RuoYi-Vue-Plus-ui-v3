@@ -9,11 +9,24 @@ const props = defineProps({
 })
 // #endregion
 
-const height = ref(`${document.documentElement.clientHeight - 94.5}px`)
+const height = ref("")
+
+function updateHeight() {
+  height.value = `${document.documentElement.clientHeight - 94.5}px`
+}
+
+onMounted(() => {
+  updateHeight()
+  window.addEventListener("resize", updateHeight)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", updateHeight)
+})
 </script>
 
 <template>
-  <div :style="`height:${height}`">
-    <iframe :id="props.iframeId" style="width: 100%; height: 100%; border: 0" :src="props.src" />
+  <div :style="{ height }">
+    <iframe :id="props.iframeId" style="width: 100%; height: 100%; border: 0" :src="props.src" :title="props.iframeId" />
   </div>
 </template>

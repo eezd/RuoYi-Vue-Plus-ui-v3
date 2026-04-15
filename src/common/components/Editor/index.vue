@@ -1,7 +1,32 @@
 <script setup lang="ts">
+import type { UploadProps } from "element-plus"
 import { Quill, QuillEditor } from "@vueup/vue-quill"
 import { globalHeaders } from "@/http/axios"
 import "@vueup/vue-quill/dist/vue-quill.snow.css"
+
+interface QuillRange {
+  index: number
+}
+
+interface QuillInstance {
+  selection?: {
+    savedRange?: QuillRange
+  }
+  getSelection: () => QuillRange | null
+  insertEmbed: (index: number, type: string, value: string) => void
+  setSelection: (index: number) => void
+}
+
+interface QuillEditorExpose {
+  getQuill: () => QuillInstance
+}
+
+interface UploadImageResponse {
+  code?: number
+  data?: {
+    url?: string
+  }
+}
 
 /**
  * defineProps
@@ -30,14 +55,14 @@ const loading = defineModel<boolean>("loading", { default: false })
 const loadingText = defineModel<string>("loadingText", { default: "" })
 // #endregion
 
-const upload = reactive<UploadOption>({
+const upload: UploadOption = reactive({
   headers: globalHeaders(),
   url: `${import.meta.env.VITE_BASE_URL}/resource/oss/upload`
 })
-const quillEditorRef = ref()
+const quillEditorRef = ref<QuillEditorExpose>()
 const uploadRef = ref<HTMLDivElement>()
 
-const options = ref<any>({
+const options = computed(() => ({
   theme: "snow",
   bounds: document.body,
   debug: "warn",
@@ -70,10 +95,10 @@ const options = ref<any>({
   },
   placeholder: "请输入内容",
   readOnly: props.readOnly
-})
+}))
 
 const styles = computed(() => {
-  const style: any = {}
+  const style: Record<string, string> = {}
   if (props.minHeight) {
     style.minHeight = `${props.minHeight}px`
   }
@@ -84,15 +109,21 @@ const styles = computed(() => {
 })
 
 // 图片上传成功返回图片地址
-function handleUploadSuccess(res: any) {
+const handleUploadSuccess: UploadProps["onSuccess"] = (res) => {
+  const response = res as UploadImageResponse
   // 如果上传成功
-  if (res.code === 200) {
+  if (response.code === 200 && response.data?.url) {
     // 获取富文本实例
-    const quill = toRaw(quillEditorRef.value).getQuill()
+    const quill = toRaw(quillEditorRef.value)?.getQuill()
+    if (!quill) {
+      loading.value = false
+      ElMessage.error("编辑器未初始化，图片插入失败")
+      return
+    }
     // 获取光标位置
-    const length = quill.selection.savedRange.index
+    const length = quill.getSelection()?.index ?? quill.selection?.savedRange?.index ?? 0
     // 插入图片，res为服务器返回的图片链接地址
-    quill.insertEmbed(length, "image", res.data.url)
+    quill.insertEmbed(length, "image", response.data.url)
     // 调整光标到最后
     quill.setSelection(length + 1)
     loading.value = false
@@ -103,7 +134,7 @@ function handleUploadSuccess(res: any) {
 }
 
 // 图片上传前拦截
-function handleBeforeUpload(file: any) {
+const handleBeforeUpload: UploadProps["beforeUpload"] = (file) => {
   const type = ["image/jpeg", "image/jpg", "image/png", "image/svg"]
   const isJPG = type.includes(file.type)
   // 检验文件格式
@@ -125,7 +156,8 @@ function handleBeforeUpload(file: any) {
 }
 
 // 图片失败拦截
-function handleUploadError() {
+const handleUploadError: UploadProps["onError"] = () => {
+  loading.value = false
   ElMessage.error("上传文件失败")
 }
 </script>

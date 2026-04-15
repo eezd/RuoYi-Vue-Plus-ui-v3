@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SvgName } from "~virtual/svg-component"
 import icons from "./requireIcons"
 
 /**
@@ -10,28 +11,27 @@ const { width } = defineProps({
 })
 // #endregion
 
-const modelValue = defineModel<any>("modelValue", { required: true })
+const modelValue = defineModel<string | undefined>("modelValue", { required: true })
 
 const visible = ref(false)
-const iconNames = ref<any>(icons)
 
 const filterValue = ref("")
 
-/**
- * 筛选图标
- */
-function filterIcons() {
-  if (filterValue.value) {
-    iconNames.value = icons.filter(iconName => iconName.includes(filterValue.value))
-  } else {
-    iconNames.value = icons
-  }
-}
+/** 根据输入值实时筛选图标，避免维护额外的派生状态 */
+const filteredIconNames = computed(() => {
+  const keyword = filterValue.value.trim()
+  return keyword ? icons.filter(iconName => iconName.includes(keyword)) : icons
+})
+
+const selectedSvgName = computed<SvgName | undefined>(() => {
+  return icons.includes(modelValue.value as SvgName) ? (modelValue.value as SvgName) : undefined
+})
+
 /**
  * 选择图标
  * @param iconName 选择的图标名称
  */
-function selectedIcon(iconName: string) {
+function selectedIcon(iconName: SvgName) {
   modelValue.value = iconName
   visible.value = false
 }
@@ -41,7 +41,7 @@ function selectedIcon(iconName: string) {
   <div class="relative" :style="{ width }">
     <el-input v-model="modelValue" readonly placeholder="点击选择图标" @click="visible = !visible">
       <template #prepend>
-        <SvgIcon :name="modelValue || ''" />
+        <SvgIcon v-if="selectedSvgName" :name="selectedSvgName" />
       </template>
     </el-input>
 
@@ -57,11 +57,11 @@ function selectedIcon(iconName: string) {
         </div>
       </template>
 
-      <el-input v-model="filterValue" class="p-2" placeholder="搜索图标" clearable @input="filterIcons" />
+      <el-input v-model="filterValue" class="p-2" placeholder="搜索图标" clearable />
 
-      <el-scrollbar height="w-[200px]">
+      <el-scrollbar height="200px">
         <ul class="icon-list">
-          <el-tooltip v-for="(iconName, index) in iconNames" :key="index" :content="iconName" placement="bottom" effect="light">
+          <el-tooltip v-for="iconName in filteredIconNames" :key="iconName" :content="iconName" placement="bottom" effect="light">
             <li class="icon-item" :class="[{ active: modelValue === iconName }]" @click="selectedIcon(iconName)">
               <SvgIcon color="var(--el-text-color-regular)" :name="iconName || ''" />
             </li>

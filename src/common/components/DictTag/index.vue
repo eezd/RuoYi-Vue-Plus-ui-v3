@@ -12,13 +12,6 @@ interface DictDataOption {
 // 定义 el-tag 允许的类型
 type ElTagType = "primary" | "success" | "info" | "warning" | "danger"
 
-interface Props {
-  options?: DictDataOption[]
-  value?: number | string | (number | string)[] | null
-  showValue?: boolean
-  separator?: string
-}
-
 const props = withDefaults(defineProps<Props>(), {
   options: () => [],
   value: undefined,
@@ -26,29 +19,45 @@ const props = withDefaults(defineProps<Props>(), {
   separator: ","
 })
 
+const validTagTypes = new Set<ElTagType>(["primary", "success", "info", "warning", "danger"])
+
+interface Props {
+  options?: DictDataOption[]
+  value?: number | string | (number | string)[] | null
+  showValue?: boolean
+  separator?: string
+}
+
 // 判断值是否为空
 function isEmpty(val: unknown): boolean {
   return val === "" || val === null || val === undefined
 }
 
-// 将 value 转换为字符串数组
+// 将传入值统一转为字符串数组，兼容后端逗号分隔和数组两种格式
 const values = computed<string[]>(() => {
   if (isEmpty(props.value)) return []
 
   if (Array.isArray(props.value)) {
-    return props.value.map(item => String(item))
+    return props.value.map(item => String(item)).filter(Boolean)
   }
 
-  return String(props.value).split(props.separator)
+  return String(props.value).split(props.separator).map(item => item.trim()).filter(Boolean)
+})
+
+const valueSet = computed(() => new Set(values.value))
+
+const optionValueSet = computed(() => new Set(props.options.map(item => String(item.value))))
+
+const matchedOptions = computed(() => {
+  if (valueSet.value.size === 0) return []
+  return props.options.filter(item => valueSet.value.has(String(item.value)))
 })
 
 // 获取未匹配的值
 const unmatchedValues = computed<string[]>(() => {
   if (props.options.length === 0 || isEmpty(props.value)) return []
 
-  return values.value.filter(
-    val => !props.options.some(opt => String(opt.value) === val)
-  )
+  return values.value.filter(val => !optionValueSet.value.has(val))
 })
 
 // 是否存在未匹配项
@@ -61,42 +70,38 @@ const unmatchedText = computed(() => {
 
 // 判断是否为有效的 el-tag type
 function getValidTagType(type?: string): ElTagType {
-  const validTypes: ElTagType[] = ["primary", "success", "info", "warning", "danger"]
-  return validTypes.includes(type as ElTagType) ? (type as ElTagType) : "primary"
+  return validTagTypes.has(type as ElTagType) ? (type as ElTagType) : "primary"
 }
 
 // 判断是否应该渲染为 el-tag
 function shouldRenderAsTag(item: DictDataOption): boolean {
-  return !(!item.elTagType || item.elTagType === "default") || !(!item.elTagClass || item.elTagClass === "")
-  // return !(!item.elTagType || item.elTagType === "default" || item.elTagType === "") || !(!item.elTagClass || item.elTagClass === "")
+  return Boolean((item.elTagType && item.elTagType !== "default") || item.elTagClass)
 }
 </script>
 
 <template>
   <div class="dict-tag-container">
     <template
-      v-for="(item) in options"
+      v-for="item in matchedOptions"
       :key="item.value"
     >
-      <template v-if="values.includes(String(item.value))">
-        <!-- 普通文本显示 -->
-        <span
-          v-if="!shouldRenderAsTag(item)"
-          :class="item.elTagClass"
-        >
-          {{ item.label }}
-        </span>
+      <!-- 普通文本显示 -->
+      <span
+        v-if="!shouldRenderAsTag(item)"
+        :class="item.elTagClass"
+      >
+        {{ item.label }}
+      </span>
 
-        <!-- el-tag 显示 -->
-        <el-tag
-          v-else
-          :type="getValidTagType(item.elTagType)"
-          :class="item.elTagClass"
-          :disable-transitions="true"
-        >
-          {{ item.label }}
-        </el-tag>
-      </template>
+      <!-- el-tag 显示 -->
+      <el-tag
+        v-else
+        :type="getValidTagType(item.elTagType)"
+        :class="item.elTagClass"
+        :disable-transitions="true"
+      >
+        {{ item.label }}
+      </el-tag>
     </template>
 
     <!-- 显示未匹配的值 -->

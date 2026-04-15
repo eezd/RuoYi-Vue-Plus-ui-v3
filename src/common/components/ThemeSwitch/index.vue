@@ -17,8 +17,8 @@ const { themeList, activeThemeName, setTheme } = useTheme()
     <template #dropdown>
       <el-dropdown-menu>
         <el-dropdown-item
-          v-for="(theme, index) in themeList"
-          :key="index"
+          v-for="theme in themeList"
+          :key="theme.name"
           :disabled="activeThemeName === theme.name"
           @click="(e: MouseEvent) => setTheme(e, theme.name)"
         >

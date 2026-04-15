@@ -10,36 +10,30 @@ const props = defineProps({
 })
 // #endregion
 
-const realSrc = computed(() => {
-  if (!props.src) {
-    return
-  }
-  const real_src = props.src.split(",")[0]
-  return real_src
-})
-
-const realSrcList = computed(() => {
+const srcList = computed(() => {
   if (!props.src) {
     return []
   }
-  const real_src_list = props.src.split(",")
-  const srcList: string[] = []
-  real_src_list.forEach((item: string) => {
-    if (item.trim() === "") {
-      return
-    }
-    return srcList.push(item)
-  })
-  return srcList
+
+  return props.src.split(",").map(item => item.trim()).filter(Boolean)
 })
+
+const realSrc = computed(() => srcList.value[0] ?? "")
+
+const realSrcList = computed(() => srcList.value)
 
 const realWidth = computed(() => (typeof props.width == "string" ? props.width : `${props.width}px`))
 
 const realHeight = computed(() => (typeof props.height == "string" ? props.height : `${props.height}px`))
+
+const imageStyle = computed(() => ({
+  width: realWidth.value,
+  height: realHeight.value
+}))
 </script>
 
 <template>
-  <el-image :src="`${realSrc}`" fit="cover" :style="`width:${realWidth};height:${realHeight};`" :preview-src-list="realSrcList" preview-teleported>
+  <el-image :src="realSrc" fit="cover" :style="imageStyle" :preview-src-list="realSrcList" preview-teleported>
     <template #error>
       <div class="image-slot">
         <el-icon><picture-filled /></el-icon>
