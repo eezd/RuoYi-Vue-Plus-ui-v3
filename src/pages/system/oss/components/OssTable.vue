@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import type { OssVO } from "@@/apis/system/oss/types"
+import type { OssForm, OssVO } from "@@/apis/system/oss/types"
 import type { PaginationData } from "@@/composables/usePagination.ts"
-import type { FormRules } from "element-plus"
+import type { FormInstance, FormRules } from "element-plus"
 import { updateSysConfigByKeyApi } from "@@/apis/system/config"
 import FileUpload from "@@/components/FileUpload/index.vue"
 import ImagePreview from "@@/components/ImagePreview/index.vue"
 import ImageUpload from "@@/components/ImageUpload/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"
-import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
+import { RefreshRight, Upload } from "@element-plus/icons-vue"
 import { ref } from "vue"
 
 const emit = defineEmits<EmitEvents>()
@@ -49,14 +49,14 @@ function handleOssConfig() {
   router.push("/system/oss-config/index")
 }
 
-const formRef = ref<ElFormInstance>()
+const formRef = ref<FormInstance>()
 const type = ref(0)
-const dialog = reactive<any>({
+const dialog = reactive({
   visible: false,
   title: ""
 })
-const formData = ref<Partial<any>>({})
-const formRules: FormRules<any> = {
+const formData = ref<Partial<OssForm>>({})
+const formRules: FormRules<OssForm> = {
   file: [{ required: true, message: "文件不能为空", trigger: "blur" }]
 }
 function handleFile() {
@@ -113,13 +113,13 @@ async function handlePreviewListResource(preview: boolean) {
   <el-card v-loading="loading" shadow="never">
     <div class="toolbar-wrapper">
       <div :style="isMobile ? 'display:flex; gap: 10px; flex-wrap: wrap;' : ''">
-        <el-button type="primary" plain icon="Upload" @click="handleFile">
+        <el-button type="primary" plain :icon="Upload" v-hasPermi="['system:oss:upload']" @click="handleFile">
           上传文件
         </el-button>
         <el-button
           type="primary"
-          :icon="CirclePlus"
-          v-hasPermi="['system:role:add']"
+          :icon="Upload"
+          v-hasPermi="['system:oss:upload']"
           @click="handleImage()"
         >
           上传图片
@@ -127,7 +127,7 @@ async function handlePreviewListResource(preview: boolean) {
         <el-button
           type="danger" plain icon="Delete"
           :disabled="!selectedRows.length"
-          v-hasPermi="['system:role:remove']"
+          v-hasPermi="['system:oss:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除
@@ -135,12 +135,14 @@ async function handlePreviewListResource(preview: boolean) {
         <el-button
           :type="previewListResource ? 'danger' : 'warning'"
           plain
+          v-hasPermi="['system:oss:edit']"
           @click="handlePreviewListResource(!previewListResource)"
         >
           预览开关 : {{ previewListResource ? '禁用' : '启用' }}
         </el-button>
         <el-button
           type="warning" plain icon="Operation"
+          v-hasPermi="['system:ossConfig:list']"
           @click="handleOssConfig()"
         >
           配置管理
@@ -158,7 +160,6 @@ async function handlePreviewListResource(preview: boolean) {
         <el-table-column prop="fileName" label="文件名" align="center" />
         <el-table-column prop="originalName" label="原名" align="center" />
         <el-table-column prop="fileSuffix" label="文件后缀" align="center" />
-        <el-table-column prop="fileName" label="文件名" align="center" />
         <el-table-column prop="url" label="文件展示" align="center">
           <template #default="scope">
             <ImagePreview
@@ -201,7 +202,7 @@ async function handlePreviewListResource(preview: boolean) {
   <!-- 添加或修改OSS对象存储对话框 -->
   <el-dialog v-model="dialog.visible" @closed="handleDialogClosed" :title="dialog.title" width="500px" append-to-body>
     <el-form ref="formRef" :model="formData" :rules="formRules" label-width="80px">
-      <el-form-item label="文件名">
+      <el-form-item prop="file" label="文件名">
         <FileUpload v-if="type === 0" v-model:file-ids="formData.file" />
         <ImageUpload v-if="type === 1" v-model:file-ids="formData.file" />
       </el-form-item>

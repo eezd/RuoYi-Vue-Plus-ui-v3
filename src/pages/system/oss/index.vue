@@ -29,8 +29,8 @@ const searchData = reactive({
   fileSuffix: "",
   service: "",
   params: {
-    beginTime: undefined,
-    endTime: undefined
+    beginCreateTime: undefined,
+    endCreateTime: undefined
   }
 } as OssQuery)
 const searchFormRef = useTemplateRef("searchFormRef")
@@ -38,8 +38,8 @@ const searchFormRef = useTemplateRef("searchFormRef")
 const dateRange = ref<[DateModelType, DateModelType]>(["", ""])
 watch(dateRange, ([newBeginTime, newEndTime]) => {
   searchData.params = {}
-  searchData.params.beginTime = newBeginTime.toLocaleString()
-  searchData.params.endTime = newEndTime.toLocaleString()
+  searchData.params.beginCreateTime = newBeginTime.toLocaleString()
+  searchData.params.endCreateTime = newEndTime.toLocaleString()
 })
 
 function resetSearch() {
