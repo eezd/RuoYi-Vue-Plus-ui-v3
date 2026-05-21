@@ -39,10 +39,12 @@ const DEFAULT_FORM_DATA: Partial<MenuForm> = {
   icon: "",
   menuType: MenuTypeEnum.M,
   orderNum: 1,
-  isFrame: "1",
-  isCache: "0",
+  isFrame: "N",
+  isCache: "Y",
   visible: "0",
-  status: "0"
+  status: "0",
+  activeMenu: "",
+  remark: ""
 }
 // 表单数据
 const formData = ref<Partial<MenuForm>>(cloneDeep(DEFAULT_FORM_DATA))

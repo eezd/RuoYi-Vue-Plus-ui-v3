@@ -5,7 +5,7 @@ import type { MenuTreeOption } from "@/common/apis/system/menu/types"
 import type { TenantPkgForm } from "@/common/apis/system/tenantPackage/types"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { ElMessage } from "element-plus"
-import { getMenuTreeSelectByPackageIdApi } from "@/common/apis/system/menu"
+import { getMenuTreeSelectApi } from "@/common/apis/system/menu"
 import { addSysTenantPackageApi, updateSysTenantPackageApi } from "@/common/apis/system/tenantPackage"
 import TreePermission from "./TreePermission.vue"
 
@@ -66,21 +66,17 @@ const menuPermissionRef = useTemplateRef("menuPermissionRef")
 const menuOptions = ref<MenuTreeOption[]>([])
 
 /** 更新菜单树结构 */
-async function getPackageMenuTreeselect(packageId: string | number = 0) {
-  const res = await getMenuTreeSelectByPackageIdApi(packageId)
-  menuOptions.value = res.data.menus
-  if (formData.value.packageId !== 0) {
-    menuPermissionRef.value?.setCheckedKeys(res.data.checkedKeys)
-  } else {
-    menuPermissionRef.value?.setCheckedKeys([])
-  }
+async function getPackageMenuTreeselect() {
+  const res = await getMenuTreeSelectApi()
+  menuOptions.value = res.data
+  menuPermissionRef.value?.setCheckedKeys([])
 }
 
 watch(() => formData.value.packageId, async () => {
   if (formData.value.packageId) {
     try {
       dialog.value.loading = true
-      await getPackageMenuTreeselect(formData.value.packageId)
+      await getPackageMenuTreeselect()
     } finally {
       dialog.value.loading = false
     }

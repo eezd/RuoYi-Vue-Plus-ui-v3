@@ -8,21 +8,25 @@ export interface MenuTreeOption {
   label: string
   parentId: string | number
   weight: number
-  children: MenuTreeOption[]
+  menuType?: MenuTypeEnum | string
+  visible?: string
+  status?: string
+  disabled?: boolean
+  children?: MenuTreeOption[]
 }
 
 export interface RoleMenuTree {
   menus: MenuTreeOption[]
-  checkedKeys: string[]
+  checkedKeys: Array<string | number>
 }
 
 /**
  * 菜单查询参数类型
  */
 export interface MenuQuery {
-  keywords: string
-  menuName: string
-  status: string
+  keywords?: string
+  menuName?: string
+  status?: string
 }
 
 /**
@@ -43,27 +47,32 @@ export interface MenuVO extends BaseEntity {
   menuType: MenuTypeEnum
   visible: string
   status: string
+  perms: string
   icon: string
+  activeMenu: string
+  ext: string
   remark: string
 }
 
 export interface MenuForm {
-  parentName: string
-  parentId: string | number
-  children: MenuForm[]
-  menuId: string | number
+  parentName?: string
+  parentId?: string | number
+  children?: MenuForm[]
+  menuId?: string | number
   menuName: string
   orderNum: number
   path: string
-  component: string
-  queryParam: string
-  isFrame: string
-  isCache: string
-  menuType: MenuTypeEnum
-  visible: string
-  status: string
-  icon: string
-  remark: string
-  query: string
-  perms: string
+  component?: string
+  queryParam?: string
+  isFrame?: string
+  isCache?: string
+  menuType?: MenuTypeEnum
+  visible?: string
+  status?: string
+  icon?: string
+  activeMenu?: string
+  ext?: string
+  remark?: string
+  query?: string
+  perms?: string
 }

@@ -33,14 +33,6 @@ export function getMenuTreeSelectByRoleIdApi(roleId: string | number) {
   })
 }
 
-// 根据角色ID查询菜单下拉树结构
-export function getMenuTreeSelectByPackageIdApi(packageId: string | number) {
-  return request<ApiResponseData<RoleMenuTree>>({
-    url: `/system/menu/tenantPackageMenuTreeselect/${packageId}`,
-    method: "get"
-  })
-}
-
 // 新增菜单
 export function addSysMenuApi(data: MenuForm) {
   return request<ApiResponseData<null>>({

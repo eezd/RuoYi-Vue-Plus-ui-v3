@@ -31,7 +31,7 @@ const treeData = defineModel<MenuOptionsType[]>(
 // #endregion
 
 const { isMobile } = useDevice()
-const { sys_show_hide, sys_normal_disable } = toRefs<any>(useDict("sys_show_hide", "sys_normal_disable"))
+const { sys_show_hide, sys_normal_disable, sys_yes_no } = toRefs<any>(useDict("sys_show_hide", "sys_normal_disable", "sys_yes_no"))
 
 const formRef = ref<FormInstance | null>(null)
 const formRules: FormRules<any> = {
@@ -154,11 +154,8 @@ function resetForm() {
                 </span>
               </template>
               <el-radio-group v-model="formData.isFrame">
-                <el-radio value="0">
-                  是
-                </el-radio>
-                <el-radio value="1">
-                  否
+                <el-radio v-for="dict in sys_yes_no" :key="dict.value" :value="dict.value">
+                  {{ dict.label }}
                 </el-radio>
               </el-radio-group>
             </el-form-item>
@@ -236,10 +233,10 @@ function resetForm() {
                 </span>
               </template>
               <el-radio-group v-model="formData.isCache">
-                <el-radio value="0">
+                <el-radio value="Y">
                   缓存
                 </el-radio>
-                <el-radio value="1">
+                <el-radio value="N">
                   不缓存
                 </el-radio>
               </el-radio-group>
@@ -281,6 +278,26 @@ function resetForm() {
                   {{ dict.label }}
                 </el-radio>
               </el-radio-group>
+            </el-form-item>
+          </el-col>
+          <el-col v-if="formData.visible !== '0'" :span="isMobile ? 24 : 12">
+            <el-form-item prop="activeMenu">
+              <template #label>
+                <span>
+                  <el-tooltip content="隐藏菜单填写默认激活路由，比如激活父菜单的路由 /system/user" placement="top">
+                    <el-icon>
+                      <question-filled />
+                    </el-icon>
+                  </el-tooltip>
+                  激活路由
+                </span>
+              </template>
+              <el-input v-model="formData.activeMenu" placeholder="请输入激活路径" maxlength="255" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="isMobile ? 24 : 12">
+            <el-form-item label="备注" prop="remark">
+              <el-input v-model="formData.remark" placeholder="请输入备注" maxlength="500" />
             </el-form-item>
           </el-col>
         </el-row>

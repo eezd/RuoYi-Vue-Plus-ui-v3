@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { MenuVO } from "@/common/apis/system/menu/types"
+import { MenuTypeEnum } from "@@/enums/MenuTypeEnum.ts"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
@@ -36,6 +37,15 @@ const getTableData = () => emit("getTableData")
 const { isMobile } = useDevice()
 
 const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
+
+type MenuTagType = "warning" | "primary" | "success" | "danger"
+
+function getMenuTypeMeta(row: MenuVO): { label: string, type: MenuTagType } {
+  if (row.menuType === MenuTypeEnum.F) return { label: "按钮", type: "warning" }
+  if (row.isFrame === "Y") return { label: "外链", type: "danger" }
+  if (row.menuType === MenuTypeEnum.M) return { label: "目录", type: "primary" }
+  return { label: "菜单", type: "success" }
+}
 
 const tableRef = useTemplateRef("tableRef")
 
@@ -161,6 +171,13 @@ defineExpose({
         <el-table-column prop="icon" label="图标" align="center" width="100">
           <template #default="scope">
             <SvgIcon :name="scope.row.icon || ''" />
+          </template>
+        </el-table-column>
+        <el-table-column label="类型" align="center" width="90">
+          <template #default="scope">
+            <el-tag :type="getMenuTypeMeta(scope.row).type" size="small">
+              {{ getMenuTypeMeta(scope.row).label }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="orderNum" label="排序" align="center" min-width="80" />
