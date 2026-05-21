@@ -5,9 +5,9 @@ import { get } from "lodash-es"
 import { tansParams } from "@/common/utils"
 import cache from "@/common/utils/cache"
 import { getLanguage } from "@/common/utils/cache/local-storage"
-import { encryptBase64, encryptWithAes, generateAesKey } from "@/common/utils/crypto"
+import { decryptBase64, decryptWithAes, encryptBase64, encryptWithAes, generateAesKey } from "@/common/utils/crypto"
 import errorCode from "@/common/utils/errorCode"
-import { encrypt } from "@/common/utils/jsencrypt"
+import { decrypt, encrypt } from "@/common/utils/jsencrypt"
 import { useUserStore } from "@/pinia/stores/user"
 
 export const isRelogin = { show: false }
@@ -193,9 +193,21 @@ function createInstance(): AxiosInstance {
 
   instance.interceptors.response.use(
     (response: AxiosResponse) => {
-      const apiData = response.data
+      let apiData = response.data
       const responseType = response.config.responseType || response.request?.responseType
       if (responseType === "blob" || responseType === "arraybuffer") return apiData
+
+      if (import.meta.env.VITE_APP_ENCRYPT === "true") {
+        const encryptedKey = response.headers[HEADER_ENCRYPT_KEY]
+        if (encryptedKey) {
+          const base64Key = decrypt(encryptedKey)
+          if (!base64Key) {
+            return Promise.reject(new Error("Decrypt response key failed"))
+          }
+          const aesKey = decryptBase64(base64Key)
+          apiData = JSON.parse(decryptWithAes(apiData, aesKey))
+        }
+      }
 
       const code = apiData?.code
       if (code === undefined) {

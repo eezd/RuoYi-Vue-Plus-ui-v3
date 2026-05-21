@@ -1,5 +1,4 @@
 export interface LoginRequestData {
-  tenantId?: string
   username?: string
   password?: string
   rememberMe?: boolean
@@ -57,7 +56,6 @@ export interface LoginInfo {
  * 登录请求
  */
 export interface LoginData {
-  tenantId?: string
   username?: string
   password?: string
   rememberMe?: boolean
@@ -68,18 +66,4 @@ export interface LoginData {
   uuid?: string
   clientId: string
   grantType: string
-}
-
-/**
- * 租户
- */
-export interface TenantVO {
-  companyName: string
-  domain: any
-  tenantId: string
-}
-
-export interface TenantInfo {
-  tenantEnabled: boolean
-  voList: TenantVO[]
 }

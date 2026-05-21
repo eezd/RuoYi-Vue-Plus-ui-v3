@@ -1,5 +1,5 @@
 import type { AxiosPromise } from "axios"
-import type { CaptchaInfo, LoginData, LoginInfo, LoginRequestData, TenantInfo } from "./type"
+import type { CaptchaInfo, LoginData, LoginInfo, LoginRequestData } from "./type"
 import { request } from "@/http/axios"
 
 const clientId = import.meta.env.VITE_APP_CLIENT_ID
@@ -27,7 +27,7 @@ export function loginApi(data: LoginRequestData) {
     url: "/auth/login",
     headers: {
       isToken: false,
-      isEncrypt: false,
+      isEncrypt: true,
       repeatSubmit: false
     },
     method: "post",
@@ -83,16 +83,5 @@ export function logout() {
   return request({
     url: "/auth/logout",
     method: "post"
-  })
-}
-
-/** 获取租户列表 */
-export function getTenantListApi(isToken: boolean) {
-  return request<ApiResponseData<TenantInfo>>({
-    url: "/auth/tenant/list",
-    headers: {
-      isToken
-    },
-    method: "get"
   })
 }

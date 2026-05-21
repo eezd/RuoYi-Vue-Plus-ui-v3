@@ -12,7 +12,6 @@ export const useUserStore = defineStore("user", () => {
   const userId = ref<string | number>("")
   const username = ref<string>("")
   const nickname = ref<string>("")
-  const tenantId = ref<string>("")
   const avatar = ref("")
   const roles = ref<string[]>([])
   const permissions = ref<string[]>([])
@@ -42,8 +41,7 @@ export const useUserStore = defineStore("user", () => {
     username.value = data.user.userName
     nickname.value = data.user.nickName
     userId.value = data.user.userId
-    tenantId.value = data.user.tenantId
-    avatar.value = data.user.avatar === "" || data.user.avatar == null ? defAva : data.user.avatar
+    avatar.value = data.user.avatar === "" || data.user.avatar == null ? defAva : String(data.user.avatar)
 
     permissions.value = data.permissions || []
   }
@@ -87,7 +85,7 @@ export const useUserStore = defineStore("user", () => {
     }
   }
 
-  return { token, roles, permissions, userId, username, nickname, setToken, getInfo, changeRoles, logout, resetToken }
+  return { token, roles, permissions, userId, username, nickname, avatar, setToken, getInfo, changeRoles, logout, resetToken }
 })
 
 /**

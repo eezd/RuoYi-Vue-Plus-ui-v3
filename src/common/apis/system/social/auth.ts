@@ -1,14 +1,10 @@
 import { request } from "@/http/axios.ts"
 
 // 获取跳转URL
-export function authRouterUrlApi(source: string, tenantId: string) {
+export function authRouterUrlApi(source: string) {
   return request({
     url: `/auth/binding/${source}`,
-    method: "get",
-    params: {
-      tenantId,
-      domain: window.location.host
-    }
+    method: "get"
   })
 }
 

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { FormRules } from "element-plus"
-import type { LoginData, LoginRequestData, TenantVO } from "@/common/apis/login/type"
-import { getCaptchaApi, getTenantListApi, loginApi } from "@@/apis/login"
+import type { LoginData, LoginRequestData } from "@/common/apis/login/type"
+import { getCaptchaApi, loginApi } from "@@/apis/login"
 import { authRouterUrlApi } from "@@/apis/system/social/auth"
 import ThemeSwitch from "@@/components/ThemeSwitch/index.vue"
 import { Key, Loading, Lock, Picture, User } from "@element-plus/icons-vue"
@@ -30,14 +30,10 @@ const codeUrl = ref("")
 
 // 验证码开关
 const captchaEnabled = ref(true)
-// 租户开关
-const tenantEnabled = ref(true)
-// 租户列表
-const tenantList = ref<TenantVO[]>([])
 
 /** 登录表单数据 */
 const loginFormData = ref<LoginRequestData>({
-  tenantId: "000000",
+
   username: "admin",
   password: "admin123",
   code: "",
@@ -70,13 +66,13 @@ function handleLogin() {
     loading.value = true
     // 勾选了需要记住密码设置在 localStorage 中设置记住用户名和密码
     if (loginFormData.value.rememberMe) {
-      localStorage.setItem("tenantId", String(loginFormData.value.tenantId))
+
       localStorage.setItem("username", String(loginFormData.value.username))
       localStorage.setItem("password", String(loginFormData.value.password))
       localStorage.setItem("rememberMe", String(loginFormData.value.rememberMe))
     } else {
       // 否则移除
-      localStorage.removeItem("tenantId")
+
       localStorage.removeItem("username")
       localStorage.removeItem("password")
       localStorage.removeItem("rememberMe")
@@ -100,7 +96,7 @@ function handleLogin() {
  * @param type
  */
 function doSocialLogin(type: string) {
-  authRouterUrlApi(type, localStorage.value.tenantId).then((res: any) => {
+  authRouterUrlApi(type).then((res: any) => {
     if (res.code === 200) {
       // 获取授权地址跳转
       window.location.href = res.data
@@ -125,36 +121,23 @@ function createCode() {
 }
 
 function getLoginData() {
-  const tenantId = localStorage.getItem("tenantId")
+
   const username = localStorage.getItem("username")
   const password = localStorage.getItem("password")
   const rememberMe = localStorage.getItem("rememberMe")
   loginFormData.value = {
-    tenantId: tenantId === null ? String(loginFormData.value.tenantId) : tenantId,
+
     username: username === null ? String(loginFormData.value.username) : username,
     password: password === null ? String(loginFormData.value.password) : String(password),
     rememberMe: rememberMe === null ? false : Boolean(rememberMe)
   } as LoginData
 }
 
-/**
- * 获取租户列表
- */
-async function initTenantList() {
-  const { data } = await getTenantListApi(false)
-  tenantEnabled.value = data.tenantEnabled === undefined ? true : data.tenantEnabled
-  if (tenantEnabled.value) {
-    tenantList.value = data.voList
-    if (tenantList.value != null && tenantList.value.length !== 0) {
-      loginFormData.value.tenantId = tenantList.value[0].tenantId
-    }
-  }
-}
 
 // 初始化验证码
 onMounted(() => {
   createCode()
-  initTenantList()
+
   getLoginData()
 })
 </script>
@@ -170,14 +153,6 @@ onMounted(() => {
       </div>
       <div class="content">
         <el-form ref="loginFormRef" :model="loginFormData" :rules="loginFormRules" @keyup.enter="handleLogin">
-          <el-form-item v-if="tenantEnabled" prop="tenantId">
-            <el-select v-model="loginFormData.tenantId" filterable style="width: 100%">
-              <el-option v-for="item in tenantList" :key="item.tenantId" :label="item.companyName" :value="item.tenantId" />
-              <template #prefix>
-                <SvgIcon name="company" class="el-input__icon input-icon" />
-              </template>
-            </el-select>
-          </el-form-item>
           <el-form-item prop="username">
             <el-input
               v-model.trim="loginFormData.username"
