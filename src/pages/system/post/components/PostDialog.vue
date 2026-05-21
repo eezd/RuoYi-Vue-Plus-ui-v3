@@ -2,12 +2,11 @@
 import type { FormInstance, FormRules } from "element-plus"
 import type { FormActionEmits } from "types/common"
 import type { DeptTreeVO } from "@/common/apis/system/dept/types"
-import type { PostForm, PostVO } from "@/common/apis/system/post/types"
+import type { PostForm } from "@/common/apis/system/post/types"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElInput } from "element-plus"
-import { ref } from "vue"
-import { addSysPostApi, getSysPostOptionSelectApi, updateSysPostApi } from "@/common/apis/system/post"
+import { addSysPostApi, updateSysPostApi } from "@/common/apis/system/post"
 
 interface Props {
   enabledDeptOptions: DeptTreeVO[]
@@ -27,7 +26,6 @@ const formData = defineModel<Partial<PostForm>>(
     required: true
   }
 )
-const deptOptions = defineModel<DeptTreeVO[]>("deptOptions", { required: true })
 // #endregion
 
 const { isMobile } = useDevice()
@@ -70,12 +68,6 @@ function resetForm() {
   formRef.value?.clearValidate()
 }
 
-// 岗位选项
-const postOptions = ref<PostVO[]>([])
-async function handleDeptChange(value: number | string) {
-  const response = await getSysPostOptionSelectApi(value)
-  postOptions.value = response.data
-}
 </script>
 
 <template>
@@ -105,17 +97,17 @@ async function handleDeptChange(value: number | string) {
             value-key="id"
             placeholder="请选择归属部门"
             check-strictly
-            @change="handleDeptChange"
+            :disabled="!dialog.isEditable"
           />
         </el-form-item>
         <el-form-item prop="postName" label="岗位名称">
-          <ElInput v-model="formData.postName" placeholder="请输入岗位名称" :disabled="!dialog.isEditable" />
+          <ElInput v-model="formData.postName" placeholder="请输入岗位名称" :disabled="!dialog.isEditable" maxlength="50" />
         </el-form-item>
         <el-form-item prop="postCode" label="岗位编码">
-          <ElInput v-model="formData.postCode" placeholder="请输入岗位编码" :disabled="!dialog.isEditable" />
+          <ElInput v-model="formData.postCode" placeholder="请输入岗位编码" :disabled="!dialog.isEditable" maxlength="64" />
         </el-form-item>
         <el-form-item prop="postCategory" label="类别编码">
-          <ElInput v-model="formData.postCategory" placeholder="请输入类别编码" :disabled="!dialog.isEditable" />
+          <ElInput v-model="formData.postCategory" placeholder="请输入类别编码" :disabled="!dialog.isEditable" maxlength="100" />
         </el-form-item>
         <el-form-item prop="postSort" label="岗位顺序">
           <ElInputNumber v-model.number="formData.postSort" placeholder="请输入岗位顺序" :disabled="!dialog.isEditable" controls-position="right" />
@@ -128,7 +120,7 @@ async function handleDeptChange(value: number | string) {
           </el-radio-group>
         </el-form-item>
         <el-form-item prop="remark" label="备注">
-          <ElInput v-model="formData.remark" type="textarea" placeholder="请输入备注" :disabled="!dialog.isEditable" />
+          <ElInput v-model="formData.remark" type="textarea" placeholder="请输入备注" :disabled="!dialog.isEditable" maxlength="500" />
         </el-form-item>
       </el-form>
     </div>

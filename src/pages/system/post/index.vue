@@ -8,8 +8,7 @@ import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref, watch } from "vue"
-import { delSysPostApi, getSysPostApi, getSysPostListApi } from "@/common/apis/system/post"
-import { getSysDeptTreeSelectApi } from "@/common/apis/system/user"
+import { delSysPostApi, getSysDeptTreeSelectApi, getSysPostApi, getSysPostListApi } from "@/common/apis/system/post"
 import { download } from "@/http/download"
 import PostDialog from "./components/PostDialog.vue"
 import PostTable from "./components/PostTable.vue"
@@ -59,6 +58,7 @@ const searchData = reactive({
 const searchFormRef = useTemplateRef("searchFormRef")
 async function resetSearch() {
   searchFormRef.value?.resetFields()
+  searchData.belongDeptId = undefined
   await getTableData()
 }
 // #endregion
@@ -87,7 +87,7 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: PostForm | PostForm[]) {
+async function handleDelete(row: PostVO | PostVO[]) {
   const items = Array.isArray(row) ? row : [row]
   const deleteIds = items.map(item => item.postId)
   const message = Array.isArray(row)
@@ -129,9 +129,9 @@ function handleExport() {
  * 统一处理数据弹窗
  *
  * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
- * @param row 可选参数,编辑或查看时传入对应的用户项
+ * @param row 可选参数,编辑或查看时传入对应的岗位项
  */
-async function handleOpenDialog(type: "add" | "edit" | "show", row?: PostForm) {
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: PostVO) {
   dialog.visible = true
   dialog.isEditable = type !== "show"
   dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]
@@ -161,6 +161,12 @@ const enabledDeptOptions = ref<DeptTreeVO[]>([])
 
 const deptTreeRef = useTemplateRef("deptTreeRef")
 
+function handleDeptSelectChange(value?: string | number) {
+  if (value) {
+    searchData.belongDeptId = undefined
+  }
+}
+
 /** 查询部门下拉树结构 */
 async function getDeptTree() {
   const res = await getSysDeptTreeSelectApi()
@@ -188,7 +194,8 @@ function filterNode(value: string, data: any) {
 
 /** 节点单击事件 */
 function handleNodeClick(data: DeptVO) {
-  searchData.deptId = data.id
+  searchData.belongDeptId = data.id
+  searchData.deptId = undefined
   getTableData()
 }
 
@@ -264,6 +271,7 @@ onMounted(async () => {
                 value-key="id"
                 placeholder="请选择部门"
                 check-strictly
+                @change="handleDeptSelectChange"
               />
             </el-form-item>
             <el-form-item prop="status" label="状态">

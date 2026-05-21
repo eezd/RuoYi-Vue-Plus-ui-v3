@@ -3,22 +3,22 @@ export interface PostVO extends BaseEntity {
   deptId: number | string
   postCode: string
   postName: string
-  postCategory: string
-  deptName: string
+  postCategory?: string
+  deptName?: string
   postSort: number
   status: string
-  remark: string
+  remark?: string
 }
 
 export interface PostForm {
-  postId: number | string
-  deptId: number | string
-  postCode: string
-  postName: string
-  postCategory: string
-  postSort: number
-  status: string
-  remark: string
+  postId?: number | string
+  deptId?: number | string
+  postCode?: string
+  postName?: string
+  postCategory?: string
+  postSort?: number
+  status?: string
+  remark?: string
 }
 
 export interface PostQuery extends PageQuery {

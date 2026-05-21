@@ -1,12 +1,11 @@
 <script lang="ts" setup>
 import type { PaginationData } from "@@/composables/usePagination.ts"
-import type { PostForm, PostVO } from "@/common/apis/system/post/types"
+import type { PostVO } from "@/common/apis/system/post/types"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { useDict } from "@/common/composables/useDict"
-import { download } from "@/http/download"
 
 const emit = defineEmits<EmitEvents>()
 
@@ -25,14 +24,14 @@ const loading = defineModel<boolean>("loading", { required: true })
 // #region EmitEvents
 export interface EmitEvents {
   openAddDialog: []
-  handleDelete: [rows: PostForm[]]
+  handleDelete: [rows: PostVO[]]
   handleExport: []
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
 }
 const openAddDialog = () => emit("openAddDialog")
-const handleDelete = (rows: PostForm[]) => emit("handleDelete", rows)
+const handleDelete = (rows: PostVO[]) => emit("handleDelete", rows)
 const handleExport = () => emit("handleExport")
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
@@ -43,21 +42,10 @@ const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 
 const { isMobile } = useDevice()
 
-const selectedRows = ref<PostForm[]>([])
+const selectedRows = ref<PostVO[]>([])
 
-const handleSelectionChange = (val: PostForm[]) => (selectedRows.value = val)
+const handleSelectionChange = (val: PostVO[]) => (selectedRows.value = val)
 
-/**
- * 导出
- */
-function importTemplate() {
-  const timestamp = new Date().getTime()
-  download(
-    "/system/post/importTemplate",
-    { },
-    `post_template_${timestamp}.xlsx`
-  )
-}
 </script>
 
 <template>
@@ -82,7 +70,7 @@ function importTemplate() {
         </el-button>
         <el-button
           type="warning" plain icon="Download"
-          v-hasPermi="['system:role:export']"
+          v-hasPermi="['system:post:export']"
           @click="handleExport()"
         >
           导出

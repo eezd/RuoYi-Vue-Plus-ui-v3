@@ -1,14 +1,16 @@
 import type { DeptTreeVO } from "../dept/types"
 import type { PostForm, PostQuery, PostVO } from "./types"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
 // 查询岗位列表
-export function getSysPostListApi(query: PostQuery) {
-  return request<ApiResponsePageData<PostVO[]>>({
+export async function getSysPostListApi(query: PostQuery) {
+  const response = await request<ApiResponseData<PageResult<PostVO>>>({
     url: "/system/post/list",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 // 查询岗位详细
@@ -33,7 +35,7 @@ export function getSysPostOptionSelectApi(deptId?: number | string, postIds?: (n
 
 // 新增岗位
 export function addSysPostApi(data: PostForm) {
-  return request({
+  return request<ApiResponseData<null>>({
     url: "/system/post",
     method: "post",
     data
@@ -42,7 +44,7 @@ export function addSysPostApi(data: PostForm) {
 
 // 修改岗位
 export function updateSysPostApi(data: PostForm) {
-  return request({
+  return request<ApiResponseData<null>>({
     url: "/system/post",
     method: "put",
     data
@@ -50,8 +52,8 @@ export function updateSysPostApi(data: PostForm) {
 }
 
 // 删除岗位
-export function delSysPostApi(postId: string | number | (string | number)[]) {
-  return request({
+export function delSysPostApi(postId: string | number | Array<string | number>) {
+  return request<ApiResponseData<null>>({
     url: `/system/post/${postId}`,
     method: "delete"
   })

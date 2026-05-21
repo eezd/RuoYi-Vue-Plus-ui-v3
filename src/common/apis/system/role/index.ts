@@ -1,18 +1,10 @@
 import type { UserQuery, UserVO } from "../user/types.ts"
-import type { RoleDeptTree, RoleForm, RolePageResult, RoleQuery, RoleVO } from "./types.ts"
+import type { RoleDeptTree, RoleForm, RoleQuery, RoleVO } from "./types.ts"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
-function normalizePageResult<T>(response: ApiResponseData<RolePageResult<T>>): ApiResponsePageData<T[]> {
-  return {
-    code: response.code,
-    msg: response.msg,
-    rows: response.data?.rows || [],
-    total: response.data?.total || 0
-  }
-}
-
 export async function getSysRolelistApi(query: RoleQuery) {
-  const response = await request<ApiResponseData<RolePageResult<RoleVO>>>({
+  const response = await request<ApiResponseData<PageResult<RoleVO>>>({
     url: "/system/role/list",
     method: "get",
     params: query
@@ -104,7 +96,7 @@ export function delSysRoleApi(roleId: Array<string | number> | string | number) 
  * 查询角色已授权用户列表
  */
 export async function getRoleAuthorizedUsersListApi(query: UserQuery) {
-  const response = await request<ApiResponseData<RolePageResult<UserVO>>>({
+  const response = await request<ApiResponseData<PageResult<UserVO>>>({
     url: "/system/role/authUser/allocatedList",
     method: "get",
     params: query
@@ -116,7 +108,7 @@ export async function getRoleAuthorizedUsersListApi(query: UserQuery) {
  * 查询角色未授权用户列表
  */
 export async function getRoleUnauthorizedUsersListApi(query: UserQuery) {
-  const response = await request<ApiResponseData<RolePageResult<UserVO>>>({
+  const response = await request<ApiResponseData<PageResult<UserVO>>>({
     url: "/system/role/authUser/unallocatedList",
     method: "get",
     params: query

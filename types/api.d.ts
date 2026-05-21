@@ -11,3 +11,9 @@ interface ApiResponsePageData<T> {
   rows: T
   msg: string
 }
+
+/** 后端 6.X PageResult 分页数据结构 */
+interface PageResult<T> {
+  rows: T[]
+  total: number
+}

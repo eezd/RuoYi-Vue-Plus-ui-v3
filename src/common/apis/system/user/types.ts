@@ -10,11 +10,6 @@ export interface UserInfo {
   permissions: string[]
 }
 
-export interface UserPageResult<T> {
-  rows: T[]
-  total: number
-}
-
 /**
  * 用户查询对象类型
  */

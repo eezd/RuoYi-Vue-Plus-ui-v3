@@ -14,11 +14,6 @@ export interface RoleDeptTree {
   depts: DeptTreeOption[]
 }
 
-export interface RolePageResult<T> {
-  total: number
-  rows: T[]
-}
-
 export interface RoleVO extends BaseEntity {
   roleId: string | number
   roleName: string

@@ -1,17 +1,9 @@
 import type { DeptTreeVO } from "../dept/types.ts"
 import type { RoleVO } from "../role/types.ts"
-import type { UserForm, UserInfo, UserInfoVO, UserPageResult, UserQuery, UserVO } from "./types.ts"
+import type { UserForm, UserInfo, UserInfoVO, UserQuery, UserVO } from "./types.ts"
 import { parseStrEmpty } from "@@/utils"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
-
-function normalizePageResult<T>(response: ApiResponseData<UserPageResult<T>>): ApiResponsePageData<T[]> {
-  return {
-    code: response.code,
-    msg: response.msg,
-    rows: response.data?.rows || [],
-    total: response.data?.total || 0
-  }
-}
 
 // 获取用户详细信息
 export function getInfoApi() {
@@ -25,7 +17,7 @@ export function getInfoApi() {
  * 查询用户列表
  */
 export async function getSysUserListApi(query: UserQuery) {
-  const response = await request<ApiResponseData<UserPageResult<UserVO>>>({
+  const response = await request<ApiResponseData<PageResult<UserVO>>>({
     url: "/system/user/list",
     method: "get",
     params: query
