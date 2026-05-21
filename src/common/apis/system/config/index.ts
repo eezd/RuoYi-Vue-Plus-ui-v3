@@ -1,13 +1,15 @@
 import type { ConfigForm, ConfigQuery, ConfigVO } from "./types.ts"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
 // 查询参数列表
-export function getSysConfigListApi(query: ConfigQuery) {
-  return request<ApiResponsePageData<ConfigVO[]>>({
+export async function getSysConfigListApi(query: ConfigQuery) {
+  const response = await request<ApiResponseData<PageResult<ConfigVO>>>({
     url: "/system/config/list",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 // 查询参数详细
@@ -44,8 +46,8 @@ export function updateSysConfigApi(data: ConfigForm) {
   })
 }
 
-// 修改参数配置
-export function updateSysConfigByKeyApi(key: string, value: any) {
+// 根据参数键名修改参数配置
+export function updateSysConfigByKeyApi(key: string, value: unknown) {
   return request<ApiResponseData<null>>({
     url: "/system/config/updateByKey",
     method: "put",

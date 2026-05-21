@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ConfigForm, ConfigQuery } from "@@/apis/system/config/types.ts"
+import type { ConfigForm, ConfigQuery, ConfigVO } from "@@/apis/system/config/types.ts"
 import { delSysConfigApi, getSysConfigApi, getSysConfigListApi } from "@@/apis/system/config"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
@@ -21,7 +21,7 @@ const { sys_yes_no } = toRefs<any>(useDict("sys_yes_no"))
 const loading = ref(true)
 
 // 表格数据
-const tableData = ref<ConfigForm[]>([])
+const tableData = ref<ConfigVO[]>([])
 const DEFAULT_FORM_DATA: Partial<ConfigForm> = {
   configId: undefined,
   configName: "",
@@ -92,7 +92,7 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: ConfigForm | ConfigForm[]) {
+async function handleDelete(row: ConfigVO | ConfigVO[]) {
   const items = Array.isArray(row) ? row : [row]
   const deleteIds = items.map(item => item.configId)
   const message = Array.isArray(row)
@@ -135,7 +135,7 @@ function handleExport() {
  * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
  * @param row 可选参数,编辑或查看时传入对应的菜单项
  */
-async function handleOpenDialog(type: "add" | "edit" | "show", row?: ConfigForm) {
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: ConfigVO) {
   dialog.visible = true
   dialog.isEditable = type !== "show"
   dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]

@@ -1,11 +1,13 @@
 <script lang="ts" setup>
-import type { ConfigForm } from "@@/apis/system/config/types.ts"
+import type { ConfigVO } from "@@/apis/system/config/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
+import { refreshCacheApi } from "@@/apis/system/config"
 import { useDict } from "@@/composables/useDict.ts"
 import { formatDateTime } from "@@/utils"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
+import { ElMessage } from "element-plus"
 import { ref } from "vue"
 
 const emit = defineEmits<EmitEvents>()
@@ -13,7 +15,7 @@ const emit = defineEmits<EmitEvents>()
  * defineModel
  */
 // #region defineModel
-const tableData = defineModel<ConfigForm[]>("tableData", { required: true })
+const tableData = defineModel<ConfigVO[]>("tableData", { required: true })
 const paginationData = defineModel<PaginationData>("paginationData", { required: true })
 const loading = defineModel<boolean>("loading", { required: true })
 // #endregion
@@ -24,14 +26,14 @@ const loading = defineModel<boolean>("loading", { required: true })
 // #region EmitEvents
 export interface EmitEvents {
   openAddDialog: []
-  handleDelete: [rows: ConfigForm[]]
+  handleDelete: [rows: ConfigVO[]]
   handleExport: []
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
 }
 const openAddDialog = () => emit("openAddDialog")
-const handleDelete = (rows: ConfigForm[]) => emit("handleDelete", rows)
+const handleDelete = (rows: ConfigVO[]) => emit("handleDelete", rows)
 const handleExport = () => emit("handleExport")
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
@@ -42,9 +44,19 @@ const { sys_yes_no } = toRefs<any>(useDict("sys_yes_no"))
 
 const { isMobile } = useDevice()
 
-const selectedRows = ref<ConfigForm[]>([])
+const selectedRows = ref<ConfigVO[]>([])
 
-const handleSelectionChange = (val: ConfigForm[]) => (selectedRows.value = val)
+const handleSelectionChange = (val: ConfigVO[]) => (selectedRows.value = val)
+
+async function handleRefreshCache() {
+  loading.value = true
+  try {
+    await refreshCacheApi()
+    ElMessage.success("刷新缓存成功")
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
@@ -73,6 +85,13 @@ const handleSelectionChange = (val: ConfigForm[]) => (selectedRows.value = val)
           @click="handleExport()"
         >
           导出
+        </el-button>
+        <el-button
+          type="danger" plain icon="Refresh"
+          v-hasPermi="['system:config:remove']"
+          @click="handleRefreshCache()"
+        >
+          刷新缓存
         </el-button>
       </div>
       <div>
