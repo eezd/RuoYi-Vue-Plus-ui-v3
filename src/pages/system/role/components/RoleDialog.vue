@@ -1,9 +1,8 @@
 <script lang="ts" setup>
-import type { MenuTreeOption, RoleMenuTree } from "@@/apis/system/menu/types.ts"
+import type { MenuTreeOption } from "@@/apis/system/menu/types.ts"
 import type { RoleForm } from "@@/apis/system/role/types.ts"
 import type { FormRules } from "element-plus"
 import type { FormActionEmits } from "types/common"
-import { getMenuTreeSelectByRoleIdApi } from "@@/apis/system/menu"
 import { addSysRoleApi, updateSysRoleApi } from "@@/apis/system/role"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
@@ -30,7 +29,6 @@ const { isMobile } = useDevice()
 const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 
 const menuPermissionRef = useTemplateRef("menuPermissionRef")
-
 const formRef = useTemplateRef("formRef")
 const formRules: FormRules<RoleForm> = {
   roleName: [
@@ -62,7 +60,9 @@ async function handleSubmit() {
     await formRef.value.validate()
     dialog.value.loading = true
     const isUpdate = !!formData.value.roleId
-    formData.value.menuIds = menuPermissionRef.value?.getAllCheckedKeys()
+    if (!isUpdate) {
+      formData.value.menuIds = menuPermissionRef.value?.getAllCheckedKeys() || []
+    }
     const reqData = formData.value as RoleForm
     const res = isUpdate
       ? await updateSysRoleApi(reqData)
@@ -81,30 +81,10 @@ function handleCancel() {
   dialog.value.visible = false
   emit("cancel")
 }
-
 function resetForm() {
   formRef.value?.clearValidate()
   menuPermissionRef.value?.reset()
 }
-
-function getRoleMenuTreeselect(roleId: string | number) {
-  return getMenuTreeSelectByRoleIdApi(roleId).then((res): RoleMenuTree => {
-    menuOptions.value = res.data.menus
-    return res.data
-  })
-}
-
-watch(() => formData.value.roleId, async () => {
-  try {
-    if (formData.value.roleId !== undefined) {
-      dialog.value.loading = true
-      const menuRes = await getRoleMenuTreeselect(formData.value.roleId)
-      menuPermissionRef.value?.setCheckedKeys(menuRes.checkedKeys)
-    }
-  } finally {
-    dialog.value.loading = false
-  }
-})
 </script>
 
 <template>
@@ -142,7 +122,7 @@ watch(() => formData.value.roleId, async () => {
             </el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item prop="menuCheckStrictly" label="菜单权限">
+        <el-form-item v-if="!formData.roleId" prop="menuCheckStrictly" label="菜单权限">
           <TreePermission
             ref="menuPermissionRef"
             v-model:check-strictly="formData.menuCheckStrictly"

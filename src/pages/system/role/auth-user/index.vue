@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import type { RoleForm } from "@@/apis/system/role/types.ts"
 import type { UserQuery, UserVO } from "@@/apis/system/user/types.ts"
-import { delSysRoleApi, getRoleAuthorizedUsersListApi, revokeRoleFromUserApi } from "@@/apis/system/role"
+import { getRoleAuthorizedUsersListApi, revokeRoleFromUserApi, revokeRoleFromUsersApi } from "@@/apis/system/role"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { CircleClose, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
@@ -75,12 +74,12 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: RoleForm | RoleForm[]) {
+async function handleDelete(row: UserVO | UserVO[]) {
   const items = Array.isArray(row) ? row : [row]
-  const deleteIds = items.map(item => item.roleId)
+  const userIds = items.map(item => item.userId)
   const message = Array.isArray(row)
-    ? `正在删除 ${row.length} 条数据，确认删除？`
-    : `正在删除：${row.roleName}，确认删除？`
+    ? `正在取消授权 ${row.length} 个用户，确认继续？`
+    : `正在取消授权：${row.userName}，确认继续？`
 
   try {
     await ElMessageBox.confirm(message, "提示", {
@@ -89,8 +88,11 @@ async function handleDelete(row: RoleForm | RoleForm[]) {
       type: "warning"
     })
     loading.value = true
-    const res = await delSysRoleApi(deleteIds)
-    ElMessage.success(res.msg)
+    await revokeRoleFromUsersApi({
+      roleId: searchData.roleId as number,
+      userIds: userIds.join(",")
+    })
+    ElMessage.success("取消授权成功")
     await getTableData()
   } catch {
   } finally {

@@ -25,7 +25,7 @@ const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 const loading = ref(true)
 
 // 表格数据
-const tableData = ref<RoleForm[]>([])
+const tableData = ref<RoleVO[]>([])
 const DEFAULT_FORM_DATA: Partial<RoleForm> = {
   roleId: undefined,
   roleSort: 1,
@@ -103,7 +103,7 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: RoleForm | RoleForm[]) {
+async function handleDelete(row: RoleVO | RoleVO[]) {
   const items = Array.isArray(row) ? row : [row]
   const deleteIds = items.map(item => item.roleId)
   const message = Array.isArray(row)
@@ -151,7 +151,7 @@ function handleExport() {
  * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
  * @param row 可选参数,编辑或查看时传入对应的菜单项
  */
-async function handleOpenDialog(type: "add" | "edit" | "show", row?: RoleForm) {
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: RoleVO) {
   dialog.visible = true
   dialog.isEditable = type !== "show"
   dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]
@@ -178,9 +178,9 @@ const dialogDataScope = reactive<DialogOption>({
   loading: false,
   isEditable: false
 })
-async function openDataScope(row: RoleForm) {
+async function openDataScope(row: RoleVO) {
   dialogDataScope.loading = true
-  dialogDataScope.title = "数据权限"
+  dialogDataScope.title = "分配权限"
   dialogDataScope.isEditable = true
   dialogDataScope.visible = true
   try {
@@ -281,7 +281,7 @@ onMounted(async () => {
           >
             查看
           </el-button>
-          <el-dropdown trigger="hover" v-if="scope.row.roleId !== 1">
+          <el-dropdown trigger="hover" v-if="scope.row.roleId !== 1 && !scope.row.superAdmin">
             <span class="el-dropdown-link">
               <el-icon color="#409EFF"><more-filled /></el-icon>
             </span>
@@ -297,7 +297,7 @@ onMounted(async () => {
                   <el-icon color="#F56C6C">
                     <CircleCheck />
                   </el-icon>
-                  数据权限
+                  分配权限
                 </el-dropdown-item>
                 <el-dropdown-item @click="handleAuthUser(scope.row)" v-if="checkPermission(['system:role:edit'])">
                   <el-icon color="#F56C6C">
@@ -329,6 +329,7 @@ onMounted(async () => {
     <RoleDataScopeDialog
       v-model:dialog="dialogDataScope"
       v-model:form-data="formData"
+      v-model:menu-options="menuOptions"
       @success="getTableData"
     />
   </div>

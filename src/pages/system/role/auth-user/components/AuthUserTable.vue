@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { RoleForm } from "@@/apis/system/role/types.ts"
 import type { UserVO } from "@@/apis/system/user/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import DictTag from "@@/components/DictTag/index.vue"
@@ -34,20 +33,20 @@ const loading = defineModel<boolean>("loading", { required: true })
 // #region EmitEvents
 export interface EmitEvents {
   openAddDialog: []
-  handleDelete: [rows: RoleForm[]]
+  handleDelete: [rows: UserVO[]]
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
 }
 const openAddDialog = () => emit("openAddDialog")
-const handleDelete = (rows: RoleForm[]) => emit("handleDelete", rows)
+const handleDelete = (rows: UserVO[]) => emit("handleDelete", rows)
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
 const getTableData = () => emit("getTableData")
 // #endregion
 
-const selectedRows = ref<RoleForm[]>([])
-const handleSelectionChange = (val: RoleForm[]) => (selectedRows.value = val)
+const selectedRows = ref<UserVO[]>([])
+const handleSelectionChange = (val: UserVO[]) => (selectedRows.value = val)
 async function handleClose() {
   tagsViewStore.delVisitedView(router.currentRoute.value)
   router.back()

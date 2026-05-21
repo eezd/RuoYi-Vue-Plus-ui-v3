@@ -1,9 +1,10 @@
 <script lang="ts" setup>
+import type { MenuTreeOption, RoleMenuTree } from "@@/apis/system/menu/types.ts"
 import type { DeptTreeOption, RoleForm } from "@@/apis/system/role/types.ts"
 import type { FormActionEmits } from "types/common"
-import { getSysDeptTreeSelectApi, updateSysRoleDataScopeApi } from "@@/apis/system/role"
+import { getMenuTreeSelectByRoleIdApi } from "@@/apis/system/menu"
+import { getSysDeptTreeSelectApi, updateSysRolePermissionApi } from "@@/apis/system/role"
 import { useDevice } from "@@/composables/useDevice.ts"
-import { useDict } from "@@/composables/useDict.ts"
 import { ElMessage } from "element-plus"
 import TreePermission from "./TreePermission.vue"
 
@@ -13,6 +14,7 @@ const emit = defineEmits<FormActionEmits>()
  * defineModel
  */
 // #region defineModel
+const menuOptions = defineModel<MenuTreeOption[]>("menuOptions", { required: true })
 const dialog = defineModel<DialogOption>("dialog", { required: true })
 const formData = defineModel<Partial<RoleForm>>(
   "formData",
@@ -23,8 +25,7 @@ const formData = defineModel<Partial<RoleForm>>(
 // #endregion
 
 const { isMobile } = useDevice()
-const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
-
+const menuPermissionRef = useTemplateRef("menuPermissionRef")
 const deptPermissionRef = useTemplateRef("deptPermissionRef")
 
 const deptOptions = ref<DeptTreeOption[]>([])
@@ -46,8 +47,9 @@ async function handleSubmit() {
     await formRef.value.validate()
     if (formData.value.roleId) {
       dialog.value.loading = true
-      formData.value.deptIds = deptPermissionRef.value?.getAllCheckedKeys()
-      await updateSysRoleDataScopeApi(formData.value)
+      formData.value.menuIds = menuPermissionRef.value?.getAllCheckedKeys() || []
+      formData.value.deptIds = formData.value.dataScope === "2" ? deptPermissionRef.value?.getAllCheckedKeys() || [] : []
+      await updateSysRolePermissionApi(formData.value as RoleForm)
       ElMessage.success("修改成功")
       resetForm()
       dialog.value.visible = false
@@ -66,6 +68,7 @@ function handleCancel() {
 
 function resetForm() {
   formRef.value?.clearValidate()
+  menuPermissionRef.value?.reset()
   deptPermissionRef.value?.reset()
 }
 
@@ -75,7 +78,14 @@ function dataScopeSelectChange(value: string) {
   }
 }
 
-/** 根据角色ID查询部门树结构 */
+/** 根据角色ID查询菜单树结构 */
+function getRoleMenuTreeselect(roleId: string | number) {
+  return getMenuTreeSelectByRoleIdApi(roleId).then((res): RoleMenuTree => {
+    menuOptions.value = res.data.menus
+    return res.data
+  })
+}
+
 async function getRoleDeptTreeSelect(roleId: string | number) {
   const res = await getSysDeptTreeSelectApi(roleId)
   deptOptions.value = res.data.depts
@@ -86,7 +96,9 @@ watch(() => formData.value.roleId, async () => {
   try {
     if (formData.value.roleId !== undefined) {
       dialog.value.loading = true
+      const menuRes = await getRoleMenuTreeselect(formData.value.roleId)
       const deptRes = await getRoleDeptTreeSelect(formData.value.roleId)
+      menuPermissionRef.value?.setCheckedKeys(menuRes.checkedKeys)
       deptPermissionRef.value?.setCheckedKeys(deptRes.checkedKeys)
     }
   } finally {
@@ -120,19 +132,20 @@ watch(() => formData.value.roleId, async () => {
         <el-form-item prop="roleKey" label="权限字符">
           <el-input v-model="formData.roleKey" placeholder="请输入权限字符" :disabled="!dialog.isEditable" />
         </el-form-item>
-        <el-form-item prop="roleSort" label="角色顺序">
-          <el-select v-model="formData.dataScope" @change="dataScopeSelectChange">
+        <el-form-item prop="dataScope" label="数据范围">
+          <el-select v-model="formData.dataScope" @change="dataScopeSelectChange" :disabled="!dialog.isEditable">
             <el-option v-for="item in dataScopeOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
-        <el-form-item prop="status" label="状态">
-          <el-radio-group v-model="formData.status" :disabled="!dialog.isEditable">
-            <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :value="dict.value">
-              {{ dict.label }}
-            </el-radio>
-          </el-radio-group>
+        <el-form-item prop="menuCheckStrictly" label="菜单权限">
+          <TreePermission
+            ref="menuPermissionRef"
+            v-model:check-strictly="formData.menuCheckStrictly"
+            :tree-data="menuOptions"
+            :editable="dialog.isEditable"
+          />
         </el-form-item>
-        <el-form-item v-show="formData.dataScope === '2'" prop="menuCheckStrictly" label="菜单权限">
+        <el-form-item v-show="formData.dataScope === '2'" prop="deptCheckStrictly" label="数据权限">
           <TreePermission
             ref="deptPermissionRef"
             v-model:check-strictly="formData.deptCheckStrictly"

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { RoleForm } from "@@/apis/system/role/types.ts"
+import type { RoleVO } from "@@/apis/system/role/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import { changeSysRoleStatusApi } from "@@/apis/system/role"
 import { useDevice } from "@@/composables/useDevice.ts"
@@ -12,7 +12,7 @@ const emit = defineEmits<EmitEvents>()
  * defineModel
  */
 // #region defineModel
-const tableData = defineModel<RoleForm[]>("tableData", { required: true })
+const tableData = defineModel<RoleVO[]>("tableData", { required: true })
 const paginationData = defineModel<PaginationData>("paginationData", { required: true })
 const loading = defineModel<boolean>("loading", { required: true })
 // #endregion
@@ -23,14 +23,14 @@ const loading = defineModel<boolean>("loading", { required: true })
 // #region EmitEvents
 export interface EmitEvents {
   openAddDialog: []
-  handleDelete: [rows: RoleForm[]]
+  handleDelete: [rows: RoleVO[]]
   handleExport: []
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
 }
 const openAddDialog = () => emit("openAddDialog")
-const handleDelete = (rows: RoleForm[]) => emit("handleDelete", rows)
+const handleDelete = (rows: RoleVO[]) => emit("handleDelete", rows)
 const handleExport = () => emit("handleExport")
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
@@ -39,11 +39,11 @@ const getTableData = () => emit("getTableData")
 
 const { isMobile } = useDevice()
 
-const selectedRows = ref<RoleForm[]>([])
+const selectedRows = ref<RoleVO[]>([])
 
-const handleSelectionChange = (val: RoleForm[]) => (selectedRows.value = val)
+const handleSelectionChange = (val: RoleVO[]) => (selectedRows.value = val)
 
-async function handleStatusChange(row: RoleForm) {
+async function handleStatusChange(row: RoleVO) {
   const text = row.status === "0" ? "启用" : "停用"
   try {
     await ElMessageBox.confirm(`确认要"${text}""${row.roleName}"吗?`, "提示", {

@@ -2,20 +2,25 @@
  * 菜单树形结构类型
  */
 export interface DeptTreeOption {
-  id: string
+  id: string | number
   label: string
-  parentId: string
+  parentId: string | number
   weight: number
   children?: DeptTreeOption[]
 }
 
 export interface RoleDeptTree {
-  checkedKeys: string[]
+  checkedKeys: Array<string | number>
   depts: DeptTreeOption[]
 }
 
+export interface RolePageResult<T> {
+  total: number
+  rows: T[]
+}
+
 export interface RoleVO extends BaseEntity {
-  roleId: string
+  roleId: string | number
   roleName: string
   roleKey: string
   roleSort: number
@@ -26,9 +31,9 @@ export interface RoleVO extends BaseEntity {
   delFlag: string
   remark: any
   flag: boolean
-  menuIds: Array<string | number>
-  deptIds: Array<string | number>
-  admin: boolean
+  menuIds?: Array<string | number>
+  deptIds?: Array<string | number>
+  superAdmin: boolean
 }
 
 export interface RoleQuery extends PageQuery {
@@ -42,7 +47,7 @@ export interface RoleQuery extends PageQuery {
 }
 
 export interface RoleForm {
-  roleId: string
+  roleId?: string | number
   roleName: string
   roleKey: string
   roleSort: number
