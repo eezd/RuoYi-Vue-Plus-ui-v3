@@ -1,15 +1,17 @@
 import type { ClientForm, ClientQuery, ClientVO } from "./types.ts"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
 /**
  * 查询客户端管理列表
  */
-export function getSysClientListApi(query?: ClientQuery) {
-  return request<ApiResponsePageData<ClientVO[]>>({
+export async function getSysClientListApi(query?: ClientQuery) {
+  const response = await request<ApiResponseData<PageResult<ClientVO>>>({
     url: "/system/client/list",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**
@@ -58,13 +60,12 @@ export function delSysClientApi(id: string | number | Array<string | number>) {
  * 状态修改
  */
 export function changeSysClientStatusApi(clientId: string, status: string) {
-  const data = {
-    clientId,
-    status
-  }
   return request<ApiResponseData<null>>({
     url: "/system/client/changeStatus",
     method: "put",
-    data
+    data: {
+      clientId,
+      status
+    }
   })
 }

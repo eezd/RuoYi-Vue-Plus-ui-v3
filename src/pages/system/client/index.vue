@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ClientForm, ClientQuery } from "@@/apis/system/client/types.ts"
+import type { ClientForm, ClientQuery, ClientVO } from "@@/apis/system/client/types.ts"
 import { delSysClientApi, getSysClientApi, getSysClientListApi } from "@@/apis/system/client"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
@@ -21,7 +21,7 @@ const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 const loading = ref(true)
 
 // 表格数据
-const tableData = ref<ClientForm[]>([])
+const tableData = ref<ClientVO[]>([])
 const DEFAULT_FORM_DATA: Partial<ClientForm> = {
   id: undefined,
   clientId: undefined,
@@ -29,9 +29,13 @@ const DEFAULT_FORM_DATA: Partial<ClientForm> = {
   clientSecret: undefined,
   grantTypeList: undefined,
   deviceType: undefined,
+  accessPath: undefined,
+  accessPathList: undefined,
+  ipWhitelist: undefined,
+  ipWhitelistList: undefined,
   activeTimeout: undefined,
   timeout: undefined,
-  status: undefined
+  status: "0"
 }
 // 表单数据
 const formData = ref<Partial<ClientForm>>(cloneDeep(DEFAULT_FORM_DATA))
@@ -82,7 +86,7 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: ClientForm | ClientForm[]) {
+async function handleDelete(row: ClientVO | ClientVO[]) {
   const items = Array.isArray(row) ? row : [row]
   const deleteIds = items.map(item => item.id)
   const message = Array.isArray(row)
@@ -125,7 +129,7 @@ function handleExport() {
  * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
  * @param row 可选参数,编辑或查看时传入对应的菜单项
  */
-async function handleOpenDialog(type: "add" | "edit" | "show", row?: ClientForm) {
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: ClientVO) {
   dialog.visible = true
   dialog.isEditable = type !== "show"
   dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]

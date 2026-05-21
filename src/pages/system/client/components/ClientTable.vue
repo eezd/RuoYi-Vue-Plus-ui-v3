@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ClientForm, ClientVO } from "@@/apis/system/client/types.ts"
+import type { ClientVO } from "@@/apis/system/client/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import { changeSysClientStatusApi } from "@@/apis/system/client"
 import DictTag from "@@/components/DictTag/index.vue"
@@ -13,7 +13,7 @@ const emit = defineEmits<EmitEvents>()
  * defineModel
  */
 // #region defineModel
-const tableData = defineModel<ClientForm[]>("tableData", { required: true })
+const tableData = defineModel<ClientVO[]>("tableData", { required: true })
 const paginationData = defineModel<PaginationData>("paginationData", { required: true })
 const loading = defineModel<boolean>("loading", { required: true })
 // #endregion
@@ -24,14 +24,14 @@ const loading = defineModel<boolean>("loading", { required: true })
 // #region EmitEvents
 export interface EmitEvents {
   openAddDialog: []
-  handleDelete: [rows: ClientForm[]]
+  handleDelete: [rows: ClientVO[]]
   handleExport: []
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
 }
 const openAddDialog = () => emit("openAddDialog")
-const handleDelete = (rows: ClientForm[]) => emit("handleDelete", rows)
+const handleDelete = (rows: ClientVO[]) => emit("handleDelete", rows)
 const handleExport = () => emit("handleExport")
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
@@ -42,9 +42,22 @@ const { sys_grant_type, sys_device_type } = toRefs<any>(useDict("sys_grant_type"
 
 const { isMobile } = useDevice()
 
-const selectedRows = ref<ClientForm[]>([])
+const selectedRows = ref<ClientVO[]>([])
 
-const handleSelectionChange = (val: ClientForm[]) => (selectedRows.value = val)
+const handleSelectionChange = (val: ClientVO[]) => (selectedRows.value = val)
+
+function getRuleList(ruleList?: string[], ruleValue?: string) {
+  if (Array.isArray(ruleList) && ruleList.length) {
+    return ruleList
+  }
+  if (!ruleValue) {
+    return []
+  }
+  return ruleValue
+    .split(/[\n,;]+/)
+    .map(item => item.trim())
+    .filter(Boolean)
+}
 
 async function handleStatusChange(row: ClientVO) {
   const text = row.status === "0" ? "启用" : "停用"
@@ -63,7 +76,7 @@ async function handleStatusChange(row: ClientVO) {
 </script>
 
 <template>
-  <el-card v-loading="loading" shadow="never">
+  <el-card v-loading="loading" shadow="never" class="system-client-table">
     <div class="toolbar-wrapper">
       <div :style="isMobile ? 'display:flex; gap: 10px; flex-wrap: wrap;' : ''">
         <el-button
@@ -112,6 +125,41 @@ async function handleStatusChange(row: ClientVO) {
             <DictTag :options="sys_device_type" :value="scope.row.deviceType" />
           </template>
         </el-table-column>
+        <el-table-column label="白名单路径" align="center" min-width="160">
+          <template #default="scope">
+            <div class="rule-tag-list">
+              <el-tag
+                v-for="path in getRuleList(scope.row.accessPathList, scope.row.accessPath)"
+                :key="path"
+                size="small"
+                effect="plain"
+              >
+                {{ path }}
+              </el-tag>
+              <span v-if="!getRuleList(scope.row.accessPathList, scope.row.accessPath).length" class="rule-empty">
+                全部路径
+              </span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="白名单IP" align="center" min-width="160">
+          <template #default="scope">
+            <div class="rule-tag-list">
+              <el-tag
+                v-for="ip in getRuleList(scope.row.ipWhitelistList, scope.row.ipWhitelist)"
+                :key="ip"
+                size="small"
+                type="success"
+                effect="plain"
+              >
+                {{ ip }}
+              </el-tag>
+              <span v-if="!getRuleList(scope.row.ipWhitelistList, scope.row.ipWhitelist).length" class="rule-empty">
+                全部IP
+              </span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="activeTimeout" label="Token活跃超时时间" align="center" :show-overflow-tooltip="true" />
         <el-table-column prop="timeout" label="Token固定超时时间" align="center" :show-overflow-tooltip="true" />
         <el-table-column prop="status" label="状态" align="center">
@@ -155,5 +203,16 @@ async function handleStatusChange(row: ClientVO) {
 .pager-wrapper {
   display: flex;
   justify-content: flex-end;
+}
+
+.rule-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.rule-empty {
+  color: var(--el-text-color-secondary);
 }
 </style>

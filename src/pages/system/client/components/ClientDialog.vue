@@ -28,7 +28,6 @@ const { sys_grant_type, sys_device_type, sys_normal_disable } = toRefs<any>(useD
 
 const formRef = ref<FormInstance | null>(null)
 const formRules: FormRules<ClientForm> = {
-  clientId: [{ required: true, message: "客户端id不能为空", trigger: "blur" }],
   clientKey: [{ required: true, message: "客户端key不能为空", trigger: "blur" }],
   clientSecret: [{ required: true, message: "客户端秘钥不能为空", trigger: "blur" }],
   grantTypeList: [{ required: true, message: "授权类型不能为空", trigger: "change" }],
@@ -85,20 +84,54 @@ function resetForm() {
     <div class="drawer-content">
       <el-form ref="formRef" v-loading="dialog.loading" label-width="auto" :model="formData" :rules="formRules" label-position="left">
         <el-form-item prop="clientKey" label="客户端key">
-          <el-input v-model="formData.clientKey" placeholder="请输入客户端key" :disabled="!dialog.isEditable" />
+          <el-input v-model="formData.clientKey" placeholder="请输入客户端key" :disabled="!dialog.isEditable || !!formData.id" />
         </el-form-item>
         <el-form-item prop="clientSecret" label="客户端秘钥">
-          <el-input v-model="formData.clientSecret" placeholder="请输入客户端秘钥" :disabled="!dialog.isEditable" />
+          <el-input v-model="formData.clientSecret" placeholder="请输入客户端秘钥" :disabled="!dialog.isEditable || !!formData.id" />
         </el-form-item>
-        <el-form-item prop="grantTypeList" label="客户端管理键值">
-          <el-select v-model="formData.grantTypeList" multiple placeholder="请输入授权类型">
+        <el-form-item prop="grantTypeList" label="授权类型">
+          <el-select v-model="formData.grantTypeList" multiple placeholder="请输入授权类型" :disabled="!dialog.isEditable">
             <el-option v-for="dict in sys_grant_type" :key="dict.value" :label="dict.label" :value="dict.value" />
           </el-select>
         </el-form-item>
         <el-form-item prop="deviceType" label="设备类型">
-          <el-select v-model="formData.deviceType" placeholder="请输入设备类型">
+          <el-select v-model="formData.deviceType" placeholder="请输入设备类型" :disabled="!dialog.isEditable">
             <el-option v-for="dict in sys_device_type" :key="dict.value" :label="dict.label" :value="dict.value" />
           </el-select>
+        </el-form-item>
+        <el-form-item prop="accessPath" label="允许访问路径">
+          <template #label>
+            <span>
+              <el-tooltip content="多个路径可按换行、逗号或分号分隔；为空表示允许访问所有接口路径" placement="top">
+                <el-icon><question-filled /></el-icon>
+              </el-tooltip>
+              允许访问路径
+            </span>
+          </template>
+          <el-input
+            v-model="formData.accessPath"
+            type="textarea"
+            :rows="4"
+            placeholder="示例：/app/**"
+            :disabled="!dialog.isEditable"
+          />
+        </el-form-item>
+        <el-form-item prop="ipWhitelist" label="IP白名单">
+          <template #label>
+            <span>
+              <el-tooltip content="支持精确IP、通配符和CIDR；多个规则可按换行、逗号或分号分隔；为空表示允许所有IP" placement="top">
+                <el-icon><question-filled /></el-icon>
+              </el-tooltip>
+              IP白名单
+            </span>
+          </template>
+          <el-input
+            v-model="formData.ipWhitelist"
+            type="textarea"
+            :rows="4"
+            placeholder="示例：127.0.0.1&#10;192.168.*.*&#10;10.0.0.0/24"
+            :disabled="!dialog.isEditable"
+          />
         </el-form-item>
 
         <el-form-item prop="activeTimeout">
@@ -110,7 +143,7 @@ function resetForm() {
               Token活跃超时时间
             </span>
           </template>
-          <el-input v-model.number="formData.activeTimeout" placeholder="请输入Token活跃超时时间" />
+          <el-input v-model.number="formData.activeTimeout" placeholder="请输入Token活跃超时时间" :disabled="!dialog.isEditable" />
         </el-form-item>
         <el-form-item prop="timeout">
           <template #label>
@@ -121,10 +154,10 @@ function resetForm() {
               Token固定超时时间
             </span>
           </template>
-          <el-input v-model="formData.timeout" placeholder="请输入Token固定超时时间" />
+          <el-input v-model.number="formData.timeout" placeholder="请输入Token固定超时时间" :disabled="!dialog.isEditable" />
         </el-form-item>
         <el-form-item label="状态">
-          <el-radio-group v-model="formData.status">
+          <el-radio-group v-model="formData.status" :disabled="!dialog.isEditable">
             <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :value="dict.value">
               {{ dict.label }}
             </el-radio>
