@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { DictTypeForm, DictTypeQuery } from "@@/apis/system/dict/type/types.ts"
+import type { DictTypeForm, DictTypeQuery, DictTypeVO } from "@@/apis/system/dict/type/types.ts"
 import { delSysDictTypeApi, getSysDictListTypeApi, getSysDictTypeApi } from "@@/apis/system/dict/type"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
@@ -17,7 +17,7 @@ defineOptions({
 
 const loading = ref(true)
 // 表格数据
-const tableData = ref<DictTypeForm[]>([])
+const tableData = ref<DictTypeVO[]>([])
 const DEFAULT_FORM_DATA: Partial<DictTypeForm> = {
   dictId: undefined,
   dictName: "",
@@ -85,7 +85,7 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: DictTypeForm | DictTypeForm[]) {
+async function handleDelete(row: DictTypeVO | DictTypeVO[]) {
   const items = Array.isArray(row) ? row : [row]
   const deleteIds = items.map(item => item.dictId)
   const message = Array.isArray(row)
@@ -128,7 +128,7 @@ function handleExport() {
  * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
  * @param row 可选参数,编辑或查看时传入对应的菜单项
  */
-async function handleOpenDialog(type: "add" | "edit" | "show", row?: DictTypeForm) {
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: DictTypeVO) {
   dialog.visible = true
   dialog.isEditable = type !== "show"
   dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]

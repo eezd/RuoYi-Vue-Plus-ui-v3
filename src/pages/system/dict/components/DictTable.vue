@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { DictTypeForm } from "@@/apis/system/dict/type/types.ts"
+import type { DictTypeVO } from "@@/apis/system/dict/type/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"
@@ -13,7 +13,7 @@ const emit = defineEmits<EmitEvents>()
  * defineModel
  */
 // #region defineModel
-const tableData = defineModel<DictTypeForm[]>("tableData", { required: true })
+const tableData = defineModel<DictTypeVO[]>("tableData", { required: true })
 const paginationData = defineModel<PaginationData>("paginationData", { required: true })
 const loading = defineModel<boolean>("loading", { required: true })
 // #endregion
@@ -24,14 +24,14 @@ const loading = defineModel<boolean>("loading", { required: true })
 // #region EmitEvents
 export interface EmitEvents {
   openAddDialog: []
-  handleDelete: [rows: DictTypeForm[]]
+  handleDelete: [rows: DictTypeVO[]]
   handleExport: []
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
 }
 const openAddDialog = () => emit("openAddDialog")
-const handleDelete = (rows: DictTypeForm[]) => emit("handleDelete", rows)
+const handleDelete = (rows: DictTypeVO[]) => emit("handleDelete", rows)
 const handleExport = () => emit("handleExport")
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
@@ -40,9 +40,9 @@ const getTableData = () => emit("getTableData")
 
 const { isMobile } = useDevice()
 
-const selectedRows = ref<DictTypeForm[]>([])
+const selectedRows = ref<DictTypeVO[]>([])
 
-const handleSelectionChange = (val: DictTypeForm[]) => (selectedRows.value = val)
+const handleSelectionChange = (val: DictTypeVO[]) => (selectedRows.value = val)
 
 /** 刷新缓存按钮操作 */
 async function handleRefreshCache() {

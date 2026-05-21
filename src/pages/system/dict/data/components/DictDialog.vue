@@ -4,6 +4,7 @@ import type { FormInstance, FormRules } from "element-plus"
 import type { FormActionEmits } from "types/common"
 import { addSysDictDataApi, updateSysDictDataApi } from "@@/apis/system/dict/data"
 import { useDevice } from "@@/composables/useDevice.ts"
+import { useDict } from "@@/composables/useDict.ts"
 import { ElMessage } from "element-plus"
 
 const emit = defineEmits<FormActionEmits>()
@@ -22,6 +23,7 @@ const formData = defineModel<Partial<DictDataForm>>(
 // #endregion
 
 const { isMobile } = useDevice()
+const { sys_yes_no } = toRefs<any>(useDict("sys_yes_no"))
 
 const formRef = ref<FormInstance | null>(null)
 const formRules: FormRules<DictDataForm> = {
@@ -131,6 +133,13 @@ function resetForm() {
               :value="item.value"
             />
           </el-select>
+        </el-form-item>
+        <el-form-item prop="isDefault" label="是否默认">
+          <el-radio-group v-model="formData.isDefault" :disabled="!dialog.isEditable">
+            <el-radio v-for="dict in sys_yes_no" :key="dict.value" :value="dict.value">
+              {{ dict.label }}
+            </el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item prop="remark" label="备注">
           <el-input v-model="formData.remark" type="textarea" placeholder="请输入备注" :disabled="!dialog.isEditable" />

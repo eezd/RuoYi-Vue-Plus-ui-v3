@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { DictDataForm, DictDataQuery } from "@@/apis/system/dict/data/types.ts"
+import type { DictDataForm, DictDataQuery, DictDataVO } from "@@/apis/system/dict/data/types.ts"
 import type { DictTypeVO } from "@@/apis/system/dict/type/types.ts"
 import { delSysDictDataApi, getSysDictDataCodeApi, getSysDictDataListApi } from "@@/apis/system/dict/data"
 import { getSysDictOptionSelectApi, getSysDictTypeApi } from "@@/apis/system/dict/type"
@@ -22,13 +22,14 @@ const route = useRoute()
 
 const loading = ref(true)
 // 表格数据
-const tableData = ref<DictDataForm[]>([])
+const tableData = ref<DictDataVO[]>([])
 const DEFAULT_FORM_DATA: Partial<DictDataForm> = {
   dictCode: undefined,
   dictLabel: "",
   dictValue: "",
   cssClass: "",
   listClass: "primary",
+  isDefault: "N",
   dictSort: 0,
   remark: ""
 }
@@ -49,11 +50,10 @@ const defaultDictType = ref("")
 
 // #region 搜索栏
 // 搜索
-const searchData = reactive({
-  dictName: "",
+const searchData = reactive<Partial<DictDataQuery>>({
   dictType: "",
   dictLabel: ""
-} as DictDataQuery)
+})
 const searchFormRef = useTemplateRef("searchFormRef")
 
 const typeOptions = ref<DictTypeVO[]>([])
@@ -96,7 +96,7 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: DictDataForm | DictDataForm[]) {
+async function handleDelete(row: DictDataVO | DictDataVO[]) {
   const items = Array.isArray(row) ? row : [row]
   const deleteIds = items.map(item => item.dictCode)
   const message = Array.isArray(row)
@@ -139,7 +139,7 @@ function handleExport() {
  * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
  * @param row 可选参数,编辑或查看时传入对应的菜单项
  */
-async function handleOpenDialog(type: "add" | "edit" | "show", row?: DictDataForm) {
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: DictDataVO) {
   dialog.visible = true
   dialog.isEditable = type !== "show"
   dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]

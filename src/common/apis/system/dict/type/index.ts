@@ -1,13 +1,15 @@
 import type { DictTypeForm, DictTypeQuery, DictTypeVO } from "./types.ts"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
 // 查询字典类型列表
-export function getSysDictListTypeApi(query: DictTypeQuery) {
-  return request<ApiResponsePageData<DictTypeVO[]>>({
+export async function getSysDictListTypeApi(query: DictTypeQuery) {
+  const response = await request<ApiResponseData<PageResult<DictTypeVO>>>({
     url: "/system/dict/type/list",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 // 查询字典类型详细

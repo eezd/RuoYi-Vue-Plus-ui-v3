@@ -1,4 +1,5 @@
 import type { DictDataForm, DictDataQuery, DictDataVO } from "./types.ts"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
 // 根据字典类型查询字典数据信息
@@ -10,12 +11,13 @@ export function getSysDictDataApi(dictType: string) {
 }
 
 // 查询字典数据列表
-export function getSysDictDataListApi(query: DictDataQuery) {
-  return request<ApiResponsePageData<DictDataVO[]>>({
+export async function getSysDictDataListApi(query: DictDataQuery) {
+  const response = await request<ApiResponseData<PageResult<DictDataVO>>>({
     url: "/system/dict/data/list",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 // 查询字典数据详细
@@ -28,7 +30,7 @@ export function getSysDictDataCodeApi(dictCode: string | number) {
 
 // 新增字典数据
 export function addSysDictDataApi(data: DictDataForm) {
-  return request({
+  return request<ApiResponseData<null>>({
     url: "/system/dict/data",
     method: "post",
     data
@@ -37,7 +39,7 @@ export function addSysDictDataApi(data: DictDataForm) {
 
 // 修改字典数据
 export function updateSysDictDataApi(data: DictDataForm) {
-  return request({
+  return request<ApiResponseData<null>>({
     url: "/system/dict/data",
     method: "put",
     data
@@ -46,7 +48,7 @@ export function updateSysDictDataApi(data: DictDataForm) {
 
 // 删除字典数据
 export function delSysDictDataApi(dictCode: string | number | Array<string | number>) {
-  return request({
+  return request<ApiResponseData<null>>({
     url: `/system/dict/data/${dictCode}`,
     method: "delete"
   })

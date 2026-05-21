@@ -1,7 +1,9 @@
 <script lang="ts" setup>
-import type { DictDataForm } from "@@/apis/system/dict/data/types.ts"
+import type { DictDataVO } from "@@/apis/system/dict/data/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
+import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
+import { useDict } from "@@/composables/useDict.ts"
 import { formatDateTime } from "@@/utils"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
@@ -12,7 +14,7 @@ const emit = defineEmits<EmitEvents>()
  * defineModel
  */
 // #region defineModel
-const tableData = defineModel<DictDataForm[]>("tableData", { required: true })
+const tableData = defineModel<DictDataVO[]>("tableData", { required: true })
 const paginationData = defineModel<PaginationData>("paginationData", { required: true })
 const loading = defineModel<boolean>("loading", { required: true })
 // #endregion
@@ -23,14 +25,14 @@ const loading = defineModel<boolean>("loading", { required: true })
 // #region EmitEvents
 export interface EmitEvents {
   openAddDialog: []
-  handleDelete: [rows: DictDataForm[]]
+  handleDelete: [rows: DictDataVO[]]
   handleExport: []
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
 }
 const openAddDialog = () => emit("openAddDialog")
-const handleDelete = (rows: DictDataForm[]) => emit("handleDelete", rows)
+const handleDelete = (rows: DictDataVO[]) => emit("handleDelete", rows)
 const handleExport = () => emit("handleExport")
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
@@ -38,12 +40,13 @@ const getTableData = () => emit("getTableData")
 // #endregion
 
 const { isMobile } = useDevice()
+const { sys_yes_no } = toRefs<any>(useDict("sys_yes_no"))
 const router = useRouter()
 const tagsViewStore = useTagsViewStore()
 
-const selectedRows = ref<DictDataForm[]>([])
+const selectedRows = ref<DictDataVO[]>([])
 
-const handleSelectionChange = (val: DictDataForm[]) => (selectedRows.value = val)
+const handleSelectionChange = (val: DictDataVO[]) => (selectedRows.value = val)
 
 function close() {
   tagsViewStore.delVisitedView(router.currentRoute.value)
@@ -111,6 +114,11 @@ function close() {
         </el-table-column>
         <el-table-column prop="dictValue" label="字典键值" align="center" />
         <el-table-column prop="dictSort" label="字典排序" align="center" />
+        <el-table-column label="是否默认" align="center" prop="isDefault" width="100">
+          <template #default="scope">
+            <DictTag :options="sys_yes_no" :value="scope.row.isDefault" />
+          </template>
+        </el-table-column>
         <el-table-column prop="remark" label="备注" align="center" />
         <el-table-column label="创建时间" align="center" prop="createTime" width="180">
           <template #default="scope">
