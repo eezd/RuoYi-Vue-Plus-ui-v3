@@ -1,13 +1,15 @@
 import type { OssConfigForm, OssConfigQuery, OssConfigVO } from "./types.ts"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
 // 查询对象存储配置列表
-export function getSysOssConfigListApi(query: OssConfigQuery) {
-  return request<ApiResponsePageData<OssConfigVO[]>>({
+export async function getSysOssConfigListApi(query: OssConfigQuery) {
+  const response = await request<ApiResponseData<PageResult<OssConfigVO>>>({
     url: "/resource/oss/config/list",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 // 查询对象存储配置详细
@@ -20,7 +22,7 @@ export function getSysOssConfigApi(ossConfigId: string | number) {
 
 // 新增对象存储配置
 export function addSysOssConfigApi(data: OssConfigForm) {
-  return request({
+  return request<ApiResponseData<null>>({
     url: "/resource/oss/config",
     method: "post",
     data
@@ -29,7 +31,7 @@ export function addSysOssConfigApi(data: OssConfigForm) {
 
 // 修改对象存储配置
 export function updateSysOssConfigApi(data: OssConfigForm) {
-  return request({
+  return request<ApiResponseData<null>>({
     url: "/resource/oss/config",
     method: "put",
     data
@@ -38,7 +40,7 @@ export function updateSysOssConfigApi(data: OssConfigForm) {
 
 // 删除对象存储配置
 export function delSysOssConfigApi(ossConfigId: string | number | Array<string | number>) {
-  return request({
+  return request<ApiResponseData<null>>({
     url: `/resource/oss/config/${ossConfigId}`,
     method: "delete"
   })
@@ -46,14 +48,13 @@ export function delSysOssConfigApi(ossConfigId: string | number | Array<string |
 
 // 对象存储状态修改
 export function changeSysOssConfigStatusApi(ossConfigId: string | number, status: string, configKey: string) {
-  const data = {
-    ossConfigId,
-    status,
-    configKey
-  }
-  return request({
+  return request<ApiResponseData<null>>({
     url: "/resource/oss/config/changeStatus",
     method: "put",
-    data
+    data: {
+      ossConfigId,
+      status,
+      configKey
+    }
   })
 }

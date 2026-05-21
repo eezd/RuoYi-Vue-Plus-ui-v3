@@ -129,8 +129,8 @@ function resetForm() {
             </template>
           </el-input>
         </el-form-item>
-        <el-form-item prop="domain" label="自定义域名">
-          <el-input v-model="formData.domain" placeholder="请输入自定义域名" :disabled="!dialog.isEditable">
+        <el-form-item prop="domainUrl" label="自定义域名">
+          <el-input v-model="formData.domainUrl" placeholder="请输入自定义域名" :disabled="!dialog.isEditable">
             <template #prefix>
               <span style="color: #999">{{ protocol }}</span>
             </template>
@@ -155,7 +155,7 @@ function resetForm() {
             </el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item prop="remark" label="桶权限类型">
+        <el-form-item prop="accessPolicy" label="桶权限类型">
           <el-radio-group v-model="formData.accessPolicy" :disabled="!dialog.isEditable">
             <el-radio value="0">
               private

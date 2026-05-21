@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { OssConfigForm, OssConfigQuery } from "@@/apis/system/ossConfig/types"
+import type { OssConfigForm, OssConfigQuery, OssConfigVO } from "@@/apis/system/ossConfig/types"
 import { delSysOssConfigApi, getSysOssConfigApi, getSysOssConfigListApi } from "@@/apis/system/ossConfig"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
@@ -16,7 +16,7 @@ defineOptions({
 
 const loading = ref(true)
 // 表格数据
-const tableData = ref<OssConfigForm[]>([])
+const tableData = ref<OssConfigVO[]>([])
 const DEFAULT_FORM_DATA: Partial<OssConfigForm> = {
   ossConfigId: undefined,
   configKey: "",
@@ -25,11 +25,11 @@ const DEFAULT_FORM_DATA: Partial<OssConfigForm> = {
   bucketName: "",
   prefix: "",
   endpoint: "",
-  domain: "",
+  domainUrl: "",
   isHttps: "N",
   accessPolicy: "1",
   region: "",
-  status: "1",
+  status: "N",
   remark: ""
 }
 // 表单数据
@@ -81,7 +81,7 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: OssConfigForm | OssConfigForm[]) {
+async function handleDelete(row: OssConfigVO | OssConfigVO[]) {
   const items = Array.isArray(row) ? row : [row]
   const deleteIds = items.map(item => item.ossConfigId)
   const message = Array.isArray(row)
@@ -112,7 +112,7 @@ async function handleDelete(row: OssConfigForm | OssConfigForm[]) {
  * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
  * @param row 可选参数,编辑或查看时传入对应的菜单项
  */
-async function handleOpenDialog(type: "add" | "edit" | "show", row?: OssConfigForm) {
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: OssConfigVO) {
   dialog.visible = true
   dialog.isEditable = type !== "show"
   dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]
@@ -162,8 +162,8 @@ onMounted(async () => {
         </el-form-item>
         <el-form-item prop="status" label="是否默认">
           <el-select v-model="searchData.status" placeholder="请选择状态" clearable>
-            <el-option key="0" label="是" value="0" />
-            <el-option key="1" label="否" value="1" />
+            <el-option key="Y" label="是" value="Y" />
+            <el-option key="N" label="否" value="N" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -206,13 +206,13 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['system:dict:edit'])">
+                <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['system:ossConfig:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
                   修改
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleDelete(scope.row)" v-if="checkPermission(['system:dict:remove'])">
+                <el-dropdown-item @click="handleDelete(scope.row)" v-if="checkPermission(['system:ossConfig:remove'])">
                   <el-icon color="#F56C6C">
                     <Delete />
                   </el-icon>

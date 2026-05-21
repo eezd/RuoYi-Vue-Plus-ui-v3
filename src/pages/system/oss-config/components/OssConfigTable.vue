@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { OssConfigForm, OssConfigVO } from "@@/apis/system/ossConfig/types"
+import type { OssConfigVO } from "@@/apis/system/ossConfig/types"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import { changeSysOssConfigStatusApi } from "@@/apis/system/ossConfig"
 import { useDevice } from "@@/composables/useDevice.ts"
@@ -11,7 +11,7 @@ const emit = defineEmits<EmitEvents>()
  * defineModel
  */
 // #region defineModel
-const tableData = defineModel<OssConfigForm[]>("tableData", { required: true })
+const tableData = defineModel<OssConfigVO[]>("tableData", { required: true })
 const paginationData = defineModel<PaginationData>("paginationData", { required: true })
 const loading = defineModel<boolean>("loading", { required: true })
 // #endregion
@@ -22,13 +22,13 @@ const loading = defineModel<boolean>("loading", { required: true })
 // #region EmitEvents
 export interface EmitEvents {
   openAddDialog: []
-  handleDelete: [rows: OssConfigForm[]]
+  handleDelete: [rows: OssConfigVO[]]
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
 }
 const openAddDialog = () => emit("openAddDialog")
-const handleDelete = (rows: OssConfigForm[]) => emit("handleDelete", rows)
+const handleDelete = (rows: OssConfigVO[]) => emit("handleDelete", rows)
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
 const getTableData = () => emit("getTableData")
@@ -36,12 +36,12 @@ const getTableData = () => emit("getTableData")
 
 const { isMobile } = useDevice()
 
-const selectedRows = ref<OssConfigForm[]>([])
+const selectedRows = ref<OssConfigVO[]>([])
 
-const handleSelectionChange = (val: OssConfigForm[]) => (selectedRows.value = val)
+const handleSelectionChange = (val: OssConfigVO[]) => (selectedRows.value = val)
 
 async function handleStatusChange(row: OssConfigVO) {
-  const text = row.status === "0" ? "启用" : "停用"
+  const text = row.status === "Y" ? "启用" : "停用"
   try {
     await ElMessageBox.confirm(`确认要"${text}"吗?`, "提示", {
       confirmButtonText: "确定",
@@ -54,7 +54,7 @@ async function handleStatusChange(row: OssConfigVO) {
     loading.value = false
     ElMessage.success(`${text}成功`)
   } catch {
-    row.status = row.status === "0" ? "1" : "0"
+    row.status = row.status === "Y" ? "N" : "Y"
   }
 }
 </script>
@@ -66,7 +66,7 @@ async function handleStatusChange(row: OssConfigVO) {
         <el-button
           type="primary"
           :icon="CirclePlus"
-          v-hasPermi="['system:dict:add']"
+          v-hasPermi="['system:ossConfig:add']"
           @click="openAddDialog()"
         >
           新增
@@ -74,7 +74,7 @@ async function handleStatusChange(row: OssConfigVO) {
         <el-button
           type="danger" plain icon="Delete"
           :disabled="!selectedRows.length"
-          v-hasPermi="['system:dict:remove']"
+          v-hasPermi="['system:ossConfig:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除
@@ -91,7 +91,7 @@ async function handleStatusChange(row: OssConfigVO) {
         <el-table-column type="selection" width="50" align="center" />
         <el-table-column prop="configKey" label="配置key" align="center" />
         <el-table-column prop="endpoint" label="访问站点" align="center" />
-        <el-table-column prop="domain" label="自定义域名" align="center" />
+        <el-table-column prop="domainUrl" label="自定义域名" align="center" />
         <el-table-column prop="bucketName" label="桶名称" align="center" />
         <el-table-column prop="prefix" label="前缀" align="center" />
         <el-table-column prop="region" label="域" align="center" />
@@ -110,7 +110,7 @@ async function handleStatusChange(row: OssConfigVO) {
         </el-table-column>
         <el-table-column prop="status" label="状态" align="center">
           <template #default="scope">
-            <el-switch v-model="scope.row.status" active-value="0" inactive-value="1" @change="handleStatusChange(scope.row)" />
+            <el-switch v-model="scope.row.status" active-value="Y" inactive-value="N" @change="handleStatusChange(scope.row)" />
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作" :width="isMobile ? 100 : 130" align="center">
