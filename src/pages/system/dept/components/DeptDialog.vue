@@ -37,7 +37,7 @@ const { sys_normal_disable } = toRefs<any>(useDict("sys_normal_disable"))
 const deptUserList = ref<UserVO[]>([])
 
 const formRef = ref<FormInstance | null>(null)
-const formRules: FormRules<any> = {
+const formRules: FormRules<DeptForm> = {
   parentId: [{ required: true, message: "上级部门不能为空", trigger: "blur" }],
   deptName: [{ required: true, message: "部门名称不能为空", trigger: "blur" }],
   orderNum: [{ required: true, message: "显示排序不能为空", trigger: "blur" }],
@@ -74,7 +74,7 @@ function resetForm() {
   formRef.value?.clearValidate()
 }
 /** 查询当前部门的所有用户 */
-async function getDeptAllUser(deptId: any) {
+async function getDeptAllUser(deptId?: string | number) {
   if (deptId !== null && deptId !== "" && deptId !== undefined) {
     const res = await getSysUserListByDeptIdApi(deptId)
     deptUserList.value = res.data
@@ -114,32 +114,33 @@ watch(
             :data="treeData"
             :props="{ value: 'deptId', label: 'deptName', children: 'children' }"
             value-key="deptId"
-            placeholder="选择上级菜单"
+            placeholder="选择上级部门"
             check-strictly
+            :disabled="!dialog.isEditable"
           />
         </el-form-item>
         <el-form-item prop="deptName" label="部门名称">
-          <el-input v-model="formData.deptName" placeholder="请输入部门名称" />
+          <el-input v-model="formData.deptName" placeholder="请输入部门名称" :disabled="!dialog.isEditable" maxlength="30" />
         </el-form-item>
         <el-form-item prop="deptCategory" label="类别编码">
-          <el-input v-model="formData.deptCategory" placeholder="请输入类别编码" />
+          <el-input v-model="formData.deptCategory" placeholder="请输入类别编码" :disabled="!dialog.isEditable" maxlength="100" />
         </el-form-item>
         <el-form-item prop="orderNum" label="显示顺序">
-          <el-input-number v-model="formData.orderNum" controls-position="right" :min="0" />
+          <el-input-number v-model="formData.orderNum" controls-position="right" :min="0" :disabled="!dialog.isEditable" />
         </el-form-item>
         <el-form-item prop="leader" label="负责人">
-          <el-select v-model="formData.leader" placeholder="请选择负责人">
+          <el-select v-model="formData.leader" placeholder="请选择负责人" clearable :disabled="!dialog.isEditable">
             <el-option v-for="item in deptUserList" :key="item.userId" :label="item.userName" :value="item.userId" />
           </el-select>
         </el-form-item>
         <el-form-item prop="phone" label="联系电话">
-          <el-input v-model="formData.phone" placeholder="请输入联系电话" />
+          <el-input v-model="formData.phone" placeholder="请输入联系电话" :disabled="!dialog.isEditable" maxlength="11" />
         </el-form-item>
         <el-form-item prop="email" label="邮箱">
-          <el-input v-model="formData.email" placeholder="请输入邮箱" />
+          <el-input v-model="formData.email" placeholder="请输入邮箱" :disabled="!dialog.isEditable" maxlength="50" />
         </el-form-item>
         <el-form-item prop="status" label="部门状态">
-          <el-radio-group v-model="formData.status">
+          <el-radio-group v-model="formData.status" :disabled="!dialog.isEditable">
             <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :value="dict.value">
               {{ dict.label }}
             </el-radio>

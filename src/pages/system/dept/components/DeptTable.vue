@@ -7,7 +7,7 @@ import { formatDateTime } from "@@/utils"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 
 interface DeptTableRow extends DeptVO {
-  /** 是否有子菜单（用于 el-table 懒加载） */
+  /** 是否有子部门（用于 el-table 懒加载） */
   hasChildren?: boolean
 }
 
@@ -62,9 +62,9 @@ function setTableData(list: DeptTableRow[]) {
   }
 
   childrenListMap.value = tempMap
-  // 筛选出顶层菜单 (其 parentId 不在当前列表中)
+  // 筛选出顶层部门 (其 parentId 不在当前列表中)
   internalTableData.value = list.filter(item => !idSet.has(item.parentId))
-  // 如果有已展开的菜单，尝试刷新它们的数据
+  // 如果有已展开的部门，尝试刷新它们的数据
   refreshAllExpandData()
 }
 

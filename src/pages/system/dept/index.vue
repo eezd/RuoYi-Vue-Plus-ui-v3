@@ -6,7 +6,7 @@ import { checkPermission } from "@@/utils/permission"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
-import { delSysDeptApi, getSysDeptApi, getSysDeptListApi } from "@/common/apis/system/dept"
+import { delSysDeptApi, getSysDeptApi, getSysDeptListApi, getSysDeptListExcludeChildApi } from "@/common/apis/system/dept"
 import DeptDialog from "./components/DeptDialog.vue"
 import DeptTable from "./components/DeptTable.vue"
 
@@ -80,7 +80,7 @@ async function getTableData(): Promise<void> {
   }
 }
 
-/** 查询菜单下拉树结构 */
+/** 查询部门下拉树结构 */
 async function getTreeSelect() {
   const response = await getSysDeptListApi()
   treeData.value = handleTree<DeptOptionsType>(response.data, "deptId")
@@ -115,26 +115,40 @@ async function handleDelete(row: DeptForm) {
 /**
  * 统一处理数据弹窗
  *
- * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)、"sub"(新增子菜单)
- * @param row 可选参数,编辑或查看时传入对应的菜单项
+ * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)、"sub"(新增子部门)
+ * @param row 可选参数,编辑或查看时传入对应的部门项
  */
 async function handleOpenDialog(type: "add" | "edit" | "show" | "sub", row?: DeptVO) {
   dialog.visible = true
   dialog.isEditable = type !== "show"
-  dialog.title = { add: "新增菜单", edit: "修改菜单", show: "查看菜单", sub: "新增子菜单" }[type]
+  dialog.title = { add: "新增部门", edit: "修改部门", show: "查看部门", sub: "新增子部门" }[type]
 
   formData.value = cloneDeep(DEFAULT_FORM_DATA)
 
   if ((type === "edit" || type === "show") && row) {
     dialog.loading = true
     try {
-      const { data } = await getSysDeptApi(row.deptId)
-      formData.value = data as DeptForm
+      const [{ data }, { data: excludeList }] = await Promise.all([
+        getSysDeptApi(row.deptId),
+        getSysDeptListExcludeChildApi(row.deptId)
+      ])
+      formData.value = data
+      treeData.value = handleTree<DeptOptionsType>(excludeList, "deptId")
+      if (treeData.value.length === 0 && data.parentId !== undefined) {
+        treeData.value.push({
+          deptId: data.parentId,
+          deptName: data.parentName || "顶级部门",
+          children: []
+        })
+      }
     } finally {
       dialog.loading = false
     }
-  } else if (type === "sub" && row) {
-    formData.value.parentId = row.deptId
+  } else {
+    await getTreeSelect()
+    if (type === "sub" && row) {
+      formData.value.parentId = row.deptId
+    }
   }
 }
 
@@ -199,7 +213,7 @@ onMounted(async () => {
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
-                  新增子菜单
+                  新增子部门
                 </el-dropdown-item>
                 <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['system:dept:edit'])">
                   <el-icon color="#409EFF">

@@ -3,7 +3,7 @@ import { request } from "@/http/axios"
 
 // 查询部门列表
 export function getSysDeptListApi(query?: DeptQuery) {
-  return request({
+  return request<ApiResponseData<DeptVO[]>>({
     url: "/system/dept/list",
     method: "get",
     params: query
@@ -39,7 +39,7 @@ export function getSysDeptApi(deptId: string | number) {
 
 // 新增部门
 export function addSysDeptApi(data: DeptForm) {
-  return request({
+  return request<ApiResponseData<null>>({
     url: "/system/dept",
     method: "post",
     data
@@ -48,7 +48,7 @@ export function addSysDeptApi(data: DeptForm) {
 
 // 修改部门
 export function updateSysDeptApi(data: DeptForm) {
-  return request({
+  return request<ApiResponseData<null>>({
     url: "/system/dept",
     method: "put",
     data
@@ -57,7 +57,7 @@ export function updateSysDeptApi(data: DeptForm) {
 
 // 删除部门
 export function delSysDeptApi(deptId: number | string) {
-  return request({
+  return request<ApiResponseData<null>>({
     url: `/system/dept/${deptId}`,
     method: "delete"
   })
