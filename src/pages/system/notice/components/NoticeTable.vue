@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { NoticeForm } from "@@/apis/system/notice/types.ts"
+import type { NoticeVO } from "@@/apis/system/notice/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import DictTag from "@@/components/DictTag/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
@@ -13,7 +13,7 @@ const emit = defineEmits<EmitEvents>()
  * defineModel
  */
 // #region defineModel
-const tableData = defineModel<NoticeForm[]>("tableData", { required: true })
+const tableData = defineModel<NoticeVO[]>("tableData", { required: true })
 const paginationData = defineModel<PaginationData>("paginationData", { required: true })
 const loading = defineModel<boolean>("loading", { required: true })
 // #endregion
@@ -24,13 +24,13 @@ const loading = defineModel<boolean>("loading", { required: true })
 // #region EmitEvents
 export interface EmitEvents {
   openAddDialog: []
-  handleDelete: [rows: NoticeForm[]]
+  handleDelete: [rows: NoticeVO[]]
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
 }
 const openAddDialog = () => emit("openAddDialog")
-const handleDelete = (rows: NoticeForm[]) => emit("handleDelete", rows)
+const handleDelete = (rows: NoticeVO[]) => emit("handleDelete", rows)
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
 const getTableData = () => emit("getTableData")
@@ -40,9 +40,9 @@ const { sys_notice_type, sys_notice_status } = toRefs<any>(useDict("sys_notice_t
 
 const { isMobile } = useDevice()
 
-const selectedRows = ref<NoticeForm[]>([])
+const selectedRows = ref<NoticeVO[]>([])
 
-const handleSelectionChange = (val: NoticeForm[]) => (selectedRows.value = val)
+const handleSelectionChange = (val: NoticeVO[]) => (selectedRows.value = val)
 </script>
 
 <template>
@@ -59,7 +59,7 @@ const handleSelectionChange = (val: NoticeForm[]) => (selectedRows.value = val)
         </el-button>
         <el-button
           type="danger" plain icon="Delete"
-          :disabled="!selectedRows.length "
+          :disabled="!selectedRows.length"
           v-hasPermi="['system:notice:remove']"
           @click="handleDelete(selectedRows)"
         >

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { NoticeForm } from "@@/apis/system/notice/types.ts"
 import type { FormInstance, FormRules } from "element-plus"
-import type { FormActionEmits } from "types/common"
 import { addSysNoticeApi, updateSysNoticeApi } from "@@/apis/system/notice"
 import Editor from "@@/components/Editor/index.vue"
 import { useDevice } from "@@/composables/useDevice.ts"
@@ -9,7 +8,11 @@ import { useDict } from "@@/composables/useDict.ts"
 import { ElMessage } from "element-plus"
 import { ref } from "vue"
 
-const emit = defineEmits<FormActionEmits>()
+const emit = defineEmits<{
+  success: []
+  cancel: []
+  closed: []
+}>()
 
 /**
  * defineModel
@@ -70,6 +73,11 @@ function handleCancel() {
   emit("cancel")
 }
 
+function handleClosed() {
+  resetForm()
+  emit("closed")
+}
+
 function resetForm() {
   formRef.value?.clearValidate()
 }
@@ -81,7 +89,7 @@ function resetForm() {
     :title="dialog.title"
     direction="rtl"
     :size="isMobile ? '90%' : '40%'"
-    @closed="handleCancel"
+    @closed="handleClosed"
     class="system-drawer"
     modal-class="system-drawer-modal"
     :lock-scroll="true"
@@ -110,7 +118,7 @@ function resetForm() {
           </el-radio-group>
         </el-form-item>
         <el-form-item prop="noticeContent" label="内容">
-          <Editor v-model:content="formData.noticeContent" :min-height="192" />
+          <Editor v-model:content="formData.noticeContent" :min-height="192" :read-only="!dialog.isEditable" />
         </el-form-item>
       </el-form>
     </div>

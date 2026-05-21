@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { NoticeForm, NoticeQuery } from "@@/apis/system/notice/types.ts"
+import type { NoticeForm, NoticeQuery, NoticeVO } from "@@/apis/system/notice/types.ts"
 import { delSysNoticeApi, getSysNoticeApi, getSysNoticeListApi } from "@@/apis/system/notice"
 import { useDict } from "@@/composables/useDict.ts"
 import { usePagination } from "@@/composables/usePagination.ts"
@@ -8,6 +8,7 @@ import { Delete, Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cloneDeep } from "lodash-es"
 import { ref, watch } from "vue"
+import { useRoute, useRouter } from "vue-router"
 import NoticeDialog from "./components/NoticeDialog.vue"
 import NoticeTable from "./components/NoticeTable.vue"
 
@@ -16,10 +17,13 @@ defineOptions({
 })
 
 const { sys_notice_type } = toRefs<any>(useDict("sys_notice_type"))
+const route = useRoute()
+const router = useRouter()
+const routeDetailSyncing = ref(false)
 
 const loading = ref(true)
 // 表格数据
-const tableData = ref<NoticeForm[]>([])
+const tableData = ref<NoticeVO[]>([])
 const DEFAULT_FORM_DATA: Partial<NoticeForm> = {
   noticeId: undefined,
   noticeTitle: "",
@@ -92,7 +96,7 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: NoticeForm | NoticeForm[]) {
+async function handleDelete(row: NoticeVO | NoticeVO[]) {
   const items = Array.isArray(row) ? row : [row]
   const deleteIds = items.map(item => item.noticeId)
   const message = Array.isArray(row)
@@ -123,7 +127,7 @@ async function handleDelete(row: NoticeForm | NoticeForm[]) {
  * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
  * @param row 可选参数,编辑或查看时传入对应的菜单项
  */
-async function handleOpenDialog(type: "add" | "edit" | "show", row?: NoticeForm) {
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: NoticeVO) {
   dialog.visible = true
   dialog.isEditable = type !== "show"
   dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]
@@ -140,6 +144,25 @@ async function handleOpenDialog(type: "add" | "edit" | "show", row?: NoticeForm)
     }
   }
 }
+
+async function clearRouteNoticeId() {
+  if (!route.query.noticeId) return
+  routeDetailSyncing.value = true
+  await router.replace({
+    path: route.path,
+    query: {
+      ...route.query,
+      noticeId: undefined
+    }
+  })
+  routeDetailSyncing.value = false
+}
+
+async function handleDialogClosed() {
+  if (!dialog.visible && !dialog.isEditable) {
+    await clearRouteNoticeId()
+  }
+}
 // #endregion
 
 // #region 监听
@@ -151,6 +174,15 @@ watch(
   () => {
     getTableData()
   }
+)
+
+watch(
+  () => route.query.noticeId,
+  async (noticeId) => {
+    if (routeDetailSyncing.value || !noticeId) return
+    await handleOpenDialog("show", { noticeId: String(noticeId) } as NoticeVO)
+  },
+  { immediate: true }
 )
 // #endregion
 
@@ -240,6 +272,7 @@ onMounted(async () => {
       v-model:dialog="dialog"
       v-model:form-data="formData"
       @success="getTableData"
+      @closed="handleDialogClosed"
     />
   </div>
 </template>

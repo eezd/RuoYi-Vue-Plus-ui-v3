@@ -1,13 +1,15 @@
 import type { NoticeForm, NoticeQuery, NoticeVO } from "./types.ts"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
 // 查询公告列表
-export function getSysNoticeListApi(query: NoticeQuery) {
-  return request<ApiResponsePageData<NoticeVO[]>>({
+export async function getSysNoticeListApi(query: NoticeQuery) {
+  const response = await request<ApiResponseData<PageResult<NoticeVO>>>({
     url: "/system/notice/list",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 // 查询公告详细
