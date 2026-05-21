@@ -10,16 +10,21 @@ export interface UserInfo {
   permissions: string[]
 }
 
+export interface UserPageResult<T> {
+  rows: T[]
+  total: number
+}
+
 /**
  * 用户查询对象类型
  */
 export interface UserQuery extends PageQuery {
   userName?: string
   nickName?: string
-  phonenumber?: string
+  phoneNumber?: string
   status?: string
   roleId?: string | number
-  userIds?: string | number | (string | number)[] | undefined
+  userIds?: string | number | Array<string | number>
   deptId?: string | number
   params?: {
     beginTime?: string
@@ -32,56 +37,49 @@ export interface UserQuery extends PageQuery {
  */
 export interface UserVO extends BaseEntity {
   userId: number | string
-  deptId: number
+  deptId?: number | string
   userName: string
   nickName: string
-  userType: string
-  email: string
-  phoneNumber: string
-  phonenumber?: string
-  gender: string
-  sex?: string
-  avatar: string | number
+  userType?: string
+  email?: string
+  phoneNumber?: string
+  gender?: string
+  avatar?: string | number
   status: string
-  delFlag: string
-  loginIp: string
-  loginDate: string
-  remark: string
-  deptName: string
-  roles: RoleVO[]
-  roleIds: any
-  postIds: any
-  roleId: any
-  admin: boolean
+  loginIp?: string
+  loginDate?: string
+  remark?: string
+  deptName?: string
+  roles?: RoleVO[]
+  roleIds?: Array<string | number>
+  postIds?: Array<string | number>
+  roleId?: string | number
 }
 
 /**
  * 用户表单类型
  */
 export interface UserForm {
-  id: string
-  userId: number | string
-  deptId: number
+  userId?: number | string
+  deptId?: number | string
   userName: string
   nickName: string
-  password: string
-  phonenumber: string
-  email: string
-  sex: string
+  password?: string
+  phoneNumber?: string
+  email?: string
+  gender?: string
   status: string
-  remark: string
-  postIds: string[]
-  roleIds: string[]
+  remark?: string
+  postIds: Array<string | number>
+  roleIds: Array<string | number>
 }
 
 export interface UserInfoVO {
   user: UserVO
   roles: RoleVO[]
-  roleIds: string[]
+  roleIds: Array<string | number>
   posts: PostVO[]
-  postIds: string[]
-  roleGroup: string
-  postGroup: string
+  postIds: Array<string | number>
 }
 
 export interface ResetPwdForm {

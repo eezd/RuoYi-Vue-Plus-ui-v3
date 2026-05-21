@@ -56,7 +56,7 @@ const handleSelectionChange = (val: UserVO[]) => (selectedRows.value = val)
 // #region 搜索栏
 const searchData = reactive({
   userName: "",
-  phonenumber: ""
+  phoneNumber: ""
 } as UserQuery)
 const searchFormRef = useTemplateRef("searchFormRef")
 
@@ -109,8 +109,8 @@ watch(() => dialog.value.visible, () => {
         <el-form-item prop="nickName" label="用户昵称">
           <el-input v-model="searchData.nickName" placeholder="请输入用户昵称" @keyup.enter="getTableData" />
         </el-form-item>
-        <el-form-item prop="phonenumber" label="手机号码">
-          <el-input v-model="searchData.phonenumber" placeholder="请输入手机号码" @keyup.enter="getTableData" />
+        <el-form-item prop="phoneNumber" label="手机号码">
+          <el-input v-model="searchData.phoneNumber" placeholder="请输入手机号码" @keyup.enter="getTableData" />
         </el-form-item>
         <el-button type="primary" :icon="Search" @click="getTableData">
           查询
@@ -126,7 +126,7 @@ watch(() => dialog.value.visible, () => {
           <el-table-column prop="userName" label="用户名称" align="center" min-width="100" />
           <el-table-column prop="nickName" label="用户昵称" align="center" min-width="100" />
           <el-table-column prop="email" label="邮箱" align="center" min-width="100" />
-          <el-table-column prop="phonenumber" label="手机号码" align="center" min-width="140" />
+          <el-table-column prop="phoneNumber" label="手机号码" align="center" min-width="140" />
           <el-table-column prop="status" label="状态" align="center">
             <template #default="scope">
               <DictTag :options="sys_normal_disable" :value="scope.row.status" />

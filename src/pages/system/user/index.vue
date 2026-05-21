@@ -32,9 +32,9 @@ const DEFAULT_FORM_DATA: Partial<UserForm> = {
   userName: "",
   nickName: undefined,
   password: "",
-  phonenumber: undefined,
+  phoneNumber: undefined,
   email: undefined,
-  sex: undefined,
+  gender: undefined,
   status: "0",
   remark: "",
   postIds: [],
@@ -59,7 +59,7 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 // #region 搜索栏
 const searchData = reactive({
   userName: "",
-  phonenumber: "",
+  phoneNumber: "",
   status: "",
   deptId: "",
   roleId: "",
@@ -108,7 +108,7 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: UserForm | UserForm[]) {
+async function handleDelete(row: UserVO | UserVO[]) {
   const items = Array.isArray(row) ? row : [row]
   const deleteIds = items.map(item => item.userId)
   const message = Array.isArray(row)
@@ -152,7 +152,7 @@ function handleExport() {
  * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)
  * @param row 可选参数,编辑或查看时传入对应的用户项
  */
-async function handleOpenDialog(type: "add" | "edit" | "show", row?: UserForm) {
+async function handleOpenDialog(type: "add" | "edit" | "show", row?: UserVO) {
   dialog.visible = true
   dialog.isEditable = type !== "show"
   dialog.title = { add: "新增", edit: "修改", show: "查看" }[type]
@@ -170,8 +170,9 @@ async function handleOpenDialog(type: "add" | "edit" | "show", row?: UserForm) {
       const userId = row.userId
       const { data } = await getSysUserApi(userId)
       Object.assign(formData.value, data.user)
+      formData.value.postIds = data.postIds
       roleOptions.value = Array.from(
-        new Map([...data.roles, ...data.user.roles].map(role => [role.roleId, role])).values()
+        new Map([...(data.roles || []), ...(data.user.roles || [])].map(role => [role.roleId, role])).values()
       )
       formData.value.roleIds = data.roleIds
       formData.value.password = ""
@@ -317,8 +318,8 @@ onMounted(async () => {
             <el-form-item prop="nickName" label="用户昵称">
               <el-input v-model="searchData.nickName" placeholder="请输入用户昵称" @keyup.enter="getTableData" />
             </el-form-item>
-            <el-form-item prop="phonenumber" label="手机号码">
-              <el-input v-model="searchData.phonenumber" placeholder="请输入手机号码" @keyup.enter="getTableData" />
+            <el-form-item prop="phoneNumber" label="手机号码">
+              <el-input v-model="searchData.phoneNumber" placeholder="请输入手机号码" @keyup.enter="getTableData" />
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select class="min-w-[100px]" v-model="searchData.status" placeholder="角色状态" clearable>

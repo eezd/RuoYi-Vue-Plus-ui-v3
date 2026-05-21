@@ -39,7 +39,7 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 // #region 搜索栏
 const searchData = reactive({
   userName: undefined,
-  phonenumber: undefined,
+  phoneNumber: undefined,
   roleId: route.params.roleId as string
 } as UserQuery)
 const searchFormRef = useTemplateRef("searchFormRef")
@@ -163,8 +163,8 @@ onMounted(async () => {
         <el-form-item prop="userName" label="用户名称">
           <el-input v-model="searchData.userName" placeholder="请输入用户名称" @keyup.enter="getTableData" />
         </el-form-item>
-        <el-form-item prop="phonenumber" label="手机号码">
-          <el-input v-model="searchData.phonenumber" placeholder="请输入手机号码" @keyup.enter="getTableData" />
+        <el-form-item prop="phoneNumber" label="手机号码">
+          <el-input v-model="searchData.phoneNumber" placeholder="请输入手机号码" @keyup.enter="getTableData" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="getTableData">

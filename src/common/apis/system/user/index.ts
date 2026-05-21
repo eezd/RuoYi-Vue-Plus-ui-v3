@@ -1,8 +1,17 @@
 import type { DeptTreeVO } from "../dept/types.ts"
 import type { RoleVO } from "../role/types.ts"
-import type { UserForm, UserInfo, UserInfoVO, UserQuery, UserVO } from "./types.ts"
+import type { UserForm, UserInfo, UserInfoVO, UserPageResult, UserQuery, UserVO } from "./types.ts"
 import { parseStrEmpty } from "@@/utils"
 import { request } from "@/http/axios.ts"
+
+function normalizePageResult<T>(response: ApiResponseData<UserPageResult<T>>): ApiResponsePageData<T[]> {
+  return {
+    code: response.code,
+    msg: response.msg,
+    rows: response.data?.rows || [],
+    total: response.data?.total || 0
+  }
+}
 
 // 获取用户详细信息
 export function getInfoApi() {
@@ -15,12 +24,13 @@ export function getInfoApi() {
 /**
  * 查询用户列表
  */
-export function getSysUserListApi(query: UserQuery) {
-  return request<ApiResponsePageData<UserVO[]>>({
+export async function getSysUserListApi(query: UserQuery) {
+  const response = await request<ApiResponseData<UserPageResult<UserVO>>>({
     url: "/system/user/list",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**
@@ -183,11 +193,21 @@ export function getAuthRoleApi(userId: string | number) {
 /**
  * 保存授权角色
  */
-export function updateAuthRoleApi(data: { userId: string, roleIds: string }) {
+export function updateAuthRoleApi(data: { userId: string | number, roleIds: string }) {
   return request<ApiResponseData<UserInfo>>({
     url: "/system/user/authRole",
     method: "put",
     params: data
+  })
+}
+
+/**
+ * 解锁用户
+ */
+export function unlockSysUserApi(userId: string | number) {
+  return request<ApiResponseData<null>>({
+    url: `/system/user/unlock/${userId}`,
+    method: "get"
   })
 }
 

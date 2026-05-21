@@ -9,7 +9,7 @@ import { addSysUserApi, updateSysUserApi } from "@@/apis/system/user"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { useDict } from "@@/composables/useDict.ts"
 import { ElInput } from "element-plus"
-import { ref } from "vue"
+import { ref, watch } from "vue"
 import { getSysPostOptionSelectApi } from "@/common/apis/system/post"
 
 interface Props {
@@ -55,7 +55,7 @@ const formRules: FormRules<UserForm> = {
       trigger: ["blur", "change"]
     }
   ],
-  phonenumber: [
+  phoneNumber: [
     {
       pattern: /^1[3-9]\d{9}$/,
       message: "请输入正确的手机号码",
@@ -108,11 +108,28 @@ function resetForm() {
 
 // 岗位选项
 const postOptions = ref<PostVO[]>([])
-async function handleDeptChange(value: number | string) {
+async function loadPostOptions(value?: number | string) {
+  if (!value) {
+    postOptions.value = []
+    return
+  }
   const response = await getSysPostOptionSelectApi(value)
   postOptions.value = response.data
+}
+
+async function handleDeptChange(value: number | string) {
+  await loadPostOptions(value)
   formData.value.postIds = []
 }
+
+watch(
+  () => [dialog.value.visible, formData.value.deptId] as const,
+  ([visible, deptId]) => {
+    if (visible) {
+      loadPostOptions(deptId)
+    }
+  }
+)
 </script>
 
 <template>
@@ -142,6 +159,7 @@ async function handleDeptChange(value: number | string) {
             value-key="id"
             placeholder="请选择归属部门"
             check-strictly
+            :disabled="!dialog.isEditable"
             @change="handleDeptChange"
           />
         </el-form-item>
@@ -151,14 +169,14 @@ async function handleDeptChange(value: number | string) {
         <el-form-item prop="nickName" label="用户昵称">
           <ElInput v-model="formData.nickName" placeholder="请输入用户昵称" :disabled="!dialog.isEditable" />
         </el-form-item>
-        <el-form-item prop="phonenumber" label="手机号码">
-          <ElInput v-model="formData.phonenumber" placeholder="请输入手机号码" :disabled="!dialog.isEditable" />
+        <el-form-item prop="phoneNumber" label="手机号码">
+          <ElInput v-model="formData.phoneNumber" placeholder="请输入手机号码" :disabled="!dialog.isEditable" />
         </el-form-item>
         <el-form-item prop="email" label="邮箱">
           <ElInput v-model="formData.email" placeholder="请输入邮箱" :disabled="!dialog.isEditable" />
         </el-form-item>
-        <el-form-item prop="sex" label="性别">
-          <el-select v-model="formData.sex" placeholder="请选择" :disabled="!dialog.isEditable">
+        <el-form-item prop="gender" label="性别">
+          <el-select v-model="formData.gender" placeholder="请选择" :disabled="!dialog.isEditable">
             <el-option v-for="dict in sys_user_sex" :key="dict.value" :label="dict.label" :value="dict.value" />
           </el-select>
         </el-form-item>

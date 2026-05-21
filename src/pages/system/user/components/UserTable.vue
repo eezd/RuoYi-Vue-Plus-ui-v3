@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { UserForm, UserVO } from "@@/apis/system/user/types.ts"
+import type { UserVO } from "@@/apis/system/user/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import { changeSysUserStatusApi } from "@@/apis/system/user"
 import { useDevice } from "@@/composables/useDevice.ts"
@@ -27,14 +27,14 @@ const loading = defineModel<boolean>("loading", { required: true })
 // #region EmitEvents
 export interface EmitEvents {
   openAddDialog: []
-  handleDelete: [rows: UserForm[]]
+  handleDelete: [rows: UserVO[]]
   handleExport: []
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
 }
 const openAddDialog = () => emit("openAddDialog")
-const handleDelete = (rows: UserForm[]) => emit("handleDelete", rows)
+const handleDelete = (rows: UserVO[]) => emit("handleDelete", rows)
 const handleExport = () => emit("handleExport")
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
@@ -43,11 +43,11 @@ const getTableData = () => emit("getTableData")
 
 const { isMobile } = useDevice()
 
-const selectedRows = ref<UserForm[]>([])
+const selectedRows = ref<UserVO[]>([])
 
-const handleSelectionChange = (val: UserForm[]) => (selectedRows.value = val)
+const handleSelectionChange = (val: UserVO[]) => (selectedRows.value = val)
 
-async function handleStatusChange(row: UserForm) {
+async function handleStatusChange(row: UserVO) {
   const text = row.status === "0" ? "启用" : "停用"
   try {
     await ElMessageBox.confirm(`确认要"${text}""${row.userName}"吗?`, "提示", {
@@ -176,7 +176,7 @@ function submitFileForm() {
         <el-table-column prop="userName" label="用户名称" align="center" />
         <el-table-column prop="nickName" label="用户昵称" align="center" />
         <el-table-column prop="deptName" label="部门" align="center" />
-        <el-table-column prop="phonenumber" label="手机号码" align="center" />
+        <el-table-column prop="phoneNumber" label="手机号码" align="center" />
         <el-table-column prop="status" label="状态" align="center">
           <template #default="scope">
             <el-switch v-model="scope.row.status" active-value="0" inactive-value="1" v-hasPermi="['system:user:edit']" @change="handleStatusChange(scope.row)" />

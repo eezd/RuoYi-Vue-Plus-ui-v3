@@ -94,7 +94,8 @@ async function submitForm() {
 
   loading.value = true
   try {
-    await updateAuthRoleApi({ userId: userId as string, roleIds: rIds })
+    if (!userId) return
+    await updateAuthRoleApi({ userId, roleIds: rIds })
     ElMessage.success("授权成功")
     close()
   } catch {

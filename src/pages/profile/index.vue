@@ -10,14 +10,12 @@ const userFormRef = ref<ElFormInstance>()
 
 interface State {
   user: Partial<UserVO>
-  roleGroup: string
   auths: any
   devices: any
 }
 
 const state = ref<State>({
   user: {},
-  roleGroup: "",
   auths: [],
   devices: []
 })
@@ -25,7 +23,6 @@ async function getUser() {
   const res = await getSysUserProfileApi()
   state.value.user = res.data.user
   userForm.value = { ...res.data.user }
-  state.value.roleGroup = res.data.roleGroup
   const devices = await getSysOnlineApi()
   state.value.devices = devices.rows
 }
@@ -42,7 +39,7 @@ const ruleProfile: ElFormRules = {
       trigger: ["blur", "change"]
     }
   ],
-  phonenumber: [
+  phoneNumber: [
     {
       required: true,
       message: "手机号码不能为空",
@@ -228,8 +225,8 @@ async function handleRemoveDevice(device: any) {
                   </el-input>
                 </el-form-item>
 
-                <el-form-item prop="sex" label="性别">
-                  <el-radio-group v-model="userForm.sex">
+                <el-form-item prop="gender" label="性别">
+                  <el-radio-group v-model="userForm.gender">
                     <el-radio value="0">
                       男
                     </el-radio>
@@ -241,8 +238,8 @@ async function handleRemoveDevice(device: any) {
               </div>
 
               <div class="form-grid">
-                <el-form-item prop="phonenumber" label="手机号码">
-                  <el-input v-model="userForm.phonenumber" placeholder="请输入手机号码">
+                <el-form-item prop="phoneNumber" label="手机号码">
+                  <el-input v-model="userForm.phoneNumber" placeholder="请输入手机号码">
                     <template #suffix>
                       <i class="el-icon-phone text-slate-400" />
                     </template>
