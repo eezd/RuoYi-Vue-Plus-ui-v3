@@ -124,7 +124,7 @@ defineExpose({
         <el-button
           type="primary"
           :icon="CirclePlus"
-          v-hasPermi="['system:tree:add']"
+          v-hasPermi="['demo:tree:add']"
           @click="openAddDialog()"
         >
           新增

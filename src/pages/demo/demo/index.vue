@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { DemoForm, DemoQuery } from "@@/apis/system/demo/types.ts"
+import type { DemoForm, DemoQuery, DemoVO } from "@@/apis/system/demo/types.ts"
 import type { FormInstance } from "element-plus"
 import { delSysDemoApi, getSysDemoApi, getSysDemoListApi } from "@@/apis/system/demo"
 import { usePagination } from "@@/composables/usePagination.ts"
@@ -19,11 +19,11 @@ defineOptions({
 const loading = ref(true)
 
 // 表格数据
-const tableData = ref<DemoForm[]>([])
+const tableData = ref<DemoVO[]>([])
 const DEFAULT_FORM_DATA: Partial<DemoForm> = {
-  deptId: 0,
-  userId: 0,
-  orderNum: 0,
+  deptId: undefined,
+  userId: undefined,
+  orderNum: undefined,
   testKey: "",
   value: ""
 }
@@ -46,21 +46,11 @@ const searchData = reactive({
   orderNum: undefined,
   testKey: undefined,
   value: undefined,
-  params: {
-  }
 } as DemoQuery)
 const searchFormRef = ref<FormInstance | null>(null)
 
-const dateRange = ref<[DateModelType, DateModelType]>(["", ""])
-watch(dateRange, ([newBeginTime, newEndTime]) => {
-  searchData.params = {}
-  searchData.params.beginTime = newBeginTime.toLocaleString()
-  searchData.params.endTime = newEndTime.toLocaleString()
-})
-
 function resetSearch() {
   searchFormRef.value?.resetFields()
-  dateRange.value = ["", ""]
   getTableData()
 }
 // #endregion
@@ -89,7 +79,7 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: DemoForm | DemoForm[]) {
+async function handleDelete(row: DemoVO | DemoVO[]) {
   const items = Array.isArray(row) ? row : [row]
   const deleteIds = items.map(item => item.id)
   const message = Array.isArray(row)
@@ -118,7 +108,7 @@ async function handleDelete(row: DemoForm | DemoForm[]) {
 function handleExport() {
   const timestamp = new Date().getTime()
   download(
-    "system/demo/export",
+    "demo/demo/export",
     { ...searchData },
     `demo_${new Date().getTime()}.xlsx`
   )
@@ -230,13 +220,13 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['system:demo:edit'])">
+                <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['demo:demo:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
                   修改
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleDelete(scope.row)" v-if="checkPermission(['system:demo:remove'])">
+                <el-dropdown-item @click="handleDelete(scope.row)" v-if="checkPermission(['demo:demo:remove'])">
                   <el-icon color="#F56C6C">
                     <Delete />
                   </el-icon>

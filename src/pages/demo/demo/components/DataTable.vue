@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { DemoForm } from "@@/apis/system/demo/types.ts"
+import type { DemoForm, DemoVO } from "@@/apis/system/demo/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
@@ -10,7 +10,7 @@ const emit = defineEmits<EmitEvents>()
  * defineModel
  */
 // #region defineModel
-const tableData = defineModel<DemoForm[]>("tableData", { required: true })
+const tableData = defineModel<DemoVO[]>("tableData", { required: true })
 const paginationData = defineModel<PaginationData>("paginationData", { required: true })
 const loading = defineModel<boolean>("loading", { required: true })
 // #endregion
@@ -21,14 +21,14 @@ const loading = defineModel<boolean>("loading", { required: true })
 // #region EmitEvents
 export interface EmitEvents {
   openAddDialog: []
-  handleDelete: [rows: DemoForm[]]
+  handleDelete: [rows: DemoVO[]]
   handleExport: []
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
 }
 const openAddDialog = () => emit("openAddDialog")
-const handleDelete = (rows: DemoForm[]) => emit("handleDelete", rows)
+const handleDelete = (rows: DemoVO[]) => emit("handleDelete", rows)
 const handleExport = () => emit("handleExport")
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
@@ -37,9 +37,9 @@ const getTableData = () => emit("getTableData")
 
 const { isMobile } = useDevice()
 
-const selectedRows = ref<DemoForm[]>([])
+const selectedRows = ref<DemoVO[]>([])
 
-const handleSelectionChange = (val: DemoForm[]) => (selectedRows.value = val)
+const handleSelectionChange = (val: DemoVO[]) => (selectedRows.value = val)
 </script>
 
 <template>
@@ -49,7 +49,7 @@ const handleSelectionChange = (val: DemoForm[]) => (selectedRows.value = val)
         <el-button
           type="primary"
           :icon="CirclePlus"
-          v-hasPermi="['system:demo:add']"
+          v-hasPermi="['demo:demo:add']"
           @click="openAddDialog()"
         >
           新增
@@ -57,14 +57,14 @@ const handleSelectionChange = (val: DemoForm[]) => (selectedRows.value = val)
         <el-button
           type="danger" plain icon="Delete"
           :disabled="!selectedRows.length"
-          v-hasPermi="['system:demo:remove']"
+          v-hasPermi="['demo:demo:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除
         </el-button>
         <el-button
           type="warning" plain icon="Download"
-          v-hasPermi="['system:demo:export']"
+          v-hasPermi="['demo:demo:export']"
           @click="handleExport()"
         >
           导出

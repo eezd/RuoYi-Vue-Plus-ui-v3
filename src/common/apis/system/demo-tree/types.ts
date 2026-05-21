@@ -1,4 +1,4 @@
-export interface TreeVO {
+export interface TreeVO extends BaseEntity {
   /**
    * 主键
    */
@@ -27,10 +27,10 @@ export interface TreeVO {
   /**
    * 子对象
    */
-  children: TreeVO[]
+  children?: TreeVO[]
 }
 
-export interface TreeForm extends BaseEntity {
+export interface TreeForm {
   /**
    * 主键
    */
@@ -80,11 +80,4 @@ export interface TreeQuery {
    */
   treeName?: string
 
-  /**
-   * 日期范围参数
-   */
-  params?: {
-    beginTime?: string
-    endTime?: string
-  }
 }

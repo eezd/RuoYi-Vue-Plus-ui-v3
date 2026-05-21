@@ -33,9 +33,9 @@ const { isMobile } = useDevice()
 
 const formRef = ref<FormInstance | null>(null)
 const formRules: FormRules<TreeForm> = {
-  id: [
-    { required: true, message: "主键不能为空", trigger: "blur" }
-  ]
+  deptId: [{ required: true, message: "部门id不能为空", trigger: "blur" }],
+  userId: [{ required: true, message: "用户id不能为空", trigger: "blur" }],
+  treeName: [{ required: true, message: "树节点名不能为空", trigger: "blur" }]
 }
 
 async function handleSubmit() {
@@ -87,7 +87,6 @@ function resetForm() {
     </template>
     <div class="drawer-content">
       <el-form ref="formRef" v-loading="dialog.loading" label-width="auto" :model="formData" :rules="formRules" label-position="left">
-        {{ formData }}
         <el-form-item prop="parentId" label="父id">
           <el-tree-select
             v-model="formData.parentId"

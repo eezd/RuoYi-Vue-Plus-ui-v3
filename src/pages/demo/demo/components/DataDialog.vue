@@ -26,9 +26,11 @@ const { isMobile } = useDevice()
 
 const formRef = ref<FormInstance | null>(null)
 const formRules: FormRules<DemoForm> = {
-  id: [
-    { required: true, message: "主键不能为空", trigger: "blur" }
-  ]
+  deptId: [{ required: true, message: "部门id不能为空", trigger: "blur" }],
+  userId: [{ required: true, message: "用户id不能为空", trigger: "blur" }],
+  orderNum: [{ required: true, message: "排序号不能为空", trigger: "blur" }],
+  testKey: [{ required: true, message: "key键不能为空", trigger: "blur" }],
+  value: [{ required: true, message: "值不能为空", trigger: "blur" }]
 }
 
 async function handleSubmit() {

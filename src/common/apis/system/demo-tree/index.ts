@@ -8,12 +8,12 @@ import { request } from "@/http/axios"
  */
 
 export function getSysTreeListApi(query?: TreeQuery) {
-  return request<ApiResponsePageData<TreeVO[]>>({
+  return request<ApiResponseData<TreeVO[]>>({
     url: "/demo/tree/list",
     method: "get",
     params: query
   })
-};
+}
 
 /**
  * 查询测试树详细

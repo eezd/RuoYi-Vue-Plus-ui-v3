@@ -1,4 +1,5 @@
 import type { DemoForm, DemoQuery, DemoVO } from "./types"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios"
 
 /**
@@ -7,13 +8,14 @@ import { request } from "@/http/axios"
  * @returns {*}
  */
 
-export function getSysDemoListApi(query?: DemoQuery) {
-  return request<ApiResponsePageData<DemoVO[]>>({
+export async function getSysDemoListApi(query?: DemoQuery) {
+  const response = await request<ApiResponseData<PageResult<DemoVO>>>({
     url: "/demo/demo/list",
     method: "get",
     params: query
   })
-};
+  return normalizePageResult(response)
+}
 
 /**
  * 查询测试单详细

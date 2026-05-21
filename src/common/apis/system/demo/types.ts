@@ -1,4 +1,4 @@
-export interface DemoVO {
+export interface DemoVO extends BaseEntity {
   /**
    * 主键
    */
@@ -29,9 +29,14 @@ export interface DemoVO {
    */
   value: string
 
+  /**
+   * 版本
+   */
+  version?: string | number
+
 }
 
-export interface DemoForm extends BaseEntity {
+export interface DemoForm {
   /**
    * 主键
    */
@@ -91,11 +96,4 @@ export interface DemoQuery extends PageQuery {
    */
   value?: string
 
-  /**
-   * 日期范围参数
-   */
-  params?: {
-    beginTime?: string
-    endTime?: string
-  }
 }

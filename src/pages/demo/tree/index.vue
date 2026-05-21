@@ -49,23 +49,11 @@ const searchData = reactive({
   deptId: undefined,
   userId: undefined,
   treeName: undefined,
-  params: {
-    beginTime: undefined,
-    endTime: undefined
-  }
 } as TreeQuery)
 const searchFormRef = ref<FormInstance | null>(null)
 
-const dateRange = ref<[DateModelType, DateModelType]>(["", ""])
-watch(dateRange, ([newBeginTime, newEndTime]) => {
-  searchData.params = {}
-  searchData.params.beginTime = newBeginTime.toLocaleString()
-  searchData.params.endTime = newEndTime.toLocaleString()
-})
-
 function resetSearch() {
   searchFormRef.value?.resetFields()
-  dateRange.value = ["", ""]
   getTableData()
 }
 // #endregion
@@ -77,9 +65,8 @@ function resetSearch() {
 async function getTableData(): Promise<void> {
   try {
     loading.value = true
-    const res = await getSysTreeListApi(searchData)
-    const list = ((res as any).data ?? (res as any).rows ?? []) as TreeVO[]
-    tableComponentRef.value?.setTableData(list)
+    const { data } = await getSysTreeListApi(searchData)
+    tableComponentRef.value?.setTableData(data || [])
     await getTreeSelect()
   } catch {
     tableComponentRef.value?.setTableData([])
@@ -90,9 +77,8 @@ async function getTableData(): Promise<void> {
 
 /** 查询下拉树结构 */
 async function getTreeSelect() {
-  const response = await getSysTreeListApi()
-  const list = ((response as any).data ?? (response as any).rows ?? []) as TreeOptionsType[]
-  treeData.value = handleTree<TreeOptionsType>(list, "id", "parentId")
+  const { data } = await getSysTreeListApi()
+  treeData.value = handleTree<TreeOptionsType>(data || [], "id", "parentId")
 }
 
 /**
@@ -209,19 +195,19 @@ onMounted(async () => {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="handleOpenDialog('sub', scope.row)" v-if="checkPermission(['system:tree:add'])">
+                <el-dropdown-item @click="handleOpenDialog('sub', scope.row)" v-if="checkPermission(['demo:tree:add'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
                   新增下级
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['system:tree:edit'])">
+                <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['demo:tree:edit'])">
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
                   修改
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleDelete(scope.row)" v-if="checkPermission(['system:tree:remove'])">
+                <el-dropdown-item @click="handleDelete(scope.row)" v-if="checkPermission(['demo:tree:remove'])">
                   <el-icon color="#F56C6C">
                     <Delete />
                   </el-icon>
