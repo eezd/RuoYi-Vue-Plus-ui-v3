@@ -3,7 +3,7 @@ import type { PaginationData } from "@@/composables/usePagination.ts"
 import type { TabsPaneContext } from "element-plus"
 import type { FlowInstanceVO } from "@/common/apis/workflow/instance/types"
 import DictTag from "@@/components/DictTag/index.vue"
-import { Delete, Document, RefreshRight, View } from "@element-plus/icons-vue"
+import { Clock, Delete, Document, RefreshRight, View } from "@element-plus/icons-vue"
 
 interface Props {
   wfBusinessStatus: DictDataOption[]
@@ -29,7 +29,9 @@ const activeTab = defineModel<"running" | "finish">("activeTab", { required: tru
 export interface EmitEvents {
   handleDelete: [rows: FlowInstanceVO[]]
   handleInvalid: [row: FlowInstanceVO]
+  handleActive: [row: FlowInstanceVO]
   handleView: [row: FlowInstanceVO]
+  openHistoryDialog: [row: FlowInstanceVO]
   openVariableDialog: [row: FlowInstanceVO]
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
@@ -38,7 +40,9 @@ export interface EmitEvents {
 }
 const handleDelete = (rows: FlowInstanceVO[]) => emit("handleDelete", rows)
 const handleInvalid = (row: FlowInstanceVO) => emit("handleInvalid", row)
+const handleActive = (row: FlowInstanceVO) => emit("handleActive", row)
 const handleView = (row: FlowInstanceVO) => emit("handleView", row)
+const openHistoryDialog = (row: FlowInstanceVO) => emit("openHistoryDialog", row)
 const openVariableDialog = (row: FlowInstanceVO) => emit("openVariableDialog", row)
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
@@ -57,7 +61,7 @@ function handleSelectionChange(rows: FlowInstanceVO[]) {
   <el-card v-loading="loading" shadow="never">
     <div class="toolbar-wrapper">
       <div class="toolbar-left">
-        <el-button type="danger" plain :icon="Delete" :disabled="selectedRows.length === 0" @click="handleDelete(selectedRows)">
+        <el-button type="danger" plain :icon="Delete" :disabled="selectedRows.length === 0" v-hasPermi="['workflow:instance:remove']" @click="handleDelete(selectedRows)">
           删除
         </el-button>
       </div>
@@ -99,25 +103,40 @@ function handleSelectionChange(rows: FlowInstanceVO[]) {
           </el-table-column>
           <el-table-column prop="createTime" label="启动时间" align="center" min-width="160" />
           <el-table-column v-if="activeTab === 'finish'" prop="updateTime" label="结束时间" align="center" min-width="160" />
-          <el-table-column label="操作" fixed="right" align="center" width="280">
+          <el-table-column label="操作" fixed="right" align="center" width="340">
             <template #default="scope">
+              <el-button
+                v-if="activeTab === 'running'"
+                type="warning"
+                text
+                bg
+                size="small"
+                v-hasPermi="['workflow:instance:active']"
+                @click="handleActive(scope.row)"
+              >
+                {{ scope.row.isSuspended ? "激活" : "挂起" }}
+              </el-button>
               <el-button
                 v-if="activeTab === 'running'"
                 type="danger"
                 text
                 bg
                 size="small"
+                v-hasPermi="['workflow:instance:invalid']"
                 @click="handleInvalid(scope.row)"
               >
                 作废
               </el-button>
-              <el-button type="danger" text bg size="small" @click="handleDelete([scope.row])">
+              <el-button type="danger" text bg size="small" v-hasPermi="['workflow:instance:remove']" @click="handleDelete([scope.row])">
                 删除
               </el-button>
-              <el-button type="primary" :icon="View" text bg size="small" @click="handleView(scope.row)">
+              <el-button type="primary" :icon="View" text bg size="small" v-hasPermi="['workflow:instance:query']" @click="handleView(scope.row)">
                 查看
               </el-button>
-              <el-button type="warning" :icon="Document" text bg size="small" @click="openVariableDialog(scope.row)">
+              <el-button type="info" :icon="Clock" text bg size="small" v-hasPermi="['workflow:instance:query']" @click="openHistoryDialog(scope.row)">
+                记录
+              </el-button>
+              <el-button type="warning" :icon="Document" text bg size="small" v-hasPermi="['workflow:instance:variableQuery']" @click="openVariableDialog(scope.row)">
                 变量
               </el-button>
             </template>

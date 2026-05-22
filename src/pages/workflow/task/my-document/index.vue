@@ -12,6 +12,7 @@ import {
   getWorkflowInstanceCurrentPageApi
 } from "@/common/apis/workflow/instance"
 import { useDict } from "@/common/composables/useDict"
+import { routerJumpWorkflowForm } from "@/common/apis/workflow/workflow-common"
 
 defineOptions({
   name: "AdminWorkflowMyDocument"
@@ -37,9 +38,6 @@ const treeRef = useTemplateRef("treeRef")
 
 const editableStatusList = ["draft", "cancel", "back"]
 
-function normalizePath(path: string) {
-  return path.startsWith("/") ? path : `/${path}`
-}
 
 function isEditableRow(row: FlowInstanceVO) {
   return editableStatusList.includes(row.flowStatus)
@@ -50,7 +48,8 @@ function handleSelectionChange(rows: FlowInstanceVO[]) {
 }
 
 function handleNodeClick(data: CategoryTreeVO) {
-  searchData.category = data.id === "ALL" || String(data.id) === "0" ? undefined : data.id
+  const nodeId = String(data.id)
+  searchData.category = nodeId === "ALL" || nodeId === "0" ? undefined : nodeId
   handleQuery()
 }
 
@@ -100,13 +99,12 @@ async function getTableData() {
 }
 
 function handleOpen(row: FlowInstanceVO, type: "update" | "view") {
-  router.push({
-    path: normalizePath(row.formPath),
-    query: {
-      id: row.businessId,
-      type,
-      taskId: row.id
-    }
+  routerJumpWorkflowForm(router, {
+    businessId: row.businessId,
+    taskId: row.id,
+    type,
+    formCustom: row.formCustom,
+    formPath: row.formPath
   })
 }
 

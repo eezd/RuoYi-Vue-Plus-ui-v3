@@ -5,6 +5,54 @@ export interface TaskQuery extends PageQuery {
   createByIds?: Array<string | number>
 }
 
+export interface FlowParticipantVO {
+  groupIds?: Array<string | number>
+  candidate: Array<string | number>
+  candidateName: string[]
+  claim: boolean
+}
+
+export interface FlowButtonVO {
+  code: string
+  show: boolean
+}
+
+export interface FlowCopyVO {
+  userId: string | number
+  nickName: string
+}
+
+export interface FlowNodeVO {
+  id?: string | number
+  nodeCode?: string
+  nodeName?: string
+  nodeType?: number
+  permissionFlag?: string
+  [key: string]: any
+}
+
+export interface WorkflowUserDTO {
+  userId: string | number
+  userName?: string
+  nickName?: string
+  [key: string]: any
+}
+
+export interface FlowNextNodeForm {
+  taskId?: string | number
+  flowCode?: string
+  variables?: Record<string, any>
+  [key: string]: any
+}
+
+export interface TaskOperationForm {
+  userId?: string | number
+  userIds?: Array<string | number>
+  taskId: string | number
+  messageType?: string[]
+  message?: string
+}
+
 export interface FlowTaskVO extends BaseEntity {
   id: string | number
   instanceId: string
@@ -26,6 +74,10 @@ export interface FlowTaskVO extends BaseEntity {
   createByName: string
   assigneeNames: string
   approveName: string
+  applyNode?: boolean
+  buttonList?: FlowButtonVO[]
+  copyList?: FlowCopyVO[]
+  varList?: Record<string, any>
   flowTaskStatus: string
 }
 

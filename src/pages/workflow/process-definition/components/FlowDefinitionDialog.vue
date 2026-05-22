@@ -84,9 +84,13 @@ watch(
     if (newVal) {
       autoPass.value = false
       if (formData.value.ext != null && formData.value.ext !== "") {
-        const extJson = JSON.parse(formData.value.ext)
-        if (extJson.autoPass != null && extJson.autoPass !== "") {
-          autoPass.value = extJson.autoPass
+        try {
+          const extJson = JSON.parse(formData.value.ext)
+          if (extJson.autoPass != null && extJson.autoPass !== "") {
+            autoPass.value = extJson.autoPass
+          }
+        } catch {
+          autoPass.value = false
         }
       }
     }
@@ -113,13 +117,13 @@ watch(
     </template>
     <div class="drawer-content">
       <el-form ref="formRef" class="content-form" v-loading="dialog.loading" label-width="auto" :model="formData" :rules="formRules" label-position="left">
-        <el-form-item prop="deptId" label="归属部门">
+        <el-form-item prop="category" label="流程分类">
           <el-tree-select
             v-model="formData.category"
             :data="treeOptions"
             :props="{ value: 'id', label: 'label', children: 'children' }"
             value-key="id"
-            placeholder="请选择归属部门"
+            placeholder="请选择流程分类"
             check-strictly
           />
         </el-form-item>

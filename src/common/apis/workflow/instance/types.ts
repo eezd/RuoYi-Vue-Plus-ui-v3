@@ -1,5 +1,5 @@
 export interface FlowInstanceQuery extends PageQuery {
-  category?: string | number
+  category?: string
   nodeName?: string
   flowCode?: string
   flowName?: string
@@ -17,7 +17,6 @@ export interface FlowInstanceVO extends BaseEntity {
   businessId: string
   activityStatus: number
   isSuspended: boolean
-  tenantId: string
   createBy: string
   createByName: string
   flowStatus: string
@@ -27,6 +26,49 @@ export interface FlowInstanceVO extends BaseEntity {
   businessTitle: string
   formCustom: string
   formPath: string
+  updateTime?: string
+}
+
+export interface FlowHistoryTaskVO extends BaseEntity {
+  id: string | number
+  definitionId?: string | number
+  flowName?: string
+  instanceId?: string | number
+  taskId?: string | number
+  cooperateType?: number
+  cooperateTypeName?: string
+  businessId?: string
+  nodeCode?: string
+  nodeName?: string
+  nodeType?: number
+  targetNodeCode?: string
+  targetNodeName?: string
+  approver?: string
+  approverName?: string
+  collaborator?: string
+  permissionList?: string[]
+  skipType?: string
+  flowStatus?: string
+  flowTaskStatus?: string
+  flowStatusName?: string
+  message?: string
+  ext?: string
+  createBy?: string
+  createByName?: string
+  category?: string
+  categoryName?: string
+  formCustom?: string
+  formPath?: string
+  flowCode?: string
+  version?: string
+  runDuration?: string
+  businessCode?: string
+  businessTitle?: string
+}
+
+export interface FlowHistoryTaskListResult {
+  list: FlowHistoryTaskVO[]
+  instanceId: string | number
 }
 
 export interface CancelProcessApplyForm {

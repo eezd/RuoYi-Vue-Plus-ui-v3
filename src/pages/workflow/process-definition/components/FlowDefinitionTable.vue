@@ -45,6 +45,10 @@ const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
 const getTableData = () => emit("getTableData")
 const handleTabClick = (tab: TabsPaneContext, event: Event) => emit("handleTabClick", tab, event)
+const openUploadDialog = () => {
+  uploadDialog.title = "部署流程文件"
+  uploadDialog.visible = true
+}
 // #endregion
 
 const { isMobile } = useDevice()
@@ -53,23 +57,22 @@ const selectedRows = ref<FlowDefinitionVO[]>([])
 
 const handleSelectionChange = (val: FlowDefinitionVO[]) => (selectedRows.value = val)
 
-async function handleStatusChange(row: FlowDefinitionVO) {
-  let msg: string
-  if (row.activityStatus === 0) {
-    msg = `暂停后，此流程下的所有任务都不允许往后流转，您确定挂起【${row.flowName || row.flowCode}】吗？`
-  } else {
-    msg = `启动后，此流程下的所有任务都允许往后流转，您确定激活【${row.flowName || row.flowCode}】吗？`
-  }
+async function handleStatusChange(row: FlowDefinitionVO, status: number) {
+  const msg = status === 0
+    ? `暂停后，此流程下的所有任务都不允许往后流转，您确定挂起【${row.flowName || row.flowCode}】吗？`
+    : `启动后，此流程下的所有任务都允许往后流转，您确定激活【${row.flowName || row.flowCode}】吗？`
+
   try {
     await ElMessageBox.confirm(msg, "提示", {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       type: "warning"
     })
-    await activeWorkflowDefinitionApi(row.id, !!row.activityStatus)
-    ElMessage.success(`操作成功`)
+    await activeWorkflowDefinitionApi(row.id, !!status)
+    ElMessage.success("操作成功")
+    getTableData()
   } catch {
-    row.activityStatus = row.activityStatus === 0 ? 1 : 0
+    row.activityStatus = status === 0 ? 1 : 0
   }
 }
 
@@ -81,7 +84,7 @@ function handleExport() {
   download(
     `/workflow/definition/exportDef/${selectedRows.value[0].id}`,
     {},
-    `${selectedRows.value[0].id}-${timestamp}.json`
+    `${selectedRows.value[0].flowCode || selectedRows.value[0].id}-${timestamp}.json`
   )
 }
 
@@ -132,7 +135,7 @@ function handlerBeforeUpload() {
         <el-button
           type="primary"
           :icon="CirclePlus"
-          v-hasPermi="['system:user:add']"
+          v-hasPermi="['workflow:definition:add']"
           @click="openAddDialog()"
         >
           新增
@@ -140,20 +143,22 @@ function handlerBeforeUpload() {
         <el-button
           type="danger" plain icon="Delete"
           :disabled="!selectedRows.length"
-          v-hasPermi="['system:user:remove']"
+          v-hasPermi="['workflow:definition:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除
         </el-button>
         <el-button
           type="warning" plain icon="Download"
-          @click="uploadDialog.visible = true"
+          v-hasPermi="['workflow:definition:import']"
+          @click="openUploadDialog"
         >
           部署流程文件
         </el-button>
         <el-button
           type="warning" plain icon="Download"
           :disabled="selectedRows.length !== 1"
+          v-hasPermi="['workflow:definition:export']"
           @click="handleExport()"
         >
           导出
@@ -184,7 +189,13 @@ function handlerBeforeUpload() {
 
           <el-table-column prop="activityStatus" label="状态" align="center">
             <template #default="scope">
-              <el-switch v-model="scope.row.activityStatus" :active-value="0" :inactive-value="1" @change="handleStatusChange(scope.row)" />
+              <el-switch
+                v-model="scope.row.activityStatus"
+                :active-value="1"
+                :inactive-value="0"
+                v-hasPermi="['workflow:definition:active']"
+                @change="status => handleStatusChange(scope.row, Number(status))"
+              />
             </template>
           </el-table-column>
 

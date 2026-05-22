@@ -7,6 +7,7 @@ import { Refresh, RefreshRight, Search, View } from "@element-plus/icons-vue"
 import { getSysUserListApi } from "@/common/apis/system/user"
 import { getWorkflowTaskFinishPageApi } from "@/common/apis/workflow/task"
 import { useDict } from "@/common/composables/useDict"
+import { routerJumpWorkflowForm } from "@/common/apis/workflow/workflow-common"
 
 defineOptions({
   name: "AdminWorkflowTaskFinish"
@@ -31,18 +32,14 @@ const createByIds = ref<Array<string | number>>([])
 const userOptions = ref<UserVO[]>([])
 const userLoading = ref(false)
 
-function normalizePath(path: string) {
-  return path.startsWith("/") ? path : `/${path}`
-}
 
 function handleView(row: FlowTaskVO) {
-  router.push({
-    path: normalizePath(row.formPath),
-    query: {
-      id: row.businessId,
-      type: "view",
-      taskId: row.id
-    }
+  routerJumpWorkflowForm(router, {
+    businessId: row.businessId,
+    taskId: row.id,
+    type: "view",
+    formCustom: row.formCustom,
+    formPath: row.formPath
   })
 }
 

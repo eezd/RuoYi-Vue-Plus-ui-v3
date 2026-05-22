@@ -3,22 +3,25 @@ import type { TabsPaneContext } from "element-plus"
 import type { InstanceVariableDialogState } from "./components/InstanceVariableDialog.vue"
 import type { UserVO } from "@/common/apis/system/user/types"
 import type { CategoryTreeVO } from "@/common/apis/workflow/category/types"
-import type { FlowInstanceQuery, FlowInstanceVO, FlowVariableForm } from "@/common/apis/workflow/instance/types"
+import type { FlowHistoryTaskVO, FlowInstanceQuery, FlowInstanceVO, FlowVariableForm } from "@/common/apis/workflow/instance/types"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { getSysUserListApi } from "@/common/apis/system/user"
 import { getWorkflowCategoryTreeApi } from "@/common/apis/workflow/category"
 import {
+  activeWorkflowInstanceApi,
   deleteWorkflowHistoryInstanceByIdsApi,
   deleteWorkflowInstanceByIdsApi,
   getWorkflowInstanceFinishPageApi,
+  getWorkflowInstanceHistoryTaskListApi,
   getWorkflowInstanceRunningPageApi,
   getWorkflowInstanceVariableApi,
   invalidWorkflowInstanceApi,
   updateWorkflowInstanceVariableApi
 } from "@/common/apis/workflow/instance"
 import { useDict } from "@/common/composables/useDict"
+import { routerJumpWorkflowForm } from "@/common/apis/workflow/workflow-common"
 import InstanceVariableDialog from "./components/InstanceVariableDialog.vue"
 import ProcessInstanceTable from "./components/ProcessInstanceTable.vue"
 
@@ -64,6 +67,15 @@ const variableForm = ref<FlowVariableForm>({
   value: ""
 })
 
+const historyDialog = reactive({
+  visible: false,
+  loading: false,
+  title: "审批记录",
+  instanceId: "" as string | number,
+  businessTitle: "",
+  taskList: [] as FlowHistoryTaskVO[]
+})
+
 function resetSearch() {
   searchFormRef.value?.resetFields()
   createByIds.value = []
@@ -93,7 +105,8 @@ function filterNode(value: string, data: any) {
 }
 
 function handleNodeClick(data: CategoryTreeVO) {
-  searchData.category = data.id === "ALL" || String(data.id) === "0" ? undefined : data.id
+  const nodeId = String(data.id)
+  searchData.category = nodeId === "ALL" || nodeId === "0" ? undefined : nodeId
   handleQuery()
 }
 
@@ -185,19 +198,64 @@ async function handleInvalid(row: FlowInstanceVO) {
   }
 }
 
-function normalizePath(path: string) {
-  return path.startsWith("/") ? path : `/${path}`
+async function handleActive(row: FlowInstanceVO) {
+  const active = !!row.isSuspended
+  const actionText = active ? "激活" : "挂起"
+  await ElMessageBox.confirm(`确认${actionText}流程实例【${row.businessTitle || row.businessCode || row.id}】吗？`, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning"
+  })
+  loading.value = true
+  try {
+    await activeWorkflowInstanceApi(row.id, active)
+    ElMessage.success(`${actionText}成功`)
+    await getTableData()
+  } finally {
+    loading.value = false
+  }
 }
 
+
 function handleView(row: FlowInstanceVO) {
-  router.push({
-    path: normalizePath(row.formPath),
-    query: {
-      id: row.businessId,
-      type: "view",
-      taskId: row.id
-    }
+  routerJumpWorkflowForm(router, {
+    businessId: row.businessId,
+    taskId: row.id,
+    type: "view",
+    formCustom: row.formCustom,
+    formPath: row.formPath
   })
+}
+
+function normalizeHistoryTaskList(data?: Partial<{ list: FlowHistoryTaskVO[], flowHisTaskList: FlowHistoryTaskVO[], hisTaskList: FlowHistoryTaskVO[], taskList: FlowHistoryTaskVO[] }>) {
+  return data?.list || data?.flowHisTaskList || data?.hisTaskList || data?.taskList || []
+}
+
+async function openHistoryDialog(row: FlowInstanceVO) {
+  if (!row.businessId) {
+    ElMessage.warning("当前流程实例缺少业务ID")
+    return
+  }
+  historyDialog.visible = true
+  historyDialog.loading = true
+  historyDialog.title = `审批记录 - ${row.businessTitle || row.businessCode || row.flowName || row.businessId}`
+  historyDialog.businessTitle = row.businessTitle || row.businessCode || ""
+  historyDialog.taskList = []
+  try {
+    const { data } = await getWorkflowInstanceHistoryTaskListApi(row.businessId)
+    historyDialog.instanceId = data.instanceId || row.id
+    historyDialog.taskList = normalizeHistoryTaskList(data)
+  } finally {
+    historyDialog.loading = false
+  }
+}
+
+function getHistoryTaskStatus(row: FlowHistoryTaskVO) {
+  return row.flowStatusName || row.flowTaskStatus || row.flowStatus || "-"
+}
+
+function getHistoryApprover(row: FlowHistoryTaskVO) {
+  return row.approverName || row.approver || row.createByName || row.createBy || "-"
 }
 
 async function openVariableDialog(row: FlowInstanceVO) {
@@ -316,7 +374,9 @@ onMounted(async () => {
           :wf-business-status="wf_business_status"
           @handle-delete="handleDelete"
           @handle-invalid="handleInvalid"
+          @handle-active="handleActive"
           @handle-view="handleView"
+          @open-history-dialog="openHistoryDialog"
           @open-variable-dialog="openVariableDialog"
           @handle-current-change="handleCurrentChange"
           @handle-size-change="handleSizeChange"
@@ -331,6 +391,37 @@ onMounted(async () => {
       v-model:form-data="variableForm"
       @submit="handleUpdateVariable"
     />
+
+    <el-dialog v-model="historyDialog.visible" :title="historyDialog.title" width="960px" append-to-body>
+      <el-table v-loading="historyDialog.loading" :data="historyDialog.taskList" border max-height="560">
+        <el-table-column label="序号" type="index" width="60" align="center" />
+        <el-table-column prop="nodeName" label="节点名称" align="center" min-width="120" show-overflow-tooltip />
+        <el-table-column prop="targetNodeName" label="目标节点" align="center" min-width="120" show-overflow-tooltip />
+        <el-table-column label="办理人" align="center" min-width="120" show-overflow-tooltip>
+          <template #default="scope">
+            {{ getHistoryApprover(scope.row) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="cooperateTypeName" label="协作方式" align="center" min-width="100" show-overflow-tooltip />
+        <el-table-column label="状态" align="center" min-width="100" show-overflow-tooltip>
+          <template #default="scope">
+            {{ getHistoryTaskStatus(scope.row) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="message" label="审批意见" align="center" min-width="160" show-overflow-tooltip />
+        <el-table-column prop="createTime" label="开始时间" align="center" min-width="160" />
+        <el-table-column prop="updateTime" label="完成时间" align="center" min-width="160">
+          <template #default="scope">
+            {{ scope.row.updateTime || "-" }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="runDuration" label="耗时" align="center" min-width="100">
+          <template #default="scope">
+            {{ scope.row.runDuration || "-" }}
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 

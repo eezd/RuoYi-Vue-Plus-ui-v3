@@ -66,7 +66,7 @@ async function handleSubmit() {
           <el-input v-model="formData.value" placeholder="请输入变量值" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSubmit">
+          <el-button type="primary" v-hasPermi="['workflow:instance:variable']" @click="handleSubmit">
             更新变量
           </el-button>
         </el-form-item>

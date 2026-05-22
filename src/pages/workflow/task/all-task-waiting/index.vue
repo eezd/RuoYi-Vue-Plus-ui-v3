@@ -16,6 +16,7 @@ import {
   urgeWorkflowTaskApi
 } from "@/common/apis/workflow/task"
 import { useDict } from "@/common/composables/useDict"
+import { routerJumpWorkflowForm } from "@/common/apis/workflow/workflow-common"
 import AssigneeDialog from "./components/AssigneeDialog.vue"
 import UrgeDialog from "./components/UrgeDialog.vue"
 
@@ -67,9 +68,6 @@ const urgeForm = ref<UrgeDialogForm>({
 
 const selectedTaskIds = computed<Array<string | number>>(() => selectedRows.value.map(item => item.id))
 
-function normalizePath(path: string) {
-  return path.startsWith("/") ? path : `/${path}`
-}
 
 function handleSelectionChange(rows: FlowTaskVO[]) {
   selectedRows.value = rows
@@ -94,13 +92,12 @@ function handleQuery() {
 }
 
 function handleView(row: FlowTaskVO) {
-  router.push({
-    path: normalizePath(row.formPath),
-    query: {
-      id: row.businessId,
-      type: "view",
-      taskId: row.id
-    }
+  routerJumpWorkflowForm(router, {
+    businessId: row.businessId,
+    taskId: row.id,
+    type: "view",
+    formCustom: row.formCustom,
+    formPath: row.formPath
   })
 }
 

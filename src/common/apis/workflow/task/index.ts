@@ -1,4 +1,4 @@
-import type { FlowTaskVO, StartWorkflowForm, TaskQuery, UpdateAssigneeForm, UrgeTaskForm } from "./types"
+import type { FlowNextNodeForm, FlowNodeVO, FlowTaskVO, StartWorkflowForm, TaskOperationForm, TaskQuery, UpdateAssigneeForm, UrgeTaskForm, WorkflowUserDTO } from "./types"
 import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
@@ -103,6 +103,59 @@ export function terminationWorkflowTaskApi(data: Record<string, any>) {
     url: "/workflow/task/terminationTask",
     method: "post",
     data
+  })
+}
+
+
+/**
+ * 获取当前任务详情
+ */
+export function getWorkflowTaskApi(taskId: string | number) {
+  return request<ApiResponseData<FlowTaskVO>>({
+    url: `/workflow/task/getTask/${taskId}`,
+    method: "get"
+  })
+}
+
+/**
+ * 获取下一节点信息
+ */
+export function getWorkflowTaskNextNodeListApi(data: FlowNextNodeForm) {
+  return request<ApiResponseData<FlowNodeVO[]>>({
+    url: "/workflow/task/getNextNodeList",
+    method: "post",
+    data
+  })
+}
+
+/**
+ * 获取可驳回任务节点
+ */
+export function getWorkflowTaskBackNodeApi(taskId: string | number, nodeCode: string) {
+  return request<ApiResponseData<FlowNodeVO[]>>({
+    url: `/workflow/task/getBackTaskNode/${taskId}/${nodeCode}`,
+    method: "get"
+  })
+}
+
+/**
+ * 委派、转办、加签、减签等任务操作
+ */
+export function operateWorkflowTaskApi(data: TaskOperationForm, operation: string) {
+  return request<ApiResponseData<null>>({
+    url: `/workflow/task/taskOperation/${operation}`,
+    method: "post",
+    data
+  })
+}
+
+/**
+ * 获取当前任务所有办理人
+ */
+export function getWorkflowTaskCurrentAllUserApi(taskId: string | number) {
+  return request<ApiResponseData<WorkflowUserDTO[]>>({
+    url: `/workflow/task/currentTaskAllUser/${taskId}`,
+    method: "get"
   })
 }
 

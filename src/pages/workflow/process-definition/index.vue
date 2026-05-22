@@ -17,6 +17,7 @@ defineOptions({
 })
 
 const router = useRouter()
+const route = useRoute()
 const loading = ref(true)
 
 // 表格数据
@@ -49,7 +50,7 @@ const activeName = ref("0")
 // eslint-disable-next-line unused-imports/no-unused-vars
 function handleTabClick(tab: TabsPaneContext, event: Event) {
   // v-model处理有延迟 需要手动处理
-  activeName.value = tab.index || "0"
+  activeName.value = String(tab.paneName || tab.index || "0")
   getTableData()
 }
 
@@ -127,7 +128,7 @@ async function handleDelete(row: FlowDefinitionVO | FlowDefinitionVO[]) {
 async function handleOpenDialog(type: "add" | "edit" | "show", row?: FlowDefinitionForm) {
   dialog.visible = true
   dialog.isEditable = type !== "show"
-  dialog.title = { add: "新增菜单", edit: "修改菜单", show: "查看菜单", sub: "新增子菜单" }[type]
+  dialog.title = { add: "新增流程定义", edit: "修改流程定义", show: "查看流程定义" }[type]
 
   formData.value = cloneDeep(DEFAULT_FORM_DATA)
 
@@ -188,12 +189,12 @@ async function handleCopyDef(row: FlowDefinitionVO) {
  */
 async function design(row: FlowDefinitionVO) {
   router.push({
-    path: `/workflow/design/index`,
+    path: "/workflow/process-definition/design/index",
     query: {
       definitionId: row.id,
-      disabled: false,
+      disabled: "false",
       activeName: activeName.value
-    } as any
+    }
   })
 }
 
@@ -203,12 +204,12 @@ async function design(row: FlowDefinitionVO) {
  */
 async function designView(row: FlowDefinitionVO) {
   router.push({
-    path: `/workflow/design/index`,
+    path: "/workflow/process-definition/design/index",
     query: {
       definitionId: row.id,
-      disabled: true,
+      disabled: "true",
       activeName: activeName.value
-    } as any
+    }
   })
 }
 
@@ -236,7 +237,8 @@ function filterNode(value: string, data: any) {
 
 /** 节点单击事件 */
 function handleNodeClick(data: CategoryTreeVO) {
-  searchData.category = data.id
+  const nodeId = String(data.id)
+  searchData.category = nodeId === "ALL" || nodeId === "0" ? undefined : nodeId
   getTableData()
 }
 
@@ -264,6 +266,10 @@ watch(
 // #endregion
 
 onMounted(async () => {
+  const queryActiveName = route.query.activeName
+  if (queryActiveName === "0" || queryActiveName === "1") {
+    activeName.value = queryActiveName
+  }
   await getCategoryTree()
   await getTableData()
   loading.value = false
@@ -374,7 +380,7 @@ onMounted(async () => {
                       </el-icon>
                       查看流程
                     </el-dropdown-item>
-                    <el-dropdown-item @click="handlePublish(scope.row)">
+                    <el-dropdown-item v-if="scope.row.isPublish !== 1" @click="handlePublish(scope.row)">
                       <el-icon color="#67C23A">
                         <CircleCheck />
                       </el-icon>

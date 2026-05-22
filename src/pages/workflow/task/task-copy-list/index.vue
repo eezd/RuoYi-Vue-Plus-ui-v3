@@ -5,6 +5,7 @@ import { usePagination } from "@@/composables/usePagination.ts"
 import { Refresh, RefreshRight, Search, View } from "@element-plus/icons-vue"
 import { getWorkflowTaskCopyPageApi } from "@/common/apis/workflow/task"
 import { useDict } from "@/common/composables/useDict"
+import { routerJumpWorkflowForm } from "@/common/apis/workflow/workflow-common"
 
 defineOptions({
   name: "AdminWorkflowTaskCopyList"
@@ -24,18 +25,14 @@ const searchData = reactive({
 } as TaskQuery)
 const searchFormRef = useTemplateRef("searchFormRef")
 
-function normalizePath(path: string) {
-  return path.startsWith("/") ? path : `/${path}`
-}
 
 function handleView(row: FlowTaskVO) {
-  router.push({
-    path: normalizePath(row.formPath),
-    query: {
-      id: row.businessId,
-      type: "view",
-      taskId: row.id
-    }
+  routerJumpWorkflowForm(router, {
+    businessId: row.businessId,
+    taskId: row.id,
+    type: "view",
+    formCustom: row.formCustom,
+    formPath: row.formPath
   })
 }
 
