@@ -4,28 +4,20 @@ import type { PaginationData } from "@@/composables/usePagination.ts"
 import { useDevice } from "@@/composables/useDevice.ts"
 import { formatDateTime } from "@@/utils"
 import { checkPermission } from "@@/utils/permission"
-import { CirclePlus, Edit, RefreshRight } from "@element-plus/icons-vue"
+import { CirclePlus, Download, Edit, RefreshRight } from "@element-plus/icons-vue"
 import { ref } from "vue"
 
 const emit = defineEmits<EmitEvents>()
-/**
- * defineModel
- */
-// #region defineModel
+
 const tableData = defineModel<TableVO[]>("tableData", { required: true })
 const paginationData = defineModel<PaginationData>("paginationData", { required: true })
 const loading = defineModel<boolean>("loading", { required: true })
-// #endregion
 
-/**
- * EmitEvents
- */
-// #region EmitEvents
 export interface EmitEvents {
   openImportDialog: []
   handleDelete: [rows: TableVO[]]
   handleUpdate: [row: TableVO]
-  handleGenTable: [row: TableVO]
+  handleGenTable: [rows: TableVO[]]
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
@@ -33,16 +25,14 @@ export interface EmitEvents {
 const openImportDialog = () => emit("openImportDialog")
 const handleDelete = (rows: TableVO[]) => emit("handleDelete", rows)
 const handleUpdate = (row: TableVO) => emit("handleUpdate", row)
-const handleGenTable = (row: TableVO) => emit("handleGenTable", row)
+const handleGenTable = (rows: TableVO[]) => emit("handleGenTable", rows)
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
 const getTableData = () => emit("getTableData")
-// #endregion
 
 const { isMobile } = useDevice()
 
 const selectedRows = ref<TableVO[]>([])
-
 const handleSelectionChange = (val: TableVO[]) => (selectedRows.value = val)
 </script>
 
@@ -62,16 +52,16 @@ const handleSelectionChange = (val: TableVO[]) => (selectedRows.value = val)
         <el-button
           type="warning"
           :icon="Edit"
-          :disabled="!checkPermission(['tool:gen:edit']) || !selectedRows.length || selectedRows.length > 1"
+          :disabled="!checkPermission(['tool:gen:edit']) || selectedRows.length !== 1"
           @click="handleUpdate(selectedRows[0])"
         >
           编辑
         </el-button>
         <el-button
           type="success"
-          :icon="CirclePlus"
-          :disabled="!checkPermission(['tool:gen:code']) || !selectedRows.length || selectedRows.length > 1"
-          @click="handleGenTable(selectedRows[0])"
+          :icon="Download"
+          :disabled="!checkPermission(['tool:gen:code']) || !selectedRows.length"
+          @click="handleGenTable(selectedRows)"
         >
           生成
         </el-button>

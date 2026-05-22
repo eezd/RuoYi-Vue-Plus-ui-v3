@@ -1,32 +1,36 @@
-import type { DbTableForm, DbTableQuery, DbTableVO, GenTableVO, TableQuery, TableVO } from "./types.ts"
+import type { DbTableForm, DbTableQuery, DbTableVO, GenTableDetailPayload, TableQuery, TableVO } from "./types.ts"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
-// 查询参数列表
-export function getSysGenListApi(query: TableQuery) {
-  return request<ApiResponsePageData<TableVO[]>>({
+// 查询代码生成业务列表
+export async function getSysGenListApi(query: TableQuery) {
+  const response = await request<ApiResponseData<PageResult<TableVO>>>({
     url: "/tool/gen/list",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
-export function getSysGenDbListApi(query: DbTableQuery) {
-  return request<ApiResponsePageData<DbTableVO[]>>({
+// 查询数据库表列表
+export async function getSysGenDbListApi(query: DbTableQuery) {
+  const response = await request<ApiResponseData<PageResult<DbTableVO>>>({
     url: "/tool/gen/db/list",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
-// 查询参数详细
+// 查询代码生成业务详细
 export function getSysGenApi(tableId: string | number) {
-  return request<ApiResponseData<GenTableVO>>({
+  return request<ApiResponseData<GenTableDetailPayload>>({
     url: `/tool/gen/${tableId}`,
     method: "get"
   })
 }
 
-// 修改参数配置
+// 修改代码生成业务配置
 export function updateSysGenTableApi(data: DbTableForm) {
   return request<ApiResponseData<null>>({
     url: "/tool/gen",
@@ -35,18 +39,9 @@ export function updateSysGenTableApi(data: DbTableForm) {
   })
 }
 
-// 修改参数配置
-export function updateSysGenByKeyApi(data: DbTableForm) {
-  return request<ApiResponseData<GenTableVO>>({
-    url: "/tool/gen/updateByKey",
-    method: "put",
-    data
-  })
-}
-
-// 导入表
+// 导入表结构
 export function importSysGenTable(data: { tables: string, dataName: string }) {
-  return request<ApiResponseData<GenTableVO>>({
+  return request<ApiResponseData<null>>({
     url: "/tool/gen/importTable",
     method: "post",
     params: data
@@ -55,31 +50,23 @@ export function importSysGenTable(data: { tables: string, dataName: string }) {
 
 // 预览生成代码
 export function previewSysGenTable(tableId: string | number) {
-  return request({
+  return request<ApiResponseData<Record<string, string>>>({
     url: `/tool/gen/preview/${tableId}`,
     method: "get"
   })
 }
 
-// 删除表数据
+// 删除代码生成业务
 export function delSysGenTable(tableId: string | number | Array<string | number>) {
-  return request({
+  return request<ApiResponseData<null>>({
     url: `/tool/gen/${tableId}`,
     method: "delete"
   })
 }
 
-// 生成代码（自定义路径）
-export function genSysGenCode(tableId: string | number) {
-  return request({
-    url: `/tool/gen/genCode/${tableId}`,
-    method: "get"
-  })
-}
-
 // 同步数据库
 export function synchSysGenDb(tableId: string | number) {
-  return request({
+  return request<ApiResponseData<null>>({
     url: `/tool/gen/synchDb/${tableId}`,
     method: "get"
   })
@@ -87,7 +74,7 @@ export function synchSysGenDb(tableId: string | number) {
 
 // 获取数据源名称
 export function getSysGenDataNames() {
-  return request({
+  return request<ApiResponseData<string[]>>({
     url: "/tool/gen/getDataNames",
     method: "get"
   })

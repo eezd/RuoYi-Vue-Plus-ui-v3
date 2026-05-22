@@ -3,27 +3,33 @@ export interface TableVO extends BaseEntity {
   dataName: string
   tableName: string
   tableComment: string
-  subTableName: any
-  subTableFkName: any
   className: string
-  tplCategory: string
+  tplCategory: GenTplCategory
   packageName: string
   moduleName: string
   businessName: string
   functionName: string
   functionAuthor: string
-  genType: string
-  genPath: string
-  pkColumn: any
-  columns: any
-  options: any
-  remark: any
-  treeCode: any
-  treeParentCode: any
-  treeName: any
-  menuIds: any
-  parentMenuId: any
-  parentMenuName: any
+  pkColumn?: DbColumnVO
+  columns?: DbColumnVO[]
+  options?: string
+  remark?: string
+  treeCode?: string
+  treeParentCode?: string
+  treeName?: string
+  menuIds?: Array<string | number>
+  parentMenuId?: string | number
+  parentMenuName?: string
+  enableExport?: boolean
+  enableStatus?: boolean
+  statusField?: string
+  enableUnique?: boolean
+  uniqueFields?: string[]
+  enableSort?: boolean
+  sortField?: string
+  treeRootValue?: string
+  treeAncestorsField?: string
+  treeOrderField?: string
   tree: boolean
   crud: boolean
 }
@@ -38,95 +44,29 @@ export interface TableQuery extends PageQuery {
   }
 }
 
+export type GenTplCategory = "crud" | "tree"
+export type GenJavaType = "Long" | "String" | "Integer" | "Double" | "BigDecimal" | "LocalDateTime" | "Boolean"
+export type GenHtmlType = "input" | "inputNumber" | "textarea" | "select" | "radio" | "checkbox" | "switch" | "datetime" | "imageUpload" | "fileUpload" | "editor"
+export type GenQueryType = "EQ" | "NE" | "GT" | "GE" | "LT" | "LE" | "LIKE" | "BETWEEN"
+export type GenFlag = "0" | "1"
+
 export interface DbColumnVO extends BaseEntity {
-  columnId: any
-  tableId: any
-  columnName: any
-  columnComment: any
-  columnType: any
-  javaType: any
-  javaField: any
-  isPk: any
-  isIncrement: any
-  isRequired: any
-  isInsert: any
-  isEdit: any
-  isList: any
-  isQuery: any
-  queryType: any
-  htmlType: any
-  dictType: any
-  sort: any
-  increment: boolean
-  capJavaField: any
-  usableColumn: boolean
-  superColumn: boolean
-  list: boolean
-  pk: boolean
-  insert: boolean
-  edit: boolean
-  query: boolean
-  required: boolean
-}
-
-export interface DbTableVO {
-  tableId: any
-  tableName: string
-  tableComment: string
-  subTableName: any
-  subTableFkName: any
-  className: any
-  tplCategory: any
-  packageName: any
-  moduleName: any
-  businessName: any
-  functionName: any
-  functionAuthor: any
-  genType: any
-  genPath: any
-  pkColumn: any
-  columns: DbColumnVO[]
-  options: any
-  remark: any
-  treeCode: any
-  treeParentCode: any
-  treeName: any
-  menuIds: any
-  parentMenuId: any
-  parentMenuName: any
-  tree: boolean
-  crud: boolean
-}
-
-export interface DbTableQuery extends PageQuery {
-  dataName: string
-  tableName: string
-  tableComment: string
-}
-
-export interface GenTableVO {
-  info: DbTableVO
-  rows: DbColumnVO[]
-  tables: DbTableVO[]
-}
-
-export interface DbColumnForm extends BaseEntity {
-  columnId: string
-  tableId: string
+  columnId: string | number
+  tableId: string | number
   columnName: string
   columnComment: string
   columnType: string
-  javaType: string
+  javaType: GenJavaType
   javaField: string
-  isPk: string
-  isIncrement: string
-  isRequired: string
-  isInsert: any
-  isEdit: string
-  isList: string
-  isQuery: any
-  queryType: string
-  htmlType: string
+  isPk: GenFlag
+  isIncrement: GenFlag
+  isRequired: GenFlag
+  isInsert: GenFlag
+  isEdit: GenFlag
+  isList: GenFlag
+  isQuery: GenFlag
+  queryType: GenQueryType
+  htmlType: GenHtmlType
   dictType: string
   sort: number
   increment: boolean
@@ -141,39 +81,134 @@ export interface DbColumnForm extends BaseEntity {
   required: boolean
 }
 
+export interface DbTableVO extends BaseEntity {
+  tableId: string | number
+  dataName?: string
+  tableName: string
+  tableComment: string
+  className?: string
+  tplCategory?: GenTplCategory
+  packageName?: string
+  moduleName?: string
+  businessName?: string
+  functionName?: string
+  functionAuthor?: string
+  pkColumn?: DbColumnVO
+  columns?: DbColumnVO[]
+  options?: string
+  remark?: string
+  treeCode?: string
+  treeParentCode?: string
+  treeName?: string
+  menuIds?: Array<string | number>
+  parentMenuId?: string | number
+  parentMenuName?: string
+  enableExport?: boolean
+  enableStatus?: boolean
+  statusField?: string
+  enableUnique?: boolean
+  uniqueFields?: string[]
+  enableSort?: boolean
+  sortField?: string
+  treeRootValue?: string
+  treeAncestorsField?: string
+  treeOrderField?: string
+  tree?: boolean
+  crud?: boolean
+}
+
+export interface DbTableQuery extends PageQuery {
+  dataName: string
+  tableName: string
+  tableComment: string
+}
+
+export interface GenTableDetailPayload {
+  info: DbTableVO
+  rows: DbColumnVO[]
+}
+
 export interface DbParamForm {
-  treeCode: any
-  treeName: any
-  treeParentCode: any
-  parentMenuId: string
+  treeCode?: string
+  treeName?: string
+  treeParentCode?: string
+  parentMenuId?: string | number
+  enableExport?: boolean
+  enableStatus?: boolean
+  statusField?: string
+  enableUnique?: boolean
+  uniqueFields?: string[]
+  enableSort?: boolean
+  sortField?: string
+  treeRootValue?: string
+  treeAncestors?: string
+  treeOrderField?: string
+}
+
+export interface DbColumnForm extends BaseEntity {
+  columnId: string | number
+  tableId: string | number
+  columnName: string
+  columnComment: string
+  columnType: string
+  javaType: GenJavaType
+  javaField: string
+  isPk: GenFlag
+  isIncrement: GenFlag
+  isRequired: GenFlag
+  isInsert: GenFlag
+  isEdit: GenFlag
+  isList: GenFlag
+  isQuery: GenFlag
+  queryType: GenQueryType
+  htmlType: GenHtmlType
+  dictType: string
+  sort: number
+  increment: boolean
+  capJavaField: string
+  usableColumn: boolean
+  superColumn: boolean
+  list: boolean
+  pk: boolean
+  insert: boolean
+  edit: boolean
+  query: boolean
+  required: boolean
 }
 
 export interface DbTableForm extends BaseEntity {
-  tableId: string | string
+  tableId: string | number
+  dataName?: string
   tableName: string
   tableComment: string
-  subTableName: any
-  subTableFkName: any
   className: string
-  tplCategory: string
+  tplCategory: GenTplCategory
   packageName: string
   moduleName: string
   businessName: string
   functionName: string
   functionAuthor: string
-  genType: string
-  genPath: string
-  pkColumn: any
+  pkColumn?: DbColumnVO
   columns: DbColumnForm[]
-  options: string
-  remark: any
-  treeCode: any
-  treeParentCode: any
-  treeName: any
-  menuIds: any
-  parentMenuId: string
-  parentMenuName: any
-  tree: boolean
-  crud: boolean
+  options?: string
+  remark?: string
+  treeCode?: string
+  treeParentCode?: string
+  treeName?: string
+  menuIds?: Array<string | number>
+  parentMenuId?: string | number
+  parentMenuName?: string
+  enableExport?: boolean
+  enableStatus?: boolean
+  statusField?: string
+  enableUnique?: boolean
+  uniqueFields?: string[]
+  enableSort?: boolean
+  sortField?: string
+  treeRootValue?: string
+  treeAncestorsField?: string
+  treeOrderField?: string
+  tree?: boolean
+  crud?: boolean
   params: DbParamForm
 }

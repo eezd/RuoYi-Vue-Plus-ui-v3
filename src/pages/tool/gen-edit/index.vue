@@ -1,6 +1,6 @@
 <script setup name="GenEdit" lang="ts">
 import type { DictTypeVO } from "@@/apis/system/dict/type/types"
-import type { DbColumnVO, DbTableForm, DbTableVO } from "@@/apis/tool/gen/types"
+import type { DbColumnVO, DbTableForm, DbTableVO, GenHtmlType } from "@@/apis/tool/gen/types"
 import { getSysDictOptionSelectApi } from "@@/apis/system/dict/type"
 import { getSysGenApi, updateSysGenTableApi } from "@@/apis/tool/gen"
 import { ElTable } from "element-plus"
@@ -13,10 +13,8 @@ const router = useRouter()
 const tagsViewStore = useTagsViewStore()
 
 const loading = ref(true)
-
 const activeName = ref("columnInfo")
 const tableHeight = ref(`${document.documentElement.scrollHeight - 245}px`)
-const tables = ref<DbTableVO[]>([])
 const columns = ref<DbColumnVO[]>([])
 const dictOptions = ref<DictTypeVO[]>([])
 const info = ref<Partial<DbTableVO>>({})
@@ -24,7 +22,22 @@ const info = ref<Partial<DbTableVO>>({})
 const basicInfo = ref<InstanceType<typeof BasicInfoForm>>()
 const genInfo = ref<InstanceType<typeof GenInfoForm>>()
 
-/** 提交按钮 */
+const DICT_HTML_TYPES: GenHtmlType[] = ["select", "radio", "checkbox", "switch"]
+
+function supportsDictHtmlType(htmlType?: string) {
+  return DICT_HTML_TYPES.includes((htmlType || "") as GenHtmlType)
+}
+
+function normalizeColumnDictType(column: Partial<DbColumnVO>) {
+  if (!supportsDictHtmlType(column.htmlType)) {
+    column.dictType = ""
+  }
+}
+
+function handleHtmlTypeChange(column: DbColumnVO) {
+  normalizeColumnDictType(column)
+}
+
 async function submitForm() {
   loading.value = true
   try {
@@ -36,8 +49,8 @@ async function submitForm() {
       ElMessage.error("表单校验未通过，请重新检查提交内容")
       return
     }
-    const genTable = buildGenTablePayload()
-    const response = await updateSysGenTableApi(genTable as DbTableForm)
+    columns.value.forEach(normalizeColumnDictType)
+    const response = await updateSysGenTableApi(buildGenTablePayload())
     ElMessage.success(response.msg)
     if (response.code === 200) close()
   } catch (err) {
@@ -48,15 +61,25 @@ async function submitForm() {
   }
 }
 
-function buildGenTablePayload() {
+function buildGenTablePayload(): DbTableForm {
   return {
-    ...info.value,
+    ...(info.value as DbTableForm),
     columns: columns.value,
     params: {
-      treeCode: info.value?.treeCode,
+      treeCode: info.value.treeCode,
       treeName: info.value.treeName,
       treeParentCode: info.value.treeParentCode,
-      parentMenuId: info.value.parentMenuId
+      parentMenuId: info.value.parentMenuId,
+      enableExport: info.value.enableExport,
+      enableStatus: info.value.enableStatus,
+      statusField: info.value.statusField,
+      enableUnique: info.value.enableUnique,
+      uniqueFields: info.value.uniqueFields,
+      enableSort: info.value.enableSort,
+      sortField: info.value.sortField,
+      treeRootValue: info.value.treeRootValue,
+      treeAncestors: info.value.treeAncestorsField,
+      treeOrderField: info.value.treeOrderField
     }
   }
 }
@@ -66,20 +89,36 @@ function close() {
   router.back()
 }
 
-(async () => {
-  const tableId = route.params && (route.params.tableId as string)
-  if (tableId) {
-    // 获取表详细信息
-    const res = await getSysGenApi(tableId)
-    columns.value = res.data.rows
-    info.value = res.data.info
-    tables.value = res.data.tables
-    /** 查询字典下拉列表 */
-    const response = await getSysDictOptionSelectApi()
-    dictOptions.value = response.data
+onMounted(async () => {
+  const tableId = route.params?.tableId as string | undefined
+  if (!tableId) {
+    loading.value = false
+    return
   }
+  const res = await getSysGenApi(tableId)
+  const detail = res.data
+  columns.value = (detail?.rows || []).map((column) => {
+    const item = { ...column }
+    normalizeColumnDictType(item)
+    return item
+  })
+  info.value = {
+    enableExport: true,
+    enableStatus: false,
+    statusField: "",
+    enableUnique: false,
+    uniqueFields: [],
+    enableSort: false,
+    sortField: "",
+    treeRootValue: "0",
+    treeAncestorsField: "",
+    treeOrderField: "",
+    ...(detail?.info || {})
+  }
+  const response = await getSysDictOptionSelectApi()
+  dictOptions.value = response.data || []
   loading.value = false
-})()
+})
 </script>
 
 <template>
@@ -106,7 +145,7 @@ function close() {
                 <el-option label="Integer" value="Integer" />
                 <el-option label="Double" value="Double" />
                 <el-option label="BigDecimal" value="BigDecimal" />
-                <el-option label="Date" value="Date" />
+                <el-option label="LocalDateTime" value="LocalDateTime" />
                 <el-option label="Boolean" value="Boolean" />
               </el-select>
             </template>
@@ -116,7 +155,6 @@ function close() {
               <el-input v-model="scope.row.javaField" />
             </template>
           </el-table-column>
-
           <el-table-column label="插入" min-width="5%">
             <template #default="scope">
               <el-checkbox v-model="scope.row.isInsert" true-value="1" false-value="0" />
@@ -158,12 +196,14 @@ function close() {
           </el-table-column>
           <el-table-column label="显示类型" min-width="12%">
             <template #default="scope">
-              <el-select v-model="scope.row.htmlType">
+              <el-select v-model="scope.row.htmlType" @change="handleHtmlTypeChange(scope.row)">
                 <el-option label="文本框" value="input" />
+                <el-option label="数字输入" value="inputNumber" />
                 <el-option label="文本域" value="textarea" />
                 <el-option label="下拉框" value="select" />
                 <el-option label="单选框" value="radio" />
                 <el-option label="复选框" value="checkbox" />
+                <el-option label="开关" value="switch" />
                 <el-option label="日期控件" value="datetime" />
                 <el-option label="图片上传" value="imageUpload" />
                 <el-option label="文件上传" value="fileUpload" />
@@ -173,7 +213,14 @@ function close() {
           </el-table-column>
           <el-table-column label="字典类型" min-width="12%">
             <template #default="scope">
-              <el-select v-model="scope.row.dictType" clearable filterable placeholder="请选择" value-on-clear="">
+              <el-select
+                v-model="scope.row.dictType"
+                clearable
+                filterable
+                placeholder="请选择"
+                value-on-clear=""
+                :disabled="!supportsDictHtmlType(scope.row.htmlType)"
+              >
                 <el-option v-for="dict in dictOptions" :key="dict.dictType" :label="dict.dictName" :value="dict.dictType">
                   <span style="float: left">{{ dict.dictName }}</span>
                   <span style="float: right; color: #8492a6; font-size: 13px">{{ dict.dictType }}</span>
@@ -184,7 +231,7 @@ function close() {
         </ElTable>
       </el-tab-pane>
       <el-tab-pane label="生成信息" name="genInfo">
-        <GenInfoForm ref="genInfo" v-model:info="info" v-model:tables="tables" />
+        <GenInfoForm ref="genInfo" v-model:info="info" :columns="columns" />
       </el-tab-pane>
     </el-tabs>
     <el-form label-width="100px">

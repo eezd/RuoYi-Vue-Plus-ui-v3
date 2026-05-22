@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { TableQuery, TableVO } from "@@/apis/tool/gen/types"
-import { delSysGenTable, genSysGenCode, getSysGenDataNames, getSysGenListApi, previewSysGenTable, synchSysGenDb } from "@@/apis/tool/gen"
+import { delSysGenTable, getSysGenDataNames, getSysGenListApi, previewSysGenTable, synchSysGenDb } from "@@/apis/tool/gen"
+import { formatDateTime } from "@@/utils"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { checkPermission } from "@@/utils/permission"
 import { Delete, Refresh, Search } from "@element-plus/icons-vue"
@@ -13,15 +14,13 @@ import DataTable from "./components/DataTable.vue"
 import ImportDialog from "./components/ImportDialog.vue"
 
 defineOptions({
-  name: "AdminSysConfig"
+  name: "ToolGen"
 })
 
 const router = useRouter()
 
 const loading = ref(true)
-// 表格数据
 const tableData = ref<TableVO[]>([])
-// 表单数据
 const formData = ref<{
   data: Record<string, string>
   activeName: string
@@ -37,7 +36,6 @@ const dialog = reactive<DialogOption>({
   isEditable: false
 })
 
-// 导入弹窗
 const dialogImport = reactive<DialogOption>({
   title: "",
   visible: false,
@@ -45,26 +43,25 @@ const dialogImport = reactive<DialogOption>({
   isEditable: false
 })
 
-// 分页
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
-// #region 搜索栏
-const searchData = reactive({
+const searchData = reactive<TableQuery>({
+  pageNum: 1,
+  pageSize: 10,
   tableName: "",
   tableComment: "",
   dataName: "",
-  params: {
-    beginTime: undefined,
-    endTime: undefined
-  }
-} as TableQuery)
+  params: {}
+})
 const searchFormRef = useTemplateRef("searchFormRef")
 
 const dateRange = ref<[DateModelType, DateModelType]>(["", ""])
-watch(dateRange, ([newBeginTime, newEndTime]) => {
+watch(dateRange, ([beginTime, endTime]) => {
   searchData.params = {}
-  searchData.params.beginTime = newBeginTime.toLocaleString()
-  searchData.params.endTime = newEndTime.toLocaleString()
+  if (beginTime && endTime) {
+    searchData.params.beginTime = formatDateTime(beginTime)
+    searchData.params.endTime = formatDateTime(endTime)
+  }
 })
 
 function resetSearch() {
@@ -73,19 +70,12 @@ function resetSearch() {
   getTableData()
 }
 
-const dataNameList = ref<Array<string>>([])
-/** 查询多数据源名称 */
+const dataNameList = ref<string[]>([])
 async function getDataNameList() {
   const res = await getSysGenDataNames()
-  dataNameList.value = res.data
+  dataNameList.value = res.data || []
 }
 
-// #endregion
-
-// #region 表单操作
-/**
- * 获取数据
- */
 async function getTableData(): Promise<void> {
   try {
     loading.value = true
@@ -98,17 +88,15 @@ async function getTableData(): Promise<void> {
     paginationData.total = total
   } catch {
     tableData.value = []
+    paginationData.total = 0
   } finally {
     loading.value = false
   }
 }
 
-/**
- * 删除
- */
 async function handleDelete(row: TableVO | TableVO[]) {
   const items = Array.isArray(row) ? row : [row]
-  const deleteIds = items.map(item => item.tableId)
+  const tableIds = items.map(item => item.tableId)
   const message = Array.isArray(row)
     ? `正在删除 ${row.length} 条数据，确认删除？`
     : `正在删除：${row.tableName}，确认删除？`
@@ -120,7 +108,7 @@ async function handleDelete(row: TableVO | TableVO[]) {
       type: "warning"
     })
     loading.value = true
-    const res = await delSysGenTable(deleteIds)
+    const res = await delSysGenTable(tableIds)
     ElMessage.success(res.msg)
     await getTableData()
   } catch {
@@ -129,34 +117,21 @@ async function handleDelete(row: TableVO | TableVO[]) {
   }
 }
 
-/**
- * 修改
- */
 function handleUpdate(row: TableVO) {
-  const tableId = row?.tableId
-  router.push({ path: `/tool/gen-edit/index/${tableId}`, query: { pageNum: searchData.pageNum } })
+  router.push({ path: `/tool/gen-edit/index/${row.tableId}`, query: { pageNum: paginationData.currentPage } })
 }
 
-/** 生成代码操作 */
-async function handleGenTable(row: TableVO) {
-  const tbIds = row?.tableId
-  if (tbIds === "") {
-    ElMessage.error("未选择任何表")
+function handleGenTable(row: TableVO | TableVO[]) {
+  const currentRows = Array.isArray(row) ? row : [row]
+  if (!currentRows.length) {
+    ElMessage.error("请选择要生成的数据")
     return
   }
-  if (row?.genType === "1") {
-    await genSysGenCode(row.tableId)
-    ElMessage.success(`成功生成到自定义路径：${row.genPath}`)
-  } else {
-    downloadZip(`/tool/gen/batchGenCode?tableIdStr=${tbIds}`, "ruoyi.zip")
-  }
+  const tableIds = currentRows.map(item => item.tableId).join(",")
+  downloadZip(`/tool/gen/batchGenCode?tableIdStr=${tableIds}`, "ruoyi.zip")
 }
 
-/**
- * 同步数据库操作
- */
 async function handleSynchDb(row: TableVO) {
-  const tableId = row.tableId
   await ElMessageBox.confirm(
     `确认要强制同步"${row.tableName}"表结构吗？`,
     "提示",
@@ -167,63 +142,47 @@ async function handleSynchDb(row: TableVO) {
     }
   )
   loading.value = true
-  await synchSysGenDb(tableId)
+  await synchSysGenDb(row.tableId)
   loading.value = false
   ElMessage.success("同步成功")
+  await getTableData()
 }
-// #endregion
 
-// #region 弹窗操作
-
-/**
- * 打开查看弹窗
- *
- * @param row
- */
 async function openShowDialog(row: TableVO) {
   dialog.loading = true
-  dialog.title = "查看"
+  dialog.title = "代码预览"
   dialog.isEditable = false
   dialog.visible = true
   try {
     formData.value.data = cloneDeep({})
     const { data } = await previewSysGenTable(row.tableId)
-    formData.value.data = data
+    formData.value.data = data || {}
     formData.value.activeName = "domain.java"
-    dialog.visible = true
   } finally {
     dialog.loading = false
   }
 }
 
-async function openImportDialog() {
-  dialog.title = "导入"
+function openImportDialog() {
+  dialogImport.title = "导入表"
   dialogImport.visible = true
 }
-// #endregion
 
-// #region 监听
-/**
- * 监听分页参数的变化
- */
 watch(
   [() => paginationData.currentPage, () => paginationData.pageSize],
   () => {
     getTableData()
   }
 )
-// #endregion
 
 onMounted(async () => {
   await getTableData()
   await getDataNameList()
-  loading.value = false
 })
 </script>
 
 <template>
   <div class="app-container">
-    <!-- 查询表单 -->
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
       <el-form ref="searchFormRef" :inline="true" :model="searchData">
         <el-form-item prop="dataName" label="数据源">
@@ -260,7 +219,6 @@ onMounted(async () => {
       </el-form>
     </el-card>
 
-    <!-- 表格 -->
     <DataTable
       v-model:loading="loading"
       v-model:table-data="tableData"
@@ -282,6 +240,7 @@ onMounted(async () => {
             bg
             size="small"
             @click="openShowDialog(scope.row)"
+            v-if="checkPermission(['tool:gen:preview'])"
           >
             预览
           </el-button>
@@ -322,7 +281,6 @@ onMounted(async () => {
       </template>
     </DataTable>
 
-    <!-- 数据弹窗 -->
     <DataDialog
       v-model:dialog="dialog"
       v-model:form-data="formData"
@@ -331,6 +289,7 @@ onMounted(async () => {
 
     <ImportDialog
       v-model:dialog="dialogImport"
+      :current-data-name="searchData.dataName"
       @success="getTableData"
     />
   </div>
