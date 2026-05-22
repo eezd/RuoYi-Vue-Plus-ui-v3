@@ -20,7 +20,7 @@ export interface SpelVO {
   methodParams: string
 
   /**
-   * 预览spel值
+   * 预览 SpEL 值
    */
   viewSpel: string
 
@@ -32,7 +32,7 @@ export interface SpelVO {
   /**
    * 备注
    */
-  remark: string
+  remark?: string
 
 }
 
@@ -40,37 +40,37 @@ export interface SpelForm extends BaseEntity {
   /**
    * 主键id
    */
-  id: string | number
+  id?: string | number
 
   /**
    * 组件名称
    */
-  componentName: string
+  componentName?: string
 
   /**
    * 方法名
    */
-  methodName: string
+  methodName?: string
 
   /**
    * 参数
    */
-  methodParams: string
+  methodParams?: string
 
   /**
-   * 预览spel值
+   * 预览 SpEL 值
    */
-  viewSpel: string
+  viewSpel?: string
 
   /**
    * 状态（0正常 1停用）
    */
-  status: string
+  status?: string
 
   /**
    * 备注
    */
-  remark: string
+  remark?: string
 
 }
 
@@ -92,7 +92,7 @@ export interface SpelQuery extends PageQuery {
   methodParams?: string
 
   /**
-   * 预览spel值
+   * 预览 SpEL 值
    */
   viewSpel?: string
 

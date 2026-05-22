@@ -1,59 +1,65 @@
 import type { FlowTaskVO, StartWorkflowForm, TaskQuery, UpdateAssigneeForm, UrgeTaskForm } from "./types"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
 /**
  * 查询我的待办
  */
-export function getWorkflowTaskWaitPageApi(query: TaskQuery) {
-  return request<ApiResponsePageData<FlowTaskVO[]>>({
+export async function getWorkflowTaskWaitPageApi(query: TaskQuery) {
+  const response = await request<ApiResponseData<PageResult<FlowTaskVO>>>({
     url: "/workflow/task/pageByTaskWait",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**
  * 查询我的已办
  */
-export function getWorkflowTaskFinishPageApi(query: TaskQuery) {
-  return request<ApiResponsePageData<FlowTaskVO[]>>({
+export async function getWorkflowTaskFinishPageApi(query: TaskQuery) {
+  const response = await request<ApiResponseData<PageResult<FlowTaskVO>>>({
     url: "/workflow/task/pageByTaskFinish",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**
  * 查询我的抄送
  */
-export function getWorkflowTaskCopyPageApi(query: TaskQuery) {
-  return request<ApiResponsePageData<FlowTaskVO[]>>({
+export async function getWorkflowTaskCopyPageApi(query: TaskQuery) {
+  const response = await request<ApiResponseData<PageResult<FlowTaskVO>>>({
     url: "/workflow/task/pageByTaskCopy",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**
  * 查询全租户待办
  */
-export function getWorkflowTaskAllWaitPageApi(query: TaskQuery) {
-  return request<ApiResponsePageData<FlowTaskVO[]>>({
+export async function getWorkflowTaskAllWaitPageApi(query: TaskQuery) {
+  const response = await request<ApiResponseData<PageResult<FlowTaskVO>>>({
     url: "/workflow/task/pageByAllTaskWait",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**
  * 查询全租户已办
  */
-export function getWorkflowTaskAllFinishPageApi(query: TaskQuery) {
-  return request<ApiResponsePageData<FlowTaskVO[]>>({
+export async function getWorkflowTaskAllFinishPageApi(query: TaskQuery) {
+  const response = await request<ApiResponseData<PageResult<FlowTaskVO>>>({
     url: "/workflow/task/pageByAllTaskFinish",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**

@@ -89,7 +89,7 @@ const handleSelectionChange = (val: SpelForm[]) => (selectedRows.value = val)
             {{ scope.row.methodParams || '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="SPEL表达式" align="center" prop="viewSpel" />
+        <el-table-column label="SpEL 表达式" align="center" prop="viewSpel" />
 
         <el-table-column prop="status" label="状态" align="center">
           <template #default="scope">
@@ -114,8 +114,8 @@ const handleSelectionChange = (val: SpelForm[]) => (selectedRows.value = val)
         :layout="paginationData.layout"
         :page-sizes="paginationData.pageSizes"
         :total="paginationData.total"
-        :page-size="paginationData.pageSize"
-        :current-page="paginationData.currentPage"
+        v-model:page-size="paginationData.pageSize"
+        v-model:current-page="paginationData.currentPage"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />

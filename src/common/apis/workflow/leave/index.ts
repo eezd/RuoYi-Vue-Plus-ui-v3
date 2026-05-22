@@ -1,15 +1,17 @@
 import type { LeaveForm, LeaveQuery, LeaveVO } from "./types"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
 /**
  * 查询请假列表
  */
-export function getWorkflowLeaveListApi(query?: LeaveQuery) {
-  return request<ApiResponsePageData<LeaveVO[]>>({
+export async function getWorkflowLeaveListApi(query?: LeaveQuery) {
+  const response = await request<ApiResponseData<PageResult<LeaveVO>>>({
     url: "/workflow/leave/list",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**

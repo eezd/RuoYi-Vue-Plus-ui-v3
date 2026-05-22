@@ -32,7 +32,6 @@ const { isMobile } = useDevice()
 
 const formRef = ref<FormInstance | null>(null)
 const formRules: FormRules<any> = {
-  categoryId: [{ required: true, message: "流程分类ID不能为空", trigger: "blur" }],
   parentId: [{ required: true, message: "请选择上级分类", trigger: "change" }],
   categoryName: [{ required: true, message: "请输入分类名称", trigger: "blur" }]
 }
@@ -86,13 +85,13 @@ function resetForm() {
     </template>
     <div class="drawer-content">
       <el-form ref="formRef" v-loading="dialog.loading" label-width="auto" :model="formData" :rules="formRules" label-position="left">
-        <el-form-item label="上级菜单">
+        <el-form-item label="上级分类">
           <el-tree-select
             v-model="formData.parentId"
             :data="treeData"
             :props="{ value: 'categoryId', label: 'categoryName', children: 'children' }"
             value-key="categoryId"
-            placeholder="选择上级菜单"
+            placeholder="选择上级分类"
             check-strictly
           />
         </el-form-item>

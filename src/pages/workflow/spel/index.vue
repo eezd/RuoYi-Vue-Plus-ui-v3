@@ -48,7 +48,7 @@ const searchData = reactive({
   methodName: undefined,
   methodParams: undefined,
   viewSpel: undefined,
-  status: "0"
+  status: undefined
 } as SpelQuery)
 const searchFormRef = useTemplateRef("searchFormRef")
 
@@ -84,7 +84,7 @@ async function getTableData(): Promise<void> {
  */
 async function handleDelete(row: SpelForm | SpelForm[]) {
   const items = Array.isArray(row) ? row : [row]
-  const deleteIds = items.map(item => item.id)
+  const deleteIds = items.map(item => item.id).filter((id): id is string | number => id !== undefined)
   const message = Array.isArray(row)
     ? `正在删除 ${row.length} 条数据，确认删除？`
     : `正在删除：${row.componentName}，确认删除？`
@@ -123,6 +123,7 @@ async function handleOpenDialog(type: "add" | "edit" | "show", row?: SpelForm) {
   if ((type === "edit" || type === "show") && row) {
     dialog.loading = true
     try {
+      if (row.id === undefined) return
       const { data } = await getWorkflowSpelApi(row.id)
       Object.assign(formData.value, data)
     } finally {
@@ -161,8 +162,8 @@ onMounted(async () => {
         <el-form-item prop="methodName" label="方法名称">
           <el-input v-model="searchData.methodName" placeholder="请输入方法名称" @keyup.enter="getTableData" />
         </el-form-item>
-        <el-form-item prop="status" label="操作状态">
-          <el-select class="min-w-[150px]" v-model="searchData.status" placeholder="操作状态" clearable>
+        <el-form-item prop="status" label="状态">
+          <el-select class="min-w-[150px]" v-model="searchData.status" placeholder="状态" clearable>
             <el-option v-for="dict in sys_common_status" :key="dict.value" :label="dict.label" :value="dict.value" />
           </el-select>
         </el-form-item>

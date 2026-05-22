@@ -105,13 +105,13 @@ async function handleDelete(row: CategoryForm) {
 /**
  * 统一处理数据弹窗
  *
- * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)、"sub"(新增子菜单)
+ * @param type 操作类型,支持 "add"(新增)、"edit"(编辑)、"show"(查看)、"sub"(新增子分类)
  * @param row 可选参数,编辑或查看时传入对应的菜单项
  */
 async function handleOpenDialog(type: "add" | "edit" | "show" | "sub", row?: CategoryVO) {
   dialog.visible = true
   dialog.isEditable = type !== "show"
-  dialog.title = { add: "新增菜单", edit: "修改菜单", show: "查看菜单", sub: "新增子菜单" }[type]
+  dialog.title = { add: "新增分类", edit: "修改分类", show: "查看分类", sub: "新增子分类" }[type]
 
   formData.value = cloneDeep(DEFAULT_FORM_DATA)
 
@@ -181,7 +181,7 @@ onMounted(async () => {
                   <el-icon color="#409EFF">
                     <edit />
                   </el-icon>
-                  新增子菜单
+                  新增子分类
                 </el-dropdown-item>
                 <el-dropdown-item @click="handleOpenDialog('edit', scope.row)" v-if="checkPermission(['workflow:category:edit'])">
                   <el-icon color="#409EFF">

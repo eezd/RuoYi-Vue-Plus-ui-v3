@@ -5,7 +5,7 @@ import { formatDateTime } from "@@/utils"
 import { CirclePlus, RefreshRight } from "@element-plus/icons-vue"
 
 interface TableRow extends CategoryVO {
-  /** 是否有子菜单（用于 el-table 懒加载） */
+  /** 是否有子分类（用于 el-table 懒加载） */
   hasChildren?: boolean
 }
 
@@ -122,7 +122,7 @@ defineExpose({
           v-hasPermi="['workflow:category:add']"
           @click="openAddDialog()"
         >
-          新增菜单
+          新增分类
         </el-button>
       </div>
       <div>
@@ -145,7 +145,6 @@ defineExpose({
       >
         <el-table-column prop="categoryName" label="分类名称" min-width="200" />
         <el-table-column prop="orderNum" label="排序" align="center" min-width="80" />
-        <el-table-column prop="perms" label="权限标识" align="center" min-width="200" :show-overflow-tooltip="true" />
         <el-table-column label="创建时间" align="center" prop="createTime" width="160">
           <template #default="scope">
             <span>{{ formatDateTime(scope.row.createTime) }}</span>

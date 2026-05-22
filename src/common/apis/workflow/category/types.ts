@@ -42,22 +42,22 @@ export interface CategoryForm extends BaseEntity {
   /**
    * 流程分类ID
    */
-  categoryId: string | number
+  categoryId?: string | number
 
   /**
    * 流程分类名称
    */
-  categoryName: string
+  categoryName?: string
 
   /**
    * 父流程分类id
    */
-  parentId: string | number
+  parentId?: string | number
 
   /**
    * 显示顺序
    */
-  orderNum: number
+  orderNum?: number
 }
 
 export interface CategoryQuery {

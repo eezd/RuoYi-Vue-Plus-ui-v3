@@ -1,22 +1,24 @@
 import type { SpelForm, SpelQuery, SpelVO } from "./types"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
 /**
- * 查询流程spel表达式定义列表
+ * 查询流程 SpEL 表达式定义列表
  * @param query
  * @returns {*}
  */
 
-export function getWorkflowSpelListApi(query?: SpelQuery) {
-  return request<ApiResponsePageData<SpelVO[]>>({
+export async function getWorkflowSpelListApi(query?: SpelQuery) {
+  const response = await request<ApiResponseData<PageResult<SpelVO>>>({
     url: "/workflow/spel/list",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**
- * 查询流程spel表达式定义详细
+ * 查询流程 SpEL 表达式定义详细
  * @param id
  */
 export function getWorkflowSpelApi(id: string | number) {
@@ -27,7 +29,7 @@ export function getWorkflowSpelApi(id: string | number) {
 }
 
 /**
- * 新增流程spel表达式定义
+ * 新增流程 SpEL 表达式定义
  * @param data
  */
 export function addWorkflowSpelApi(data: SpelForm) {
@@ -39,7 +41,7 @@ export function addWorkflowSpelApi(data: SpelForm) {
 }
 
 /**
- * 修改流程spel表达式定义
+ * 修改流程 SpEL 表达式定义
  * @param data
  */
 export function updateWorkflowSpelApi(data: SpelForm) {
@@ -51,7 +53,7 @@ export function updateWorkflowSpelApi(data: SpelForm) {
 }
 
 /**
- * 删除流程spel表达式定义
+ * 删除流程 SpEL 表达式定义
  * @param id
  */
 export function delWorkflowSpelApi(id: string | number | Array<string | number>) {

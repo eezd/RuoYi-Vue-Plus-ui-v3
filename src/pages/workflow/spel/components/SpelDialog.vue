@@ -62,7 +62,7 @@ function resetForm() {
   formRef.value?.clearValidate()
 }
 
-/** 更新 spel 预览值并决定是否显示输入框 */
+/** 更新 SpEL 预览值并决定是否显示输入框 */
 function updateViewSpel() {
   const comp = formData.value.componentName?.trim() ?? ""
   const method = formData.value.methodName?.trim() ?? ""
@@ -143,7 +143,7 @@ function updateViewSpel() {
         </el-form-item>
 
         <!-- 改为只读文本展示 -->
-        <el-form-item label="SPEL表达式">
+        <el-form-item label="SpEL 表达式">
           <span class="preview-box">
             {{ formData.viewSpel || '例如：#{@组件名.方法名(#方法参数)} 或 ${方法参数}' }}
           </span>

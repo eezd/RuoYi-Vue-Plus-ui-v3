@@ -1,37 +1,41 @@
 import type { CancelProcessApplyForm, FlowInstanceQuery, FlowInstanceVO, FlowVariableForm, InvalidProcessForm } from "./types"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
 /**
  * 查询运行中实例
  */
-export function getWorkflowInstanceRunningPageApi(query: FlowInstanceQuery) {
-  return request<ApiResponsePageData<FlowInstanceVO[]>>({
+export async function getWorkflowInstanceRunningPageApi(query: FlowInstanceQuery) {
+  const response = await request<ApiResponseData<PageResult<FlowInstanceVO>>>({
     url: "/workflow/instance/pageByRunning",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**
  * 查询已完成实例
  */
-export function getWorkflowInstanceFinishPageApi(query: FlowInstanceQuery) {
-  return request<ApiResponsePageData<FlowInstanceVO[]>>({
+export async function getWorkflowInstanceFinishPageApi(query: FlowInstanceQuery) {
+  const response = await request<ApiResponseData<PageResult<FlowInstanceVO>>>({
     url: "/workflow/instance/pageByFinish",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**
  * 查询当前登录人发起的单据
  */
-export function getWorkflowInstanceCurrentPageApi(query: FlowInstanceQuery) {
-  return request<ApiResponsePageData<FlowInstanceVO[]>>({
+export async function getWorkflowInstanceCurrentPageApi(query: FlowInstanceQuery) {
+  const response = await request<ApiResponseData<PageResult<FlowInstanceVO>>>({
     url: "/workflow/instance/pageByCurrent",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**

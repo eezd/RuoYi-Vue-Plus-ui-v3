@@ -1,28 +1,31 @@
 import type { definitionXmlVO, FlowDefinitionForm, FlowDefinitionQuery, FlowDefinitionVO } from "./types"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
 /**
  * 获取流程定义列表
  * @param query 流程实例id
  */
-export function getWorkflowDefinitionListApi(query: FlowDefinitionQuery) {
-  return request<ApiResponsePageData<FlowDefinitionVO[]>>({
+export async function getWorkflowDefinitionListApi(query: FlowDefinitionQuery) {
+  const response = await request<ApiResponseData<PageResult<FlowDefinitionVO>>>({
     url: `/workflow/definition/list`,
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**
  * 查询未发布的流程定义列表
  * @param query 流程实例id
  */
-export function unWorkflowDefinitionPublishListApi(query: FlowDefinitionQuery) {
-  return request<ApiResponsePageData<FlowDefinitionVO[]>>({
+export async function unWorkflowDefinitionPublishListApi(query: FlowDefinitionQuery) {
+  const response = await request<ApiResponseData<PageResult<FlowDefinitionVO>>>({
     url: `/workflow/definition/unPublishList`,
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 /**
