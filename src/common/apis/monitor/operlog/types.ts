@@ -1,11 +1,17 @@
 export interface OperLogQuery extends PageQuery {
-  operIp: string | number
-  title: string
-  operName: string
-  businessType: string
-  status: string
-  orderByColumn: string
-  isAsc: string
+  operIp?: string | number
+  title?: string
+  operName?: string
+  userId?: string | number
+  deptId?: string | number
+  clientKey?: string
+  deviceType?: string
+  browser?: string
+  os?: string
+  businessType?: string | number
+  status?: string | number
+  orderByColumn?: string
+  isAsc?: string
   params?: {
     beginTime?: string
     endTime?: string
@@ -14,7 +20,6 @@ export interface OperLogQuery extends PageQuery {
 
 export interface OperLogVO extends BaseEntity {
   operId: string | number
-  tenantId: string
   title: string
   businessType: number
   businessTypes: number[] | undefined
@@ -22,7 +27,13 @@ export interface OperLogVO extends BaseEntity {
   requestMethod: string
   operatorType: number
   operName: string
+  userId: string | number
+  deptId: string | number
   deptName: string
+  clientKey: string
+  deviceType: string
+  browser: string
+  os: string
   operUrl: string
   operIp: string
   operLocation: string
@@ -36,7 +47,6 @@ export interface OperLogVO extends BaseEntity {
 
 export interface OperLogForm {
   operId: number | string
-  tenantId: string
   title: string
   businessType: number
   businessTypes: number[]
@@ -44,7 +54,13 @@ export interface OperLogForm {
   requestMethod: string
   operatorType: number
   operName: string
+  userId: string | number
+  deptId: string | number
   deptName: string
+  clientKey: string
+  deviceType: string
+  browser: string
+  os: string
   operUrl: string
   operIp: string
   operLocation: string

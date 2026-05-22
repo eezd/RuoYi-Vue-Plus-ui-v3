@@ -61,15 +61,15 @@ async function handleClean() {
 }
 
 async function handleUnlock() {
-  const username = selectedRows.value.map(item => item.userName)
-  if (username.length !== 1) return
-  await ElMessageBox.confirm(`是否确认解锁用户"${username}"数据项?`, "提示", {
+  const userName = selectedRows.value[0]?.userName
+  if (!userName) return
+  await ElMessageBox.confirm(`是否确认解锁用户"${userName}"数据项?`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
   })
-  await unlockSysLoginInfoApi(username)
-  ElMessage.success(`用户${username}解锁成功`)
+  await unlockSysLoginInfoApi(userName)
+  ElMessage.success(`用户${userName}解锁成功`)
 }
 </script>
 
@@ -80,14 +80,14 @@ async function handleUnlock() {
         <el-button
           type="danger" plain icon="Delete"
           :disabled="!selectedRows.length"
-          v-hasPermi="['system:logininfor:remove']"
+          v-hasPermi="['monitor:logininfo:remove']"
           @click="handleDelete(selectedRows)"
         >
           批量删除
         </el-button>
         <el-button
           type="danger" plain icon="WarnTriangleFilled"
-          v-hasPermi="['system:logininfor:remove']"
+          v-hasPermi="['monitor:logininfo:remove']"
           @click="handleClean()"
         >
           清空
@@ -95,14 +95,14 @@ async function handleUnlock() {
         <el-button
           type="primary" plain icon="Unlock"
           :disabled="selectedRows.length !== 1"
-          v-hasPermi="['system:logininfor:unlock']"
+          v-hasPermi="['monitor:logininfo:unlock']"
           @click="handleUnlock()"
         >
           解锁
         </el-button>
         <el-button
           type="warning" plain icon="Download"
-          v-hasPermi="['system:logininfor:export']"
+          v-hasPermi="['monitor:logininfo:export']"
           @click="handleExport()"
         >
           导出
@@ -127,7 +127,7 @@ async function handleUnlock() {
           :sort-orders="['descending', 'ascending']"
         />
         <el-table-column prop="clientKey" label="客户端" align="center" />
-        <el-table-column prop="businessType" label="设备类型" align="center">
+        <el-table-column prop="deviceType" label="设备类型" align="center">
           <template #default="scope">
             <DictTag :options="sys_device_type" :value="scope.row.deviceType" />
           </template>

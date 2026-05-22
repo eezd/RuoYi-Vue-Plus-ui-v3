@@ -1,13 +1,15 @@
 import type { OperLogQuery, OperLogVO } from "./types.ts"
+import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
 // 查询操作日志列表
-export function getSysOperlogListApi(query: OperLogQuery) {
-  return request<ApiResponsePageData<OperLogVO[]>>({
+export async function getSysOperlogListApi(query: OperLogQuery) {
+  const response = await request<ApiResponseData<PageResult<OperLogVO>>>({
     url: "/monitor/operlog/list",
     method: "get",
     params: query
   })
+  return normalizePageResult(response)
 }
 
 // 删除操作日志

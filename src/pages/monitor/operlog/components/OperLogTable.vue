@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { OperLogForm, OperLogVO } from "@@/apis/monitor/operlog/types.ts"
+import type { OperLogVO } from "@@/apis/monitor/operlog/types.ts"
 import type { PaginationData } from "@@/composables/usePagination.ts"
 import { cleanSysOperlogApi } from "@@/apis/monitor/operlog"
 import DictTag from "@@/components/DictTag/index.vue"
@@ -24,13 +24,13 @@ const loading = defineModel<boolean>("loading", { required: true })
  */
 // #region EmitEvents
 export interface EmitEvents {
-  handleDelete: [rows: OperLogForm[]]
+  handleDelete: [rows: OperLogVO[]]
   handleExport: []
   handleSizeChange: [val: number]
   handleCurrentChange: [val: number]
   getTableData: []
 }
-const handleDelete = (rows: OperLogForm[]) => emit("handleDelete", rows)
+const handleDelete = (rows: OperLogVO[]) => emit("handleDelete", rows)
 const handleExport = () => emit("handleExport")
 const handleSizeChange = (val: number) => emit("handleSizeChange", val)
 const handleCurrentChange = (val: number) => emit("handleCurrentChange", val)
@@ -41,9 +41,9 @@ const { sys_oper_type, sys_common_status } = toRefs<any>(useDict("sys_oper_type"
 
 const { isMobile } = useDevice()
 
-const selectedRows = ref<OperLogForm[]>([])
+const selectedRows = ref<OperLogVO[]>([])
 
-const handleSelectionChange = (val: OperLogForm[]) => (selectedRows.value = val)
+const handleSelectionChange = (val: OperLogVO[]) => (selectedRows.value = val)
 
 async function handleClean() {
   await ElMessageBox.confirm("是否确认清空所有操作日志数据项", "提示", {

@@ -104,9 +104,9 @@ async function handleDelete(row: LoginInfoVO | LoginInfoVO[]) {
 function handleExport() {
   const timestamp = new Date().getTime()
   download(
-    "/monitor/logininfor/export",
+    "/monitor/loginInfo/export",
     { ...searchData },
-    `logininfor_${timestamp}.xlsx`
+    `loginInfo_${timestamp}.xlsx`
   )
 }
 // #endregion
@@ -141,10 +141,7 @@ onMounted(async () => {
           <el-input v-model="searchData.userName" placeholder="请输入用户名称" @keyup.enter="getTableData" />
         </el-form-item>
         <el-form-item prop="status" label="登录状态">
-          <el-input v-model="searchData.status" placeholder="请输入登录状态" @keyup.enter="getTableData" />
-        </el-form-item>
-        <el-form-item prop="status" label="操作状态">
-          <el-select class="min-w-[150px]" v-model="searchData.status" placeholder="操作状态" clearable>
+          <el-select class="min-w-[150px]" v-model="searchData.status" placeholder="登录状态" clearable>
             <el-option v-for="dict in sys_common_status" :key="dict.value" :label="dict.label" :value="dict.value" />
           </el-select>
         </el-form-item>

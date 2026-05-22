@@ -22,7 +22,6 @@ const loading = ref(true)
 const tableData = ref<OperLogVO[]>([])
 const DEFAULT_FORM_DATA: Partial<OperLogForm> = {
   operId: undefined,
-  tenantId: undefined,
   title: "",
   businessType: 0,
   businessTypes: undefined,
@@ -106,7 +105,7 @@ async function getTableData(): Promise<void> {
 /**
  * 删除
  */
-async function handleDelete(row: OperLogForm | OperLogForm[]) {
+async function handleDelete(row: OperLogVO | OperLogVO[]) {
   const items = Array.isArray(row) ? row : [row]
   const deleteIds = items.map(item => item.operId)
   const message = Array.isArray(row)
@@ -148,7 +147,7 @@ function handleExport() {
  *
  * @param row
  */
-async function openShowDialog(row: OperLogForm) {
+async function openShowDialog(row: OperLogVO) {
   dialog.loading = true
   formData.value = cloneDeep(row)
   dialog.title = "查看操作日志"
