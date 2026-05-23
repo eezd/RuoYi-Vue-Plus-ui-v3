@@ -173,7 +173,7 @@ watch(
 
 onMounted(async () => {
   await getTypeList()
-  const { data } = await getSysDictTypeApi(route.params && (route.params.dictId as string))
+  const { data } = await getSysDictTypeApi(route.params && ((route.params.dict_id || route.params.dictId) as string))
   searchData.dictType = data.dictType
   defaultDictType.value = data.dictType
   await getTableData()

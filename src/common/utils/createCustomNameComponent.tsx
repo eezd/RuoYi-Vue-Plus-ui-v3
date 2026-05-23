@@ -17,26 +17,20 @@ type AsyncComponentLoader = () => Promise<AsyncComponentModule | Component | unk
 
 export function createCustomNameComponent(loader: AsyncComponentLoader, options: Options = {}): () => Promise<Component> {
   const { name } = options
-  let component: Component | null = null
-
-  const load = async () => {
-    try {
-      const loadedModule = await loader()
-      component = resolveComponent(loadedModule)
-    } catch (error) {
-      console.error(`Cannot resolve component ${name}, error:`, error)
-    }
-  }
 
   return async () => {
+    const loadedModule = await loader()
+    const component = resolveComponent(loadedModule)
+
     if (!component) {
-      await load()
+      throw new Error(`Cannot resolve component ${name ?? "unknown"}`)
     }
 
     return defineComponent({
       name,
-      render() {
-        return component ? h(component) : null
+      inheritAttrs: false,
+      setup(_, { attrs, slots }) {
+        return () => h(component, attrs, slots)
       }
     })
   }

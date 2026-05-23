@@ -111,7 +111,7 @@ function close() {
 
 /** 获取初始数据 */
 async function getTableData(): Promise<void> {
-  const userId = route.params && route.params.userId
+  const userId = route.params && (route.params.user_id || route.params.userId)
   if (userId) {
     try {
       loading.value = true

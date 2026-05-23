@@ -15,7 +15,7 @@ defineOptions({
 
 // 确保 roleId 是单个值
 const getRoleId = computed(() => {
-  const id = route.params.roleId
+  const id = route.params.role_id || route.params.roleId
   return Array.isArray(id) ? id[0] : id
 })
 
@@ -40,7 +40,7 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 const searchData = reactive({
   userName: undefined,
   phoneNumber: undefined,
-  roleId: route.params.roleId as string
+  roleId: (route.params.role_id || route.params.roleId) as string
 } as UserQuery)
 const searchFormRef = useTemplateRef("searchFormRef")
 

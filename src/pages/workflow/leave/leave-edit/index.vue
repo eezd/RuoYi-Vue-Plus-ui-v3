@@ -223,6 +223,8 @@ async function remoteSearchUsers(keyword: string) {
       status: "0"
     } as any)
     userOptions.value = rows
+  } catch {
+    userOptions.value = []
   } finally {
     userLoading.value = false
   }
@@ -244,7 +246,8 @@ function buildAssigneeMap() {
 
 async function getApprovalTaskInfo() {
   if (pageType.value !== "approval" || !taskId.value) return
-  const [{ data: task }] = await Promise.all([getWorkflowTaskApi(taskId.value), remoteSearchUsers("")])
+  const { data: task } = await getWorkflowTaskApi(taskId.value)
+  await remoteSearchUsers("")
   taskInfo.value = task
 
   try {

@@ -78,7 +78,7 @@ function resetSearch() {
 
 function handleAdd() {
   router.push({
-    path: "/workflow/leaveEdit/index",
+    path: "/workflow/leave/leave-edit/index",
     query: {
       type: "add"
     }
@@ -87,7 +87,7 @@ function handleAdd() {
 
 function handleUpdate(row: LeaveVO) {
   router.push({
-    path: "/workflow/leaveEdit/index",
+    path: "/workflow/leave/leave-edit/index",
     query: {
       id: row.id,
       type: "update"
@@ -97,7 +97,7 @@ function handleUpdate(row: LeaveVO) {
 
 function handleView(row: LeaveVO) {
   router.push({
-    path: "/workflow/leaveEdit/index",
+    path: "/workflow/leave/leave-edit/index",
     query: {
       id: row.id,
       type: "view"

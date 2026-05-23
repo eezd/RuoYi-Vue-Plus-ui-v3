@@ -61,22 +61,22 @@ defineExpose({
     ref="formRef"
     :model="formData"
     :rules="formRules"
-    :disabled="formDisabled"
     label-width="100px"
   >
     <el-form-item label="流程定义" v-if="pageType === 'add'">
-      <el-select v-model="flowCode" placeholder="请选择流程定义" style="width: 100%">
+      <el-select v-model="flowCode" :disabled="formDisabled" placeholder="请选择流程定义" style="width: 100%">
         <el-option v-for="item in flowCodeOptions" :key="item.id" :label="item.flowName" :value="item.flowCode" />
       </el-select>
     </el-form-item>
     <el-form-item label="请假类型" prop="leaveType">
-      <el-select v-model="formData.leaveType" placeholder="请选择请假类型" style="width: 100%">
+      <el-select v-model="formData.leaveType" :disabled="formDisabled" placeholder="请选择请假类型" style="width: 100%">
         <el-option v-for="item in leaveTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
     </el-form-item>
     <el-form-item label="请假时间" required>
       <el-date-picker
         v-model="leaveTime"
+        :disabled="formDisabled"
         value-format="YYYY-MM-DD HH:mm:ss"
         type="daterange"
         range-separator="至"
@@ -90,7 +90,7 @@ defineExpose({
       <el-input v-model="formData.leaveDays" disabled />
     </el-form-item>
     <el-form-item label="请假原因" prop="remark">
-      <el-input v-model="formData.remark" type="textarea" :rows="3" placeholder="请输入请假原因" />
+      <el-input v-model="formData.remark" :disabled="formDisabled" type="textarea" :rows="3" placeholder="请输入请假原因" />
     </el-form-item>
     <el-form-item label="审批意见" v-if="pageType === 'approval'">
       <el-input v-model="approvalComment" type="textarea" :rows="3" placeholder="请输入审批意见" />

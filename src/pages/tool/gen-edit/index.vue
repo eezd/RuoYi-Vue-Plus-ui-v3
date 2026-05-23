@@ -90,7 +90,7 @@ function close() {
 }
 
 onMounted(async () => {
-  const tableId = route.params?.tableId as string | undefined
+  const tableId = (route.params?.table_id || route.params?.tableId) as string | undefined
   if (!tableId) {
     loading.value = false
     return

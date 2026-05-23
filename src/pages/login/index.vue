@@ -43,7 +43,7 @@ const loginFormData = ref<LoginRequestData>({
 })
 
 /** 登录表单校验规则 */
-const loginFormRules: FormRules = {
+const loginFormRules = computed<FormRules>(() => ({
   username: [
     { required: true, message: "请输入用户名", trigger: "blur" }
   ],
@@ -54,7 +54,7 @@ const loginFormRules: FormRules = {
   code: [
     { required: captchaEnabled.value, message: "请输入验证码", trigger: "blur" }
   ]
-}
+}))
 
 /** 登录 */
 function handleLogin() {
@@ -114,9 +114,9 @@ function createCode() {
   codeUrl.value = ""
   // 获取验证码图片
   getCaptchaApi().then((res) => {
-    codeUrl.value = `data:image/gif;base64,${res.data.img}`
     captchaEnabled.value = res.data.captchaEnabled
-    loginFormData.value.uuid = res.data.uuid
+    codeUrl.value = res.data.img ? `data:image/gif;base64,${res.data.img}` : ""
+    loginFormData.value.uuid = res.data.uuid || ""
   })
 }
 
@@ -176,7 +176,7 @@ onMounted(() => {
               @focus="handleFocus"
             />
           </el-form-item>
-          <el-form-item prop="code">
+          <el-form-item v-if="captchaEnabled" prop="code">
             <el-input
               v-model.trim="loginFormData.code"
               placeholder="验证码"

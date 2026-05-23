@@ -66,6 +66,8 @@ async function remoteSearchUsers(keyword: string) {
       status: "0"
     } as any)
     userOptions.value = rows
+  } catch {
+    userOptions.value = []
   } finally {
     userLoading.value = false
   }

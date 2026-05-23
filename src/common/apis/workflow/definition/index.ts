@@ -1,4 +1,4 @@
-import type { definitionXmlVO, FlowDefinitionForm, FlowDefinitionQuery, FlowDefinitionVO } from "./types"
+import type { FlowDefinitionForm, FlowDefinitionQuery, FlowDefinitionVO } from "./types"
 import { normalizePageResult } from "@@/apis/utils"
 import { request } from "@/http/axios.ts"
 
@@ -26,17 +26,6 @@ export async function unWorkflowDefinitionPublishListApi(query: FlowDefinitionQu
     params: query
   })
   return normalizePageResult(response)
-}
-
-/**
- * 通过流程定义id获取xml
- * @param definitionId 流程定义id
- */
-export function getWorkflowDefinitionXmlApi(definitionId: string) {
-  return request<ApiResponseData<definitionXmlVO>>({
-    url: `/workflow/definition/definitionXml/${definitionId}`,
-    method: "get"
-  })
 }
 
 /**
