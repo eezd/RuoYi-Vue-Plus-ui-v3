@@ -67,14 +67,22 @@ const urgeForm = ref<UrgeDialogForm>({
 })
 
 const selectedTaskIds = computed<Array<string | number>>(() => selectedRows.value.map(item => item.id))
-
+const isWaitingTab = computed(() => activeTab.value === "waiting")
+const canBatchOperate = computed(() => isWaitingTab.value && selectedTaskIds.value.length > 0)
+const tableTitle = computed(() => isWaitingTab.value ? "全部待办任务" : "全部已办任务")
+const tableEmptyText = computed(() => isWaitingTab.value ? "暂无待办任务" : "暂无已办任务")
 
 function handleSelectionChange(rows: FlowTaskVO[]) {
-  selectedRows.value = rows
+  selectedRows.value = isWaitingTab.value ? rows : []
+}
+
+function selectableTaskRow() {
+  return isWaitingTab.value
 }
 
 function handleTabClick(tab: TabsPaneContext) {
   activeTab.value = (tab.paneName as "waiting" | "finish") || "waiting"
+  selectedRows.value = []
   paginationData.currentPage = 1
   getTableData()
 }
@@ -91,30 +99,36 @@ function handleQuery() {
   getTableData()
 }
 
-function handleView(row: FlowTaskVO) {
+function handleOpen(row: FlowTaskVO) {
   routerJumpWorkflowForm(router, {
     businessId: row.businessId,
     taskId: row.id,
-    type: "view",
+    type: isWaitingTab.value ? "approval" : "view",
     formCustom: row.formCustom,
     formPath: row.formPath
   })
 }
 
-function openAssigneeDialog() {
-  if (selectedTaskIds.value.length === 0) {
-    ElMessage.warning("请先选择任务")
-    return
+function assertWaitingSelection() {
+  if (!isWaitingTab.value) {
+    ElMessage.warning("已办任务不支持办理人修改或催办")
+    return false
   }
+  if (selectedTaskIds.value.length === 0) {
+    ElMessage.warning("请先选择待办任务")
+    return false
+  }
+  return true
+}
+
+function openAssigneeDialog() {
+  if (!assertWaitingSelection()) return
   assigneeForm.value.userId = ""
   assigneeDialog.visible = true
 }
 
 function openUrgeDialog() {
-  if (selectedTaskIds.value.length === 0) {
-    ElMessage.warning("请先选择任务")
-    return
-  }
+  if (!assertWaitingSelection()) return
   urgeForm.value.messageType = "system"
   urgeForm.value.message = ""
   urgeDialog.visible = true
@@ -159,6 +173,7 @@ async function getTableData() {
 }
 
 async function handleUpdateAssignee() {
+  if (!assertWaitingSelection()) return
   if (!assigneeForm.value.userId) {
     ElMessage.warning("请选择办理人")
     return
@@ -178,6 +193,7 @@ async function handleUpdateAssignee() {
 }
 
 async function handleUrgeTask() {
+  if (!assertWaitingSelection()) return
   urgeDialog.loading = true
   try {
     const res = await urgeWorkflowTaskApi({
@@ -199,6 +215,10 @@ watch(
     getTableData()
   }
 )
+
+onActivated(async () => {
+  await getTableData()
+})
 
 onMounted(async () => {
   await remoteSearchUsers("")
@@ -255,11 +275,12 @@ onMounted(async () => {
     <el-card v-loading="loading" shadow="never">
       <div class="toolbar-wrapper">
         <div class="toolbar-left">
-          <template v-if="activeTab === 'waiting'">
-            <el-button type="primary" plain :icon="Edit" :disabled="selectedTaskIds.length === 0" @click="openAssigneeDialog">
+          <div class="table-heading">{{ tableTitle }}</div>
+          <template v-if="isWaitingTab">
+            <el-button type="primary" plain :icon="Edit" :disabled="!canBatchOperate" @click="openAssigneeDialog">
               修改办理人
             </el-button>
-            <el-button type="warning" plain :disabled="selectedTaskIds.length === 0" @click="openUrgeDialog">
+            <el-button type="warning" plain :disabled="!canBatchOperate" @click="openUrgeDialog">
               催办
             </el-button>
           </template>
@@ -274,14 +295,14 @@ onMounted(async () => {
           <el-tab-pane name="waiting" label="待办任务" />
           <el-tab-pane name="finish" label="已办任务" />
 
-          <el-table :data="tableData" border @selection-change="handleSelectionChange">
-            <el-table-column type="selection" width="50" align="center" />
+          <el-table :data="tableData" border stripe :empty-text="tableEmptyText" @selection-change="handleSelectionChange">
+            <el-table-column v-if="isWaitingTab" type="selection" width="50" align="center" :selectable="selectableTaskRow" />
             <el-table-column label="序号" type="index" width="60" align="center" />
             <el-table-column prop="businessCode" label="业务编码" align="center" min-width="130" show-overflow-tooltip />
             <el-table-column prop="businessTitle" label="业务标题" align="center" min-width="150" show-overflow-tooltip />
             <el-table-column prop="flowName" label="流程定义名称" align="center" min-width="150" show-overflow-tooltip />
-            <el-table-column prop="flowCode" label="流程定义编码" align="center" min-width="120" />
-            <el-table-column prop="categoryName" label="流程分类" align="center" min-width="100" />
+            <el-table-column prop="flowCode" label="流程定义编码" align="center" min-width="120" show-overflow-tooltip />
+            <el-table-column prop="categoryName" label="流程分类" align="center" min-width="100" show-overflow-tooltip />
             <el-table-column prop="version" label="版本号" align="center" min-width="90">
               <template #default="scope">
                 <span>v{{ scope.row.version }}.0</span>
@@ -289,12 +310,9 @@ onMounted(async () => {
             </el-table-column>
             <el-table-column prop="nodeName" label="任务名称" align="center" min-width="120" show-overflow-tooltip />
             <el-table-column prop="createByName" label="申请人" align="center" min-width="100" show-overflow-tooltip />
-            <el-table-column label="办理人" align="center" min-width="150">
+            <el-table-column label="办理人" align="center" min-width="150" show-overflow-tooltip>
               <template #default="scope">
-                <span v-if="activeTab === 'waiting'">{{ scope.row.assigneeNames || "无" }}</span>
-                <el-tag v-else type="success">
-                  {{ scope.row.approveName || "无" }}
-                </el-tag>
+                <span>{{ isWaitingTab ? (scope.row.assigneeNames || "无") : (scope.row.approveName || scope.row.assigneeNames || "无") }}</span>
               </template>
             </el-table-column>
             <el-table-column label="流程状态" align="center" min-width="100">
@@ -308,10 +326,15 @@ onMounted(async () => {
               </template>
             </el-table-column>
             <el-table-column prop="createTime" label="创建时间" align="center" min-width="160" />
-            <el-table-column label="操作" align="center" width="100" fixed="right">
+            <el-table-column v-if="!isWaitingTab" prop="updateTime" label="完成时间" align="center" min-width="160">
               <template #default="scope">
-                <el-button type="primary" :icon="View" text bg size="small" @click="handleView(scope.row)">
-                  查看
+                {{ scope.row.updateTime || "-" }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" align="center" width="110" fixed="right">
+              <template #default="scope">
+                <el-button type="primary" :icon="View" text bg size="small" @click="handleOpen(scope.row)">
+                  {{ isWaitingTab ? "办理" : "查看" }}
                 </el-button>
               </template>
             </el-table-column>
@@ -360,14 +383,23 @@ onMounted(async () => {
 
 .toolbar-wrapper {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
 }
 
 .toolbar-left {
   display: flex;
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.table-heading {
+  margin-right: 6px;
+  color: var(--el-text-color-primary);
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .table-wrapper {

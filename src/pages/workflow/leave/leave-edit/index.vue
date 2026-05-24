@@ -106,6 +106,9 @@ const pageTitle = computed(() => {
 })
 
 const formDisabled = computed(() => pageType.value === "view" || pageType.value === "approval")
+const showApprovalPanel = computed(() => pageType.value === "approval")
+const showNextNodeAssignee = computed(() => showApprovalPanel.value && nextNodeList.value.length > 0)
+const canHandleSignature = computed(() => Number(taskInfo.value?.nodeRatio || 0) > 0)
 
 function closePage() {
   tagsViewStore.delVisitedView(router.currentRoute.value)
@@ -404,7 +407,10 @@ onMounted(async () => {
   <div class="app-container workflow-leave-edit-page">
     <el-card shadow="never" class="header-card">
       <div class="header-wrapper">
-        <span class="title">{{ pageTitle }}</span>
+        <div class="title-block">
+          <span class="title">{{ pageTitle }}</span>
+          <span v-if="pageType === 'approval'" class="subtitle">{{ taskInfo?.nodeName || "当前审批节点" }}</span>
+        </div>
         <div class="actions">
           <template v-if="pageType !== 'view' && pageType !== 'approval'">
             <el-button :loading="buttonLoading" @click="saveLeave('draft')">
@@ -415,27 +421,31 @@ onMounted(async () => {
             </el-button>
           </template>
           <template v-if="pageType === 'approval'">
-            <el-button v-if="showTaskButton('back')" type="danger" :loading="buttonLoading" @click="openBackDialog">
-              退回
-            </el-button>
-            <el-button v-if="showTaskButton('termination')" type="danger" plain :loading="buttonLoading" @click="handleTerminationTask">
-              终止
-            </el-button>
-            <el-button v-if="showTaskButton('trust')" :loading="operationLoading" @click="delegateDialog.visible = true">
-              委派
-            </el-button>
-            <el-button v-if="showTaskButton('transfer')" :loading="operationLoading" @click="transferDialog.visible = true">
-              转办
-            </el-button>
-            <el-button v-if="showTaskButton('addSign') && Number(taskInfo?.nodeRatio || 0) > 0" :loading="operationLoading" @click="addSignatureDialog.visible = true">
-              加签
-            </el-button>
-            <el-button v-if="showTaskButton('subSign') && Number(taskInfo?.nodeRatio || 0) > 0" :loading="operationLoading" @click="openReductionDialog">
-              减签
-            </el-button>
-            <el-button type="primary" :loading="buttonLoading" @click="handleApprove">
-              同意
-            </el-button>
+            <div class="action-group action-group-primary">
+              <el-button type="primary" :loading="buttonLoading" :disabled="!taskId" @click="handleApprove">
+                同意
+              </el-button>
+              <el-button v-if="showTaskButton('back')" type="warning" :loading="buttonLoading" :disabled="!taskId" @click="openBackDialog">
+                退回
+              </el-button>
+              <el-button v-if="showTaskButton('termination')" type="danger" plain :loading="buttonLoading" :disabled="!taskId" @click="handleTerminationTask">
+                终止
+              </el-button>
+            </div>
+            <div class="action-group">
+              <el-button v-if="showTaskButton('trust')" :loading="operationLoading" :disabled="!taskId" @click="delegateDialog.visible = true">
+                委派
+              </el-button>
+              <el-button v-if="showTaskButton('transfer')" :loading="operationLoading" :disabled="!taskId" @click="transferDialog.visible = true">
+                转办
+              </el-button>
+              <el-button v-if="showTaskButton('addSign') && canHandleSignature" :loading="operationLoading" :disabled="!taskId" @click="addSignatureDialog.visible = true">
+                加签
+              </el-button>
+              <el-button v-if="showTaskButton('subSign') && canHandleSignature" :loading="operationLoading" :disabled="!taskId" @click="openReductionDialog">
+                减签
+              </el-button>
+            </div>
           </template>
           <el-button @click="closePage">
             返回
@@ -444,46 +454,60 @@ onMounted(async () => {
       </div>
     </el-card>
 
-    <el-card v-loading="loading" shadow="never">
-      <LeaveEditForm
-        ref="leaveFormRef"
-        v-model:form-data="formData"
-        v-model:leave-time="leaveTime"
-        v-model:flow-code="flowCode"
-        v-model:approval-comment="approvalComment"
-        :page-type="pageType"
-        :form-disabled="formDisabled"
-        :flow-code-options="flowCodeOptions"
-        :leave-type-options="leaveTypeOptions"
-        @leave-time-change="handleLeaveTimeChange"
-      />
+    <el-card v-loading="loading" shadow="never" class="form-card">
+      <div class="form-scroll-area">
+        <LeaveEditForm
+          ref="leaveFormRef"
+          v-model:form-data="formData"
+          v-model:leave-time="leaveTime"
+          v-model:flow-code="flowCode"
+          :page-type="pageType"
+          :form-disabled="formDisabled"
+          :flow-code-options="flowCodeOptions"
+          :leave-type-options="leaveTypeOptions"
+          @leave-time-change="handleLeaveTimeChange"
+        />
 
-      <el-divider v-if="pageType === 'approval' && nextNodeList.length > 0" content-position="left">
-        下一节点办理人
-      </el-divider>
-      <el-form v-if="pageType === 'approval' && nextNodeList.length > 0" label-width="120px">
-        <el-form-item v-for="node in nextNodeList" :key="node.nodeCode" :label="node.nodeName || node.nodeCode || '下一节点'">
-          <el-select
-            v-if="node.nodeCode"
-            v-model="assigneeMap[node.nodeCode]"
-            multiple
-            filterable
-            remote
-            clearable
-            :remote-method="remoteSearchUsers"
-            :loading="userLoading"
-            placeholder="请选择下一节点办理人"
-            class="w-full"
-          >
-            <el-option
-              v-for="item in userOptions"
-              :key="item.userId"
-              :label="`${item.nickName} (${item.userName})`"
-              :value="item.userId"
-            />
-          </el-select>
-        </el-form-item>
-      </el-form>
+        <div v-if="showApprovalPanel" class="approval-panel">
+          <div class="panel-title">审批处理</div>
+          <el-alert
+            v-if="!taskId"
+            title="当前审批页面缺少 taskId，请从待办任务进入。"
+            type="warning"
+            show-icon
+            :closable="false"
+            class="approval-alert"
+          />
+          <el-form label-width="120px">
+            <el-form-item label="审批意见">
+              <el-input v-model="approvalComment" type="textarea" :rows="3" placeholder="请输入审批意见" />
+            </el-form-item>
+            <template v-if="showNextNodeAssignee">
+              <el-form-item v-for="node in nextNodeList" :key="node.nodeCode" :label="node.nodeName || node.nodeCode || '下一节点'">
+                <el-select
+                  v-if="node.nodeCode"
+                  v-model="assigneeMap[node.nodeCode]"
+                  multiple
+                  filterable
+                  remote
+                  clearable
+                  :remote-method="remoteSearchUsers"
+                  :loading="userLoading"
+                  placeholder="请选择下一节点办理人"
+                  class="w-full"
+                >
+                  <el-option
+                    v-for="item in userOptions"
+                    :key="item.userId"
+                    :label="`${item.nickName} (${item.userName})`"
+                    :value="item.userId"
+                  />
+                </el-select>
+              </el-form-item>
+            </template>
+          </el-form>
+        </div>
+      </div>
     </el-card>
 
     <el-dialog v-model="transferDialog.visible" title="转办" width="420px">
@@ -579,15 +603,29 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
+.workflow-leave-edit-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 112px);
+}
+
 .header-card {
-  margin-bottom: 20px;
+  flex-shrink: 0;
+  margin-bottom: 16px;
 }
 
 .header-wrapper {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 180px;
 }
 
 .title {
@@ -595,9 +633,84 @@ onMounted(async () => {
   font-weight: 600;
 }
 
+.subtitle {
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+
 .actions {
   display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 10px;
+  flex: 1;
   flex-wrap: wrap;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.action-group + .action-group {
+  padding-left: 10px;
+  border-left: 1px solid var(--el-border-color-lighter);
+}
+
+.form-card {
+  flex: 1;
+  min-height: 0;
+
+  :deep(.el-card__body) {
+    height: 100%;
+    padding: 20px 24px;
+  }
+}
+
+.form-scroll-area {
+  height: calc(100vh - 220px);
+  min-height: 420px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.approval-panel {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.panel-title {
+  margin-bottom: 14px;
+  color: var(--el-text-color-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.approval-alert {
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .header-wrapper {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+
+  .action-group + .action-group {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .form-scroll-area {
+    height: auto;
+    min-height: 0;
+  }
 }
 </style>

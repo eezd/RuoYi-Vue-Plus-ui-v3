@@ -70,6 +70,10 @@ watch(
   }
 )
 
+onActivated(async () => {
+  await getTableData()
+})
+
 onMounted(() => {
   getTableData()
 })
@@ -101,25 +105,27 @@ onMounted(() => {
 
     <el-card v-loading="loading" shadow="never">
       <div class="toolbar-wrapper">
-        <div />
+        <div class="table-heading">抄送任务</div>
         <el-tooltip content="刷新当前页">
           <el-button type="primary" :icon="RefreshRight" circle @click="getTableData" />
         </el-tooltip>
       </div>
       <div class="table-wrapper">
-        <el-table :data="tableData" border>
+        <el-table :data="tableData" border stripe empty-text="暂无抄送任务">
           <el-table-column label="序号" type="index" width="60" align="center" />
           <el-table-column prop="businessCode" label="业务编码" align="center" min-width="130" show-overflow-tooltip />
           <el-table-column prop="businessTitle" label="业务标题" align="center" min-width="150" show-overflow-tooltip />
           <el-table-column prop="flowName" label="流程定义名称" align="center" min-width="150" show-overflow-tooltip />
-          <el-table-column prop="flowCode" label="流程定义编码" align="center" min-width="120" />
-          <el-table-column prop="categoryName" label="流程分类" align="center" min-width="100" />
+          <el-table-column prop="flowCode" label="流程定义编码" align="center" min-width="120" show-overflow-tooltip />
+          <el-table-column prop="categoryName" label="流程分类" align="center" min-width="100" show-overflow-tooltip />
           <el-table-column prop="version" label="版本号" align="center" min-width="90">
             <template #default="scope">
               <span>v{{ scope.row.version }}.0</span>
             </template>
           </el-table-column>
-          <el-table-column prop="nodeName" label="任务名称" align="center" min-width="120" />
+          <el-table-column prop="nodeName" label="任务名称" align="center" min-width="120" show-overflow-tooltip />
+          <el-table-column prop="createByName" label="申请人" align="center" min-width="100" show-overflow-tooltip />
+          <el-table-column prop="createTime" label="抄送时间" align="center" min-width="160" />
           <el-table-column label="流程状态" align="center" min-width="100">
             <template #default="scope">
               <DictTag :options="wf_business_status" :value="scope.row.flowStatus" />
@@ -160,8 +166,15 @@ onMounted(() => {
 
 .toolbar-wrapper {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+.table-heading {
+  color: var(--el-text-color-primary);
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .table-wrapper {

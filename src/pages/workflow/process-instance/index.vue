@@ -30,7 +30,7 @@ defineOptions({
 })
 
 const router = useRouter()
-const { wf_business_status } = toRefs<any>(useDict("wf_business_status"))
+const { wf_business_status, wf_task_status } = toRefs<any>(useDict("wf_business_status", "wf_task_status"))
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
 const loading = ref(false)
@@ -253,11 +253,19 @@ async function openHistoryDialog(row: FlowInstanceVO) {
 }
 
 function getHistoryTaskStatus(row: FlowHistoryTaskVO) {
+  return row.flowTaskStatus || row.flowStatus || ""
+}
+
+function getHistoryStatusFallback(row: FlowHistoryTaskVO) {
   return row.flowStatusName || row.flowTaskStatus || row.flowStatus || "-"
 }
 
 function getHistoryApprover(row: FlowHistoryTaskVO) {
   return row.approverName || row.approver || row.createByName || row.createBy || "-"
+}
+
+function getHistoryMessage(row: FlowHistoryTaskVO) {
+  return row.message || "-"
 }
 
 async function openVariableDialog(row: FlowInstanceVO) {
@@ -295,6 +303,10 @@ watch(
     getTableData()
   }
 )
+
+onActivated(async () => {
+  await getTableData()
+})
 
 onMounted(async () => {
   await Promise.all([getCategoryTree(), remoteSearchUsers("")])
@@ -395,7 +407,7 @@ onMounted(async () => {
     />
 
     <el-dialog v-model="historyDialog.visible" :title="historyDialog.title" width="960px" append-to-body>
-      <el-table v-loading="historyDialog.loading" :data="historyDialog.taskList" border max-height="560">
+      <el-table v-loading="historyDialog.loading" :data="historyDialog.taskList" border stripe empty-text="暂无审批记录" max-height="560">
         <el-table-column label="序号" type="index" width="60" align="center" />
         <el-table-column prop="nodeName" label="节点名称" align="center" min-width="120" show-overflow-tooltip />
         <el-table-column prop="targetNodeName" label="目标节点" align="center" min-width="120" show-overflow-tooltip />
@@ -405,12 +417,17 @@ onMounted(async () => {
           </template>
         </el-table-column>
         <el-table-column prop="cooperateTypeName" label="协作方式" align="center" min-width="100" show-overflow-tooltip />
-        <el-table-column label="状态" align="center" min-width="100" show-overflow-tooltip>
+        <el-table-column label="状态" align="center" min-width="100">
           <template #default="scope">
-            {{ getHistoryTaskStatus(scope.row) }}
+            <DictTag v-if="getHistoryTaskStatus(scope.row)" :options="wf_task_status" :value="getHistoryTaskStatus(scope.row)" />
+            <span v-else class="text-placeholder">{{ getHistoryStatusFallback(scope.row) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="message" label="审批意见" align="center" min-width="160" show-overflow-tooltip />
+        <el-table-column label="审批意见" align="center" min-width="180" show-overflow-tooltip>
+          <template #default="scope">
+            {{ getHistoryMessage(scope.row) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="createTime" label="开始时间" align="center" min-width="160" />
         <el-table-column prop="updateTime" label="完成时间" align="center" min-width="160">
           <template #default="scope">

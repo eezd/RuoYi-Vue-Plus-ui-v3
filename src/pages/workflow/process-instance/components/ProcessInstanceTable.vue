@@ -52,8 +52,17 @@ const handleTabClick = (tab: TabsPaneContext, event: Event) => emit("handleTabCl
 
 const selectedRows = ref<FlowInstanceVO[]>([])
 
+const tableTitle = computed(() => activeTab.value === "running" ? "运行中实例" : "已完成实例")
+const tableEmptyText = computed(() => activeTab.value === "running" ? "暂无运行中流程实例" : "暂无已完成流程实例")
+const canBatchDelete = computed(() => selectedRows.value.length > 0)
+
 function handleSelectionChange(rows: FlowInstanceVO[]) {
   selectedRows.value = rows
+}
+
+function handleInnerTabClick(tab: TabsPaneContext, event: Event) {
+  selectedRows.value = []
+  handleTabClick(tab, event)
 }
 </script>
 
@@ -61,7 +70,8 @@ function handleSelectionChange(rows: FlowInstanceVO[]) {
   <el-card v-loading="loading" shadow="never">
     <div class="toolbar-wrapper">
       <div class="toolbar-left">
-        <el-button type="danger" plain :icon="Delete" :disabled="selectedRows.length === 0" v-hasPermi="['workflow:instance:remove']" @click="handleDelete(selectedRows)">
+        <div class="table-heading">{{ tableTitle }}</div>
+        <el-button type="danger" plain :icon="Delete" :disabled="!canBatchDelete" v-hasPermi="['workflow:instance:remove']" @click="handleDelete(selectedRows)">
           删除
         </el-button>
       </div>
@@ -71,11 +81,11 @@ function handleSelectionChange(rows: FlowInstanceVO[]) {
     </div>
 
     <div class="table-wrapper">
-      <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+      <el-tabs v-model="activeTab" @tab-click="handleInnerTabClick">
         <el-tab-pane name="running" label="运行中" />
         <el-tab-pane name="finish" label="已完成" />
 
-        <el-table :data="tableData" border @selection-change="handleSelectionChange">
+        <el-table :data="tableData" border stripe :empty-text="tableEmptyText" @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column label="序号" type="index" width="60" align="center" />
           <el-table-column prop="businessCode" label="业务编码" align="center" min-width="130" show-overflow-tooltip />
@@ -85,10 +95,10 @@ function handleSelectionChange(rows: FlowInstanceVO[]) {
               <span>{{ scope.row.flowName }} v{{ scope.row.version }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="flowCode" label="流程定义编码" align="center" min-width="120" />
-          <el-table-column prop="categoryName" label="流程分类" align="center" min-width="100" />
-          <el-table-column prop="nodeName" label="任务名称" align="center" min-width="100" />
-          <el-table-column prop="createByName" label="申请人" align="center" min-width="100" />
+          <el-table-column prop="flowCode" label="流程定义编码" align="center" min-width="120" show-overflow-tooltip />
+          <el-table-column prop="categoryName" label="流程分类" align="center" min-width="100" show-overflow-tooltip />
+          <el-table-column prop="nodeName" label="任务名称" align="center" min-width="100" show-overflow-tooltip />
+          <el-table-column prop="createByName" label="申请人" align="center" min-width="100" show-overflow-tooltip />
           <el-table-column v-if="activeTab === 'running'" label="状态" align="center" min-width="80">
             <template #default="scope">
               <el-tag :type="scope.row.isSuspended ? 'danger' : 'success'">
@@ -128,7 +138,7 @@ function handleSelectionChange(rows: FlowInstanceVO[]) {
                 作废
               </el-button>
               <el-button type="danger" text bg size="small" v-hasPermi="['workflow:instance:remove']" @click="handleDelete([scope.row])">
-                删除
+                {{ activeTab === "running" ? "删除" : "删历史" }}
               </el-button>
               <el-button type="primary" :icon="View" text bg size="small" v-hasPermi="['workflow:instance:query']" @click="handleView(scope.row)">
                 查看
@@ -169,7 +179,15 @@ function handleSelectionChange(rows: FlowInstanceVO[]) {
 
 .toolbar-left {
   display: flex;
+  align-items: center;
   gap: 10px;
+}
+
+.table-heading {
+  margin-right: 6px;
+  color: var(--el-text-color-primary);
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .table-wrapper {

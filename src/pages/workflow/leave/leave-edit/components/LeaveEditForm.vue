@@ -25,7 +25,6 @@ const emit = defineEmits<EmitEvents>()
 const formData = defineModel<Partial<LeaveForm>>("formData", { required: true })
 const leaveTime = defineModel<[string, string] | []>("leaveTime", { required: true })
 const flowCode = defineModel<string>("flowCode", { required: true })
-const approvalComment = defineModel<string>("approvalComment", { required: true })
 // #endregion
 
 /**
@@ -91,9 +90,6 @@ defineExpose({
     </el-form-item>
     <el-form-item label="请假原因" prop="remark">
       <el-input v-model="formData.remark" :disabled="formDisabled" type="textarea" :rows="3" placeholder="请输入请假原因" />
-    </el-form-item>
-    <el-form-item label="审批意见" v-if="pageType === 'approval'">
-      <el-input v-model="approvalComment" type="textarea" :rows="3" placeholder="请输入审批意见" />
     </el-form-item>
   </el-form>
 </template>

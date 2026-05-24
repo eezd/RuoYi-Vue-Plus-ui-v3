@@ -98,6 +98,10 @@ watch(
   }
 )
 
+onActivated(async () => {
+  await getTableData()
+})
+
 onMounted(async () => {
   await remoteSearchUsers("")
   await getTableData()
@@ -152,19 +156,19 @@ onMounted(async () => {
 
     <el-card v-loading="loading" shadow="never">
       <div class="toolbar-wrapper">
-        <div />
+        <div class="table-heading">已办任务</div>
         <el-tooltip content="刷新当前页">
           <el-button type="primary" :icon="RefreshRight" circle @click="getTableData" />
         </el-tooltip>
       </div>
       <div class="table-wrapper">
-        <el-table :data="tableData" border>
+        <el-table :data="tableData" border stripe empty-text="暂无已办任务">
           <el-table-column label="序号" type="index" width="60" align="center" />
           <el-table-column prop="businessCode" label="业务编码" align="center" min-width="130" show-overflow-tooltip />
           <el-table-column prop="businessTitle" label="业务标题" align="center" min-width="150" show-overflow-tooltip />
           <el-table-column prop="flowName" label="流程定义名称" align="center" min-width="150" show-overflow-tooltip />
-          <el-table-column prop="flowCode" label="流程定义编码" align="center" min-width="120" />
-          <el-table-column prop="categoryName" label="流程分类" align="center" min-width="100" />
+          <el-table-column prop="flowCode" label="流程定义编码" align="center" min-width="120" show-overflow-tooltip />
+          <el-table-column prop="categoryName" label="流程分类" align="center" min-width="100" show-overflow-tooltip />
           <el-table-column prop="version" label="版本号" align="center" min-width="90">
             <template #default="scope">
               <span>v{{ scope.row.version }}.0</span>
@@ -172,11 +176,9 @@ onMounted(async () => {
           </el-table-column>
           <el-table-column prop="nodeName" label="任务名称" align="center" min-width="120" show-overflow-tooltip />
           <el-table-column prop="createByName" label="申请人" align="center" min-width="100" show-overflow-tooltip />
-          <el-table-column label="办理人" align="center" min-width="120">
+          <el-table-column label="办理人" align="center" min-width="120" show-overflow-tooltip>
             <template #default="scope">
-              <el-tag type="success">
-                {{ scope.row.approveName || "无" }}
-              </el-tag>
+              <span>{{ scope.row.approveName || scope.row.assigneeNames || "无" }}</span>
             </template>
           </el-table-column>
           <el-table-column label="流程状态" align="center" min-width="100">
@@ -190,6 +192,11 @@ onMounted(async () => {
             </template>
           </el-table-column>
           <el-table-column prop="createTime" label="创建时间" align="center" min-width="160" />
+          <el-table-column prop="updateTime" label="完成时间" align="center" min-width="160">
+            <template #default="scope">
+              {{ scope.row.updateTime || "-" }}
+            </template>
+          </el-table-column>
           <el-table-column label="操作" align="center" width="100" fixed="right">
             <template #default="scope">
               <el-button type="primary" :icon="View" text bg size="small" @click="handleView(scope.row)">
@@ -225,8 +232,15 @@ onMounted(async () => {
 
 .toolbar-wrapper {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+.table-heading {
+  color: var(--el-text-color-primary);
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .table-wrapper {

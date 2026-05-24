@@ -3,11 +3,12 @@ import type { LeaveQuery, LeaveVO } from "@/common/apis/workflow/leave/types"
 import DictTag from "@@/components/DictTag/index.vue"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { formatDateTime } from "@@/utils"
-import { Delete, Edit, Plus, Refresh, RefreshRight, Search, View } from "@element-plus/icons-vue"
+import { Delete, Download, Edit, Plus, Refresh, RefreshRight, Search, View } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { cancelWorkflowProcessApplyApi } from "@/common/apis/workflow/instance"
 import { delWorkflowLeaveApi, getWorkflowLeaveListApi } from "@/common/apis/workflow/leave"
 import { useDict } from "@/common/composables/useDict"
+import { download } from "@/http/download"
 
 defineOptions({
   name: "AdminWorkflowLeave"
@@ -19,6 +20,7 @@ const { wf_business_status } = toRefs<any>(useDict("wf_business_status"))
 const loading = ref(false)
 const tableData = ref<LeaveVO[]>([])
 const selectedRows = ref<LeaveVO[]>([])
+const showSearch = ref(true)
 
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
@@ -44,6 +46,10 @@ function getLeaveTypeLabel(value: string) {
 function isEditableRow(row: LeaveVO) {
   return editableStatusList.includes(row.status)
 }
+
+const selectedEditableRows = computed(() => selectedRows.value.filter(isEditableRow))
+const hasSelectedRows = computed(() => selectedRows.value.length > 0)
+const canBatchDelete = computed(() => selectedEditableRows.value.length > 0)
 
 function handleSelectionChange(rows: LeaveVO[]) {
   selectedRows.value = rows
@@ -106,9 +112,9 @@ function handleView(row: LeaveVO) {
 }
 
 async function handleDelete(row?: LeaveVO) {
-  const items = row ? [row] : selectedRows.value
+  const items = row ? [row] : selectedEditableRows.value
   if (items.length === 0) {
-    ElMessage.warning("请选择要删除的数据")
+    ElMessage.warning(hasSelectedRows.value ? "当前选中数据不可删除" : "请选择要删除的数据")
     return
   }
 
@@ -127,6 +133,15 @@ async function handleDelete(row?: LeaveVO) {
   } finally {
     loading.value = false
   }
+}
+
+function handleExport() {
+  const timestamp = new Date().getTime()
+  download(
+    "/workflow/leave/export",
+    { ...searchData },
+    `leave_${timestamp}.xlsx`
+  )
 }
 
 async function handleCancelProcessApply(row: LeaveVO) {
@@ -162,14 +177,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="app-container">
-    <el-card v-loading="loading" shadow="never" class="search-wrapper">
+  <div class="app-container workflow-leave-page">
+    <el-card v-loading="loading" shadow="never" class="search-wrapper" :class="{ 'is-collapsed': !showSearch }">
+      <template #header>
+        <div class="panel-heading search-panel-toggle" @click.stop="showSearch = !showSearch">
+          <div>
+            <h3>筛选条件</h3>
+          </div>
+        </div>
+      </template>
       <el-form ref="searchFormRef" :inline="true" :model="searchData">
         <el-form-item label="请假天数" prop="startLeaveDays">
-          <el-input v-model="searchData.startLeaveDays" placeholder="开始天数" @keyup.enter="handleQuery" />
+          <el-input v-model="searchData.startLeaveDays" placeholder="开始天数" clearable @keyup.enter="handleQuery" />
         </el-form-item>
         <el-form-item label="至" prop="endLeaveDays">
-          <el-input v-model="searchData.endLeaveDays" placeholder="结束天数" @keyup.enter="handleQuery" />
+          <el-input v-model="searchData.endLeaveDays" placeholder="结束天数" clearable @keyup.enter="handleQuery" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="handleQuery">
@@ -182,8 +204,11 @@ onMounted(() => {
       </el-form>
     </el-card>
 
-    <el-card v-loading="loading" shadow="never">
+    <el-card v-loading="loading" shadow="never" class="table-panel">
       <div class="toolbar-wrapper">
+        <div class="table-heading">
+          <h3>请假列表</h3>
+        </div>
         <div class="toolbar-left">
           <el-button type="primary" :icon="Plus" v-hasPermi="['workflow:leave:add']" @click="handleAdd">
             新增
@@ -192,16 +217,30 @@ onMounted(() => {
             type="danger"
             plain
             :icon="Delete"
-            :disabled="selectedRows.length === 0"
+            :disabled="!canBatchDelete"
             v-hasPermi="['workflow:leave:remove']"
             @click="handleDelete()"
           >
             批量删除
           </el-button>
+          <el-button
+            type="warning"
+            plain
+            :icon="Download"
+            v-hasPermi="['workflow:leave:export']"
+            @click="handleExport"
+          >
+            导出
+          </el-button>
         </div>
+        <div class="toolbar-right">
+          <el-tooltip :content="showSearch ? '隐藏搜索' : '显示搜索'">
+            <el-button :type="showSearch ? 'primary' : 'default'" :icon="Search" circle @click="showSearch = !showSearch" />
+          </el-tooltip>
         <el-tooltip content="刷新当前页">
           <el-button type="primary" :icon="RefreshRight" circle @click="getTableData" />
         </el-tooltip>
+        </div>
       </div>
 
       <div class="table-wrapper">
@@ -303,10 +342,22 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .toolbar-left {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.search-wrapper.is-collapsed {
+  :deep(.el-card__body) {
+    display: none;
+  }
 }
 
 .table-wrapper {

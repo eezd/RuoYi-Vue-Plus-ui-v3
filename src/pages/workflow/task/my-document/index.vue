@@ -37,10 +37,17 @@ const treeOptions = ref<CategoryTreeVO[]>([])
 const treeRef = useTemplateRef("treeRef")
 
 const editableStatusList = ["draft", "cancel", "back"]
+const cancellableStatusList = ["waiting"]
 
+const selectedEditableRows = computed(() => selectedRows.value.filter(isEditableRow))
+const canBatchDelete = computed(() => selectedRows.value.length > 0 && selectedEditableRows.value.length === selectedRows.value.length)
 
 function isEditableRow(row: FlowInstanceVO) {
   return editableStatusList.includes(row.flowStatus)
+}
+
+function canCancelRow(row: FlowInstanceVO) {
+  return cancellableStatusList.includes(row.flowStatus)
 }
 
 function handleSelectionChange(rows: FlowInstanceVO[]) {
@@ -114,6 +121,10 @@ async function handleDelete(row?: FlowInstanceVO) {
     ElMessage.warning("请选择要删除的数据")
     return
   }
+  if (rows.some(item => !isEditableRow(item))) {
+    ElMessage.warning("只能删除草稿、已撤销或被退回的单据")
+    return
+  }
   await ElMessageBox.confirm(`确认删除选中的 ${rows.length} 条记录吗？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
@@ -131,6 +142,10 @@ async function handleDelete(row?: FlowInstanceVO) {
 }
 
 async function handleCancelProcessApply(row: FlowInstanceVO) {
+  if (!canCancelRow(row)) {
+    ElMessage.warning("只能撤销进行中的单据")
+    return
+  }
   await ElMessageBox.confirm("确认撤销当前单据流程吗？", "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
@@ -155,6 +170,10 @@ watch(
     getTableData()
   }
 )
+
+onActivated(async () => {
+  await getTableData()
+})
 
 onMounted(async () => {
   await getCategoryTree()
@@ -203,7 +222,7 @@ onMounted(async () => {
         <el-card v-loading="loading" shadow="never">
           <div class="toolbar-wrapper">
             <div class="toolbar-left">
-              <el-button type="danger" plain :icon="Delete" :disabled="selectedRows.length === 0" @click="handleDelete()">
+              <el-button type="danger" plain :icon="Delete" :disabled="!canBatchDelete" @click="handleDelete()">
                 删除
               </el-button>
             </div>
@@ -213,8 +232,8 @@ onMounted(async () => {
           </div>
 
           <div class="table-wrapper">
-            <el-table :data="tableData" border @selection-change="handleSelectionChange">
-              <el-table-column type="selection" width="50" align="center" />
+            <el-table :data="tableData" border stripe empty-text="暂无我的单据" @selection-change="handleSelectionChange">
+              <el-table-column type="selection" width="50" align="center" :selectable="isEditableRow" />
               <el-table-column label="序号" type="index" width="60" align="center" />
               <el-table-column prop="flowName" label="流程定义名称" align="center" min-width="150" show-overflow-tooltip />
               <el-table-column prop="flowCode" label="流程定义编码" align="center" min-width="120" />
@@ -258,7 +277,7 @@ onMounted(async () => {
                     查看
                   </el-button>
                   <el-button
-                    v-if="scope.row.flowStatus === 'waiting'"
+                    v-if="canCancelRow(scope.row)"
                     type="warning"
                     text
                     bg
