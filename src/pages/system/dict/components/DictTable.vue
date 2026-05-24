@@ -99,7 +99,7 @@ async function handleRefreshCache() {
         <el-table-column prop="dictName" label="字典名称" align="center" />
         <el-table-column label="字典类型" align="center">
           <template #default="scope">
-            <router-link :to="`/system/dict-data/index/${scope.row.dictId}`" class="link-type">
+            <router-link :to="`/system/dict/data/index/${scope.row.dictId}`" class="link-type">
               <span>{{ scope.row.dictType }}</span>
             </router-link>
           </template>

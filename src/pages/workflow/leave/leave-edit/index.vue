@@ -401,7 +401,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="app-container">
+  <div class="app-container workflow-leave-edit-page">
     <el-card shadow="never" class="header-card">
       <div class="header-wrapper">
         <span class="title">{{ pageTitle }}</span>
@@ -485,9 +485,8 @@ onMounted(async () => {
         </el-form-item>
       </el-form>
     </el-card>
-  </div>
 
-  <el-dialog v-model="transferDialog.visible" title="转办" width="420px">
+    <el-dialog v-model="transferDialog.visible" title="转办" width="420px">
     <el-form label-width="90px">
       <el-form-item label="办理人">
         <el-select v-model="transferUserId" filterable remote clearable :remote-method="remoteSearchUsers" :loading="userLoading" placeholder="请选择办理人" class="w-full">
@@ -576,6 +575,7 @@ onMounted(async () => {
       </el-button>
     </template>
   </el-dialog>
+  </div>
 </template>
 
 <style lang="scss" scoped>

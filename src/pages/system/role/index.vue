@@ -128,7 +128,7 @@ async function handleDelete(row: RoleVO | RoleVO[]) {
 
 /** 分配用户 */
 function handleAuthUser(row: RoleVO) {
-  router.push(`/system/role-auth/user/${row.roleId}`)
+  router.push(`/system/role/auth-user/index/${row.roleId}`)
 }
 
 /**
