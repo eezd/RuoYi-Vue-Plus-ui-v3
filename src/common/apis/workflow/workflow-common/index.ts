@@ -2,8 +2,13 @@ import type { Router } from "vue-router"
 import { ElMessage } from "element-plus"
 import type { WorkflowRouterJumpOptions } from "./types"
 
+const workflowFormPathMap: Record<string, string> = {
+  "/workflow/leave/leave-edit/index": "/workflow/leaveEdit/index"
+}
+
 function normalizeWorkflowFormPath(path: string) {
-  return path.startsWith("/") ? path : "/" + path
+  const normalizedPath = path.trim().startsWith("/") ? path.trim() : "/" + path.trim()
+  return workflowFormPathMap[normalizedPath] || normalizedPath
 }
 
 function getMissingWorkflowJumpFields(options: WorkflowRouterJumpOptions) {

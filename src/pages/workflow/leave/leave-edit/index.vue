@@ -19,6 +19,7 @@ import {
   terminationWorkflowTaskApi
 } from "@/common/apis/workflow/task"
 import { useTagsViewStore } from "@/pinia/stores/tags-view"
+import ApprovalRecordDialog from "../../components/approval-record-dialog.vue"
 import LeaveEditForm from "./components/LeaveEditForm.vue"
 
 defineOptions({
@@ -34,6 +35,7 @@ const tagsViewStore = useTagsViewStore()
 const loading = ref(false)
 const buttonLoading = ref(false)
 const leaveFormRef = ref<InstanceType<typeof LeaveEditForm>>()
+const approvalRecordDialogRef = ref<InstanceType<typeof ApprovalRecordDialog>>()
 
 const DEFAULT_FORM_DATA: LeaveForm = {
   id: "",
@@ -113,6 +115,13 @@ const canHandleSignature = computed(() => Number(taskInfo.value?.nodeRatio || 0)
 function closePage() {
   tagsViewStore.delVisitedView(router.currentRoute.value)
   router.back()
+}
+
+function openApprovalRecord() {
+  approvalRecordDialogRef.value?.open({
+    businessId: routeId.value || formData.value.id,
+    title: `审批记录 - ${formData.value.applyCode || "请假申请"}`
+  })
 }
 
 function handleLeaveTimeChange() {
@@ -447,6 +456,9 @@ onMounted(async () => {
               </el-button>
             </div>
           </template>
+          <el-button v-if="pageType === 'view' || pageType === 'approval'" @click="openApprovalRecord">
+            审批记录
+          </el-button>
           <el-button @click="closePage">
             返回
           </el-button>
@@ -599,6 +611,8 @@ onMounted(async () => {
       </el-button>
     </template>
   </el-dialog>
+
+  <ApprovalRecordDialog ref="approvalRecordDialogRef" />
   </div>
 </template>
 

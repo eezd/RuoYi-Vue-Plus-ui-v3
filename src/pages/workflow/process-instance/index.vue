@@ -3,7 +3,7 @@ import type { TabsPaneContext } from "element-plus"
 import type { InstanceVariableDialogState } from "./components/InstanceVariableDialog.vue"
 import type { UserVO } from "@/common/apis/system/user/types"
 import type { CategoryTreeVO } from "@/common/apis/workflow/category/types"
-import type { FlowHistoryTaskVO, FlowInstanceQuery, FlowInstanceVO, FlowVariableForm } from "@/common/apis/workflow/instance/types"
+import type { FlowInstanceQuery, FlowInstanceVO, FlowVariableForm } from "@/common/apis/workflow/instance/types"
 import { usePagination } from "@@/composables/usePagination.ts"
 import { Refresh, Search } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
@@ -14,7 +14,6 @@ import {
   deleteWorkflowHistoryInstanceByIdsApi,
   deleteWorkflowInstanceByIdsApi,
   getWorkflowInstanceFinishPageApi,
-  getWorkflowInstanceHistoryTaskListApi,
   getWorkflowInstanceRunningPageApi,
   getWorkflowInstanceVariableApi,
   invalidWorkflowInstanceApi,
@@ -23,6 +22,7 @@ import {
 import { useDict } from "@/common/composables/useDict"
 import { routerJumpWorkflowForm } from "@/common/apis/workflow/workflow-common"
 import InstanceVariableDialog from "./components/InstanceVariableDialog.vue"
+import ApprovalRecordDialog from "../components/approval-record-dialog.vue"
 import ProcessInstanceTable from "./components/ProcessInstanceTable.vue"
 
 defineOptions({
@@ -30,7 +30,7 @@ defineOptions({
 })
 
 const router = useRouter()
-const { wf_business_status, wf_task_status } = toRefs<any>(useDict("wf_business_status", "wf_task_status"))
+const { wf_business_status } = toRefs<any>(useDict("wf_business_status"))
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
 const loading = ref(false)
@@ -67,14 +67,7 @@ const variableForm = ref<FlowVariableForm>({
   value: ""
 })
 
-const historyDialog = reactive({
-  visible: false,
-  loading: false,
-  title: "审批记录",
-  instanceId: "" as string | number,
-  businessTitle: "",
-  taskList: [] as FlowHistoryTaskVO[]
-})
+const approvalRecordDialogRef = ref<InstanceType<typeof ApprovalRecordDialog>>()
 
 function resetSearch() {
   searchFormRef.value?.resetFields()
@@ -229,43 +222,11 @@ function handleView(row: FlowInstanceVO) {
   })
 }
 
-function normalizeHistoryTaskList(data?: Partial<{ list: FlowHistoryTaskVO[], flowHisTaskList: FlowHistoryTaskVO[], hisTaskList: FlowHistoryTaskVO[], taskList: FlowHistoryTaskVO[] }>) {
-  return data?.list || data?.flowHisTaskList || data?.hisTaskList || data?.taskList || []
-}
-
-async function openHistoryDialog(row: FlowInstanceVO) {
-  if (!row.businessId) {
-    ElMessage.warning("当前流程实例缺少业务ID")
-    return
-  }
-  historyDialog.visible = true
-  historyDialog.loading = true
-  historyDialog.title = `审批记录 - ${row.businessTitle || row.businessCode || row.flowName || row.businessId}`
-  historyDialog.businessTitle = row.businessTitle || row.businessCode || ""
-  historyDialog.taskList = []
-  try {
-    const { data } = await getWorkflowInstanceHistoryTaskListApi(row.businessId)
-    historyDialog.instanceId = data.instanceId || row.id
-    historyDialog.taskList = normalizeHistoryTaskList(data)
-  } finally {
-    historyDialog.loading = false
-  }
-}
-
-function getHistoryTaskStatus(row: FlowHistoryTaskVO) {
-  return row.flowTaskStatus || row.flowStatus || ""
-}
-
-function getHistoryStatusFallback(row: FlowHistoryTaskVO) {
-  return row.flowStatusName || row.flowTaskStatus || row.flowStatus || "-"
-}
-
-function getHistoryApprover(row: FlowHistoryTaskVO) {
-  return row.approverName || row.approver || row.createByName || row.createBy || "-"
-}
-
-function getHistoryMessage(row: FlowHistoryTaskVO) {
-  return row.message || "-"
+function openHistoryDialog(row: FlowInstanceVO) {
+  approvalRecordDialogRef.value?.open({
+    businessId: row.businessId,
+    title: `审批记录 - ${row.businessTitle || row.businessCode || row.flowName || row.businessId || "流程实例"}`
+  })
 }
 
 async function openVariableDialog(row: FlowInstanceVO) {
@@ -406,41 +367,7 @@ onMounted(async () => {
       @submit="handleUpdateVariable"
     />
 
-    <el-dialog v-model="historyDialog.visible" :title="historyDialog.title" width="960px" append-to-body>
-      <el-table v-loading="historyDialog.loading" :data="historyDialog.taskList" border stripe empty-text="暂无审批记录" max-height="560">
-        <el-table-column label="序号" type="index" width="60" align="center" />
-        <el-table-column prop="nodeName" label="节点名称" align="center" min-width="120" show-overflow-tooltip />
-        <el-table-column prop="targetNodeName" label="目标节点" align="center" min-width="120" show-overflow-tooltip />
-        <el-table-column label="办理人" align="center" min-width="120" show-overflow-tooltip>
-          <template #default="scope">
-            {{ getHistoryApprover(scope.row) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="cooperateTypeName" label="协作方式" align="center" min-width="100" show-overflow-tooltip />
-        <el-table-column label="状态" align="center" min-width="100">
-          <template #default="scope">
-            <DictTag v-if="getHistoryTaskStatus(scope.row)" :options="wf_task_status" :value="getHistoryTaskStatus(scope.row)" />
-            <span v-else class="text-placeholder">{{ getHistoryStatusFallback(scope.row) }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="审批意见" align="center" min-width="180" show-overflow-tooltip>
-          <template #default="scope">
-            {{ getHistoryMessage(scope.row) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="createTime" label="开始时间" align="center" min-width="160" />
-        <el-table-column prop="updateTime" label="完成时间" align="center" min-width="160">
-          <template #default="scope">
-            {{ scope.row.updateTime || "-" }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="runDuration" label="耗时" align="center" min-width="100">
-          <template #default="scope">
-            {{ scope.row.runDuration || "-" }}
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-dialog>
+    <ApprovalRecordDialog ref="approvalRecordDialogRef" />
   </div>
 </template>
 

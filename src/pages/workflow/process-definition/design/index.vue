@@ -32,7 +32,7 @@ function buildDesignerUrl() {
 function closePage() {
   tagsViewStore.delVisitedView(router.currentRoute.value)
   router.push({
-    path: "/workflow/process-definition",
+    path: "/workflow/processDefinition",
     query: {
       activeName: String(route.query.activeName || "0")
     }

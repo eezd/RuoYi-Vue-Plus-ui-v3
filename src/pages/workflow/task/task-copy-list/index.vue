@@ -2,10 +2,11 @@
 import type { FlowTaskVO, TaskQuery } from "@/common/apis/workflow/task/types"
 import DictTag from "@@/components/DictTag/index.vue"
 import { usePagination } from "@@/composables/usePagination.ts"
-import { Refresh, RefreshRight, Search, View } from "@element-plus/icons-vue"
+import { Clock, Refresh, RefreshRight, Search, View } from "@element-plus/icons-vue"
 import { getWorkflowTaskCopyPageApi } from "@/common/apis/workflow/task"
 import { useDict } from "@/common/composables/useDict"
 import { routerJumpWorkflowForm } from "@/common/apis/workflow/workflow-common"
+import ApprovalRecordDialog from "../../components/approval-record-dialog.vue"
 
 defineOptions({
   name: "AdminWorkflowTaskCopyList"
@@ -17,6 +18,7 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 
 const loading = ref(false)
 const tableData = ref<FlowTaskVO[]>([])
+const approvalRecordDialogRef = ref<InstanceType<typeof ApprovalRecordDialog>>()
 
 const searchData = reactive({
   nodeName: undefined,
@@ -33,6 +35,13 @@ function handleView(row: FlowTaskVO) {
     type: "view",
     formCustom: row.formCustom,
     formPath: row.formPath
+  })
+}
+
+function openApprovalRecord(row: FlowTaskVO) {
+  approvalRecordDialogRef.value?.open({
+    businessId: row.businessId,
+    title: `审批记录 - ${row.businessTitle || row.businessCode || row.flowName || row.businessId || "抄送任务"}`
   })
 }
 
@@ -131,10 +140,13 @@ onMounted(() => {
               <DictTag :options="wf_business_status" :value="scope.row.flowStatus" />
             </template>
           </el-table-column>
-          <el-table-column label="操作" align="center" width="100" fixed="right">
+          <el-table-column label="操作" align="center" width="170" fixed="right">
             <template #default="scope">
               <el-button type="primary" :icon="View" text bg size="small" @click="handleView(scope.row)">
                 查看
+              </el-button>
+              <el-button type="info" :icon="Clock" text bg size="small" @click="openApprovalRecord(scope.row)">
+                记录
               </el-button>
             </template>
           </el-table-column>
@@ -153,6 +165,7 @@ onMounted(() => {
         />
       </div>
     </el-card>
+    <ApprovalRecordDialog ref="approvalRecordDialogRef" />
   </div>
 </template>
 

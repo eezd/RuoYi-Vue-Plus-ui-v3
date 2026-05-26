@@ -189,7 +189,7 @@ async function handleCopyDef(row: FlowDefinitionVO) {
  */
 async function design(row: FlowDefinitionVO) {
   router.push({
-    path: "/workflow/process-definition/design/index",
+    path: "/workflow/design/index",
     query: {
       definitionId: row.id,
       disabled: "false",
@@ -204,7 +204,7 @@ async function design(row: FlowDefinitionVO) {
  */
 async function designView(row: FlowDefinitionVO) {
   router.push({
-    path: "/workflow/process-definition/design/index",
+    path: "/workflow/design/index",
     query: {
       definitionId: row.id,
       disabled: "true",

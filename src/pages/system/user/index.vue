@@ -208,7 +208,7 @@ async function handleResetPwd(row: UserVO) {
 /** 跳转角色分配 */
 function handleAuthRole(row: UserVO) {
   const userId = row.userId
-  router.push(`/system/user/auth-role/index/${userId}`)
+  router.push(`/system/user-auth/role/${userId}`)
 }
 
 // #endregion

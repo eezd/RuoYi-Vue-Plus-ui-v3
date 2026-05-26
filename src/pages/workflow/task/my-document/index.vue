@@ -3,7 +3,7 @@ import type { CategoryTreeVO } from "@/common/apis/workflow/category/types"
 import type { FlowInstanceQuery, FlowInstanceVO } from "@/common/apis/workflow/instance/types"
 import DictTag from "@@/components/DictTag/index.vue"
 import { usePagination } from "@@/composables/usePagination.ts"
-import { Delete, Edit, Refresh, RefreshRight, Search, View } from "@element-plus/icons-vue"
+import { Clock, Delete, Edit, Refresh, RefreshRight, Search, View } from "@element-plus/icons-vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { getWorkflowCategoryTreeApi } from "@/common/apis/workflow/category"
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/common/apis/workflow/instance"
 import { useDict } from "@/common/composables/useDict"
 import { routerJumpWorkflowForm } from "@/common/apis/workflow/workflow-common"
+import ApprovalRecordDialog from "../../components/approval-record-dialog.vue"
 
 defineOptions({
   name: "AdminWorkflowMyDocument"
@@ -25,6 +26,7 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 const loading = ref(false)
 const tableData = ref<FlowInstanceVO[]>([])
 const selectedRows = ref<FlowInstanceVO[]>([])
+const approvalRecordDialogRef = ref<InstanceType<typeof ApprovalRecordDialog>>()
 
 const searchData = reactive({
   flowCode: undefined,
@@ -112,6 +114,13 @@ function handleOpen(row: FlowInstanceVO, type: "update" | "view") {
     type,
     formCustom: row.formCustom,
     formPath: row.formPath
+  })
+}
+
+function openApprovalRecord(row: FlowInstanceVO) {
+  approvalRecordDialogRef.value?.open({
+    businessId: row.businessId,
+    title: `审批记录 - ${row.businessTitle || row.businessCode || row.flowName || row.businessId || "我的单据"}`
   })
 }
 
@@ -249,7 +258,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
               <el-table-column prop="createTime" label="启动时间" align="center" min-width="160" />
-              <el-table-column label="操作" align="center" fixed="right" width="280">
+              <el-table-column label="操作" align="center" fixed="right" width="340">
                 <template #default="scope">
                   <el-button
                     v-if="isEditableRow(scope.row)"
@@ -275,6 +284,9 @@ onMounted(async () => {
                   </el-button>
                   <el-button type="primary" :icon="View" text bg size="small" @click="handleOpen(scope.row, 'view')">
                     查看
+                  </el-button>
+                  <el-button type="info" :icon="Clock" text bg size="small" @click="openApprovalRecord(scope.row)">
+                    记录
                   </el-button>
                   <el-button
                     v-if="canCancelRow(scope.row)"
@@ -306,6 +318,7 @@ onMounted(async () => {
         </el-card>
       </el-col>
     </el-row>
+    <ApprovalRecordDialog ref="approvalRecordDialogRef" />
   </div>
 </template>
 
