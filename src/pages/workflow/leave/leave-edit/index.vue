@@ -27,6 +27,26 @@ defineOptions({
 })
 
 type PageType = "add" | "update" | "view" | "approval"
+type TaskOperationType = "transferTask" | "delegateTask" | "addSignature" | "reductionSignature"
+
+const DEFAULT_BUTTON_PERMISSION: Record<string, boolean> = {
+  pop: false,
+  trust: false,
+  transfer: false,
+  copy: true,
+  back: true,
+  addSign: false,
+  subSign: false,
+  termination: true,
+  file: true
+}
+
+const TASK_OPERATION_NAME_MAP: Record<TaskOperationType, string> = {
+  transferTask: "转办",
+  delegateTask: "委派",
+  addSignature: "加签",
+  reductionSignature: "减签"
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -60,6 +80,7 @@ const flowCode = ref("leave1")
 const flowCodeOptions = ref<FlowDefinitionVO[]>([])
 const leaveTime = ref<[string, string] | []>([])
 const approvalComment = ref("")
+const messageType = ref<string[]>(["1"])
 
 const taskInfo = ref<FlowTaskVO>()
 const nextNodeList = ref<FlowNodeVO[]>([])
@@ -78,17 +99,18 @@ const delegateUserId = ref<string | number>("")
 const addSignatureUserIds = ref<Array<string | number>>([])
 const reductionUserIds = ref<Array<string | number>>([])
 const currentTaskUsers = ref<WorkflowUserDTO[]>([])
+const copyUserIds = ref<Array<string | number>>([])
 const backNodeList = ref<FlowNodeVO[]>([])
 const backNodeCode = ref("")
 
 const taskButtonMap = computed(() => {
-  const map: Record<string, boolean> = {}
+  const map: Record<string, boolean> = { ...DEFAULT_BUTTON_PERMISSION }
   taskInfo.value?.buttonList?.forEach((item) => {
     map[item.code] = item.show
   })
   return map
 })
-const showTaskButton = (code: string) => taskInfo.value?.buttonList?.length ? !!taskButtonMap.value[code] : true
+const showTaskButton = (code: string) => !!taskButtonMap.value[code]
 
 const pageType = computed<PageType>(() => {
   const rawType = String(route.query.type || "add")
@@ -109,12 +131,86 @@ const pageTitle = computed(() => {
 
 const formDisabled = computed(() => pageType.value === "view" || pageType.value === "approval")
 const showApprovalPanel = computed(() => pageType.value === "approval")
-const showNextNodeAssignee = computed(() => showApprovalPanel.value && nextNodeList.value.length > 0)
+const showNextNodeAssignee = computed(() => showApprovalPanel.value && showTaskButton("pop") && nextNodeList.value.length > 0)
 const canHandleSignature = computed(() => Number(taskInfo.value?.nodeRatio || 0) > 0)
+const handleableFlowStatusList = ["draft", "cancel", "back", "waiting"]
+const canSubmitApproval = computed(() => pageType.value === "approval" && !!taskId.value && (!taskInfo.value || handleableFlowStatusList.includes(taskInfo.value.flowStatus)))
+const currentTaskUserIdSet = computed(() => new Set(currentTaskUsers.value.map(item => String(item.userId))))
+const addSignatureUserOptions = computed(() => userOptions.value.filter(item => !currentTaskUserIdSet.value.has(String(item.userId))))
+const flowCopyList = computed(() => copyUserIds.value.map((userId) => {
+  const user = userOptions.value.find(item => String(item.userId) === String(userId))
+  const copyUser = taskInfo.value?.copyList?.find(item => String(item.userId) === String(userId))
+  return {
+    userId,
+    nickName: user?.nickName || copyUser?.nickName || String(userId)
+  }
+}))
+
+function mergeUserOptions(users: Array<Partial<UserVO>>) {
+  const userMap = new Map(userOptions.value.map(item => [String(item.userId), item]))
+  users.forEach((user) => {
+    if (!user.userId) return
+    const userId = String(user.userId)
+    userMap.set(userId, {
+      ...userMap.get(userId),
+      userId,
+      userName: user.userName || userMap.get(userId)?.userName || userId,
+      nickName: user.nickName || userMap.get(userId)?.nickName || user.userName || userId
+    } as UserVO)
+  })
+  userOptions.value = Array.from(userMap.values())
+}
+
+function mergeTaskAssigneeOptions(task: FlowTaskVO) {
+  const ids = String((task as any).assigneeIds || "").split(",").filter(Boolean)
+  const names = String(task.assigneeNames || "").split(",").filter(Boolean)
+  mergeUserOptions(ids.map((id, index) => ({
+    userId: id,
+    userName: id,
+    nickName: names[index] || id
+  })))
+}
 
 function closePage() {
   tagsViewStore.delVisitedView(router.currentRoute.value)
   router.back()
+}
+
+function closeOperationDialogs() {
+  transferDialog.visible = false
+  delegateDialog.visible = false
+  addSignatureDialog.visible = false
+  reductionDialog.visible = false
+  backDialog.visible = false
+}
+
+function resetApprovalState() {
+  taskInfo.value = undefined
+  nextNodeList.value = []
+  Object.keys(assigneeMap).forEach(key => delete assigneeMap[key])
+  userOptions.value = []
+  transferUserId.value = ""
+  delegateUserId.value = ""
+  addSignatureUserIds.value = []
+  reductionUserIds.value = []
+  currentTaskUsers.value = []
+  copyUserIds.value = []
+  backNodeList.value = []
+  backNodeCode.value = ""
+  approvalComment.value = ""
+  messageType.value = ["1"]
+  closeOperationDialogs()
+}
+
+async function initPageData() {
+  resetApprovalState()
+  formData.value = { ...DEFAULT_FORM_DATA }
+  leaveTime.value = []
+  await getFlowCodeOptions()
+  if (pageType.value !== "add") {
+    await getInfo()
+  }
+  await getApprovalTaskInfo()
 }
 
 function openApprovalRecord() {
@@ -212,16 +308,26 @@ async function handleStartWorkflow(data: LeaveForm) {
     businessId: data.id,
     flowCode: flowCode.value,
     variables: {
-      leaveDays: data.leaveDays
+      leaveDays: data.leaveDays,
+      userList: ["1761100000000000001", "1761100000000000003", "1761100000000000004"]
     },
     bizExt: {
       businessTitle: "请假申请",
       businessCode: data.applyCode
     }
   }
-  await startWorkflowTaskApi(startData)
-  ElMessage.success("提交成功")
-  closePage()
+  const { data: startResult } = await startWorkflowTaskApi(startData)
+  ElMessage.success("流程已发起，请继续提交申请人节点")
+  await router.replace({
+    path: "/workflow/leaveEdit/index",
+    query: {
+      id: data.id,
+      taskId: startResult.taskId,
+      type: "approval"
+    }
+  })
+  await nextTick()
+  await getApprovalTaskInfo()
 }
 
 async function remoteSearchUsers(keyword: string) {
@@ -234,7 +340,7 @@ async function remoteSearchUsers(keyword: string) {
       nickName: keyword || undefined,
       status: "0"
     } as any)
-    userOptions.value = rows
+    mergeUserOptions(rows)
   } catch {
     userOptions.value = []
   } finally {
@@ -244,7 +350,8 @@ async function remoteSearchUsers(keyword: string) {
 
 function buildTaskVariables() {
   return {
-    leaveDays: formData.value.leaveDays
+    leaveDays: formData.value.leaveDays,
+    userList: ["1761100000000000001", "1761100000000000003", "1761100000000000004"]
   }
 }
 
@@ -256,11 +363,69 @@ function buildAssigneeMap() {
   )
 }
 
+function validateTaskId() {
+  if (taskId.value) return true
+  ElMessage.error("任务ID不能为空，请从待办任务进入审批页")
+  return false
+}
+
+function validatePopAssignee() {
+  if (!showTaskButton("pop") || nextNodeList.value.length === 0) return true
+  const missingNode = nextNodeList.value.find(node => node.nodeCode && (!assigneeMap[node.nodeCode] || assigneeMap[node.nodeCode].length === 0))
+  if (!missingNode) return true
+  ElMessage.warning(`请选择${missingNode.nodeName || missingNode.nodeCode || "下一节点"}办理人`)
+  return false
+}
+
+function buildBaseTaskPayload(defaultMessage: string) {
+  return {
+    taskId: taskId.value,
+    message: approvalComment.value || defaultMessage,
+    messageType: [...messageType.value],
+    variables: buildTaskVariables()
+  }
+}
+
+function resetOperationDialog(operation: TaskOperationType) {
+  if (operation === "transferTask") transferUserId.value = ""
+  if (operation === "delegateTask") delegateUserId.value = ""
+  if (operation === "addSignature") addSignatureUserIds.value = []
+  if (operation === "reductionSignature") reductionUserIds.value = []
+}
+
+async function openOperationDialog(operation: TaskOperationType) {
+  if (!validateTaskId()) return
+  resetOperationDialog(operation)
+  await remoteSearchUsers("")
+  if (operation === "transferTask") {
+    transferDialog.visible = true
+    return
+  }
+  if (operation === "delegateTask") {
+    delegateDialog.visible = true
+    return
+  }
+  if (operation === "addSignature") {
+    addSignatureDialog.visible = true
+    return
+  }
+  await openReductionDialog()
+}
+
 async function getApprovalTaskInfo() {
   if (pageType.value !== "approval" || !taskId.value) return
   const { data: task } = await getWorkflowTaskApi(taskId.value)
   await remoteSearchUsers("")
   taskInfo.value = task
+  mergeTaskAssigneeOptions(task)
+  try {
+    const { data: taskUsers } = await getWorkflowTaskCurrentAllUserApi(taskId.value)
+    currentTaskUsers.value = taskUsers || []
+    mergeUserOptions(taskUsers || [])
+  } catch {
+    currentTaskUsers.value = []
+  }
+  copyUserIds.value = task.copyList?.map(item => item.userId) || []
 
   try {
     const { data } = await getWorkflowTaskNextNodeListApi({
@@ -279,17 +444,15 @@ async function getApprovalTaskInfo() {
 }
 
 async function handleApprove() {
-  if (!taskId.value) {
-    ElMessage.error("任务ID不能为空")
-    return
-  }
+  if (!validateTaskId()) return
+  if (!validatePopAssignee()) return
+  await ElMessageBox.confirm("确认同意并提交当前任务吗？", "提示", { type: "warning" })
   buttonLoading.value = true
   try {
     await completeWorkflowTaskApi({
-      taskId: taskId.value,
-      message: approvalComment.value || "同意",
-      variables: buildTaskVariables(),
-      assigneeMap: buildAssigneeMap()
+      ...buildBaseTaskPayload("同意"),
+      assigneeMap: showTaskButton("pop") ? buildAssigneeMap() : {},
+      flowCopyList: showTaskButton("copy") ? flowCopyList.value : []
     })
     ElMessage.success("审批成功")
     closePage()
@@ -299,6 +462,7 @@ async function handleApprove() {
 }
 
 async function openBackDialog() {
+  if (!validateTaskId()) return
   if (!taskInfo.value?.nodeCode) {
     ElMessage.error("当前任务节点不能为空")
     return
@@ -315,22 +479,18 @@ async function openBackDialog() {
 }
 
 async function handleReject() {
-  if (!taskId.value) {
-    ElMessage.error("任务ID不能为空")
-    return
-  }
+  if (!validateTaskId()) return
   if (!backNodeCode.value) {
     ElMessage.warning("请选择退回节点")
     return
   }
+  await ElMessageBox.confirm("确认退回当前任务吗？", "提示", { type: "warning" })
   buttonLoading.value = true
   try {
     await backWorkflowProcessApi({
-      taskId: taskId.value,
+      ...buildBaseTaskPayload("驳回"),
       nodeCode: backNodeCode.value,
-      message: approvalComment.value || "驳回",
-      variables: buildTaskVariables(),
-      messageType: ["1"]
+      notice: ""
     })
     ElMessage.success("驳回成功")
     closePage()
@@ -339,33 +499,29 @@ async function handleReject() {
   }
 }
 
-async function handleTaskOperation(operation: "transferTask" | "delegateTask" | "addSignature" | "reductionSignature") {
-  if (!taskId.value) {
-    ElMessage.error("任务ID不能为空")
-    return
-  }
-  const operationNameMap = {
-    transferTask: "转办",
-    delegateTask: "委派",
-    addSignature: "加签",
-    reductionSignature: "减签"
-  }
+async function handleTaskOperation(operation: TaskOperationType) {
+  if (!validateTaskId()) return
+  const userIds = (operation === "addSignature" ? addSignatureUserIds.value : reductionUserIds.value).map(item => String(item))
   const payload = {
     taskId: taskId.value,
-    message: approvalComment.value,
-    messageType: ["1"],
+    message: approvalComment.value || TASK_OPERATION_NAME_MAP[operation],
+    messageType: [...messageType.value],
     userId: operation === "transferTask" ? String(transferUserId.value || "") : String(delegateUserId.value || ""),
-    userIds: (operation === "addSignature" ? addSignatureUserIds.value : reductionUserIds.value).map(item => String(item))
+    userIds
   }
   if ((operation === "transferTask" || operation === "delegateTask") && !payload.userId) {
     ElMessage.warning("请选择办理人")
+    return
+  }
+  if (operation === "addSignature" && userIds.some(userId => currentTaskUserIdSet.value.has(userId))) {
+    ElMessage.warning("加签办理人不能选择当前节点已有办理人")
     return
   }
   if ((operation === "addSignature" || operation === "reductionSignature") && (!payload.userIds || payload.userIds.length === 0)) {
     ElMessage.warning("请选择办理人")
     return
   }
-  await ElMessageBox.confirm(`确认${operationNameMap[operation]}当前任务吗？`, "提示", { type: "warning" })
+  await ElMessageBox.confirm(`确认${TASK_OPERATION_NAME_MAP[operation]}当前任务吗？`, "提示", { type: "warning" })
   operationLoading.value = true
   try {
     await operateWorkflowTaskApi(payload, operation)
@@ -377,6 +533,7 @@ async function handleTaskOperation(operation: "transferTask" | "delegateTask" | 
 }
 
 async function openReductionDialog() {
+  if (!validateTaskId()) return
   reductionDialog.visible = true
   reductionDialog.loading = true
   try {
@@ -389,6 +546,7 @@ async function openReductionDialog() {
 }
 
 async function handleTerminationTask() {
+  if (!validateTaskId()) return
   await ElMessageBox.confirm("确认终止当前任务吗？", "提示", { type: "warning" })
   buttonLoading.value = true
   try {
@@ -403,12 +561,12 @@ async function handleTerminationTask() {
   }
 }
 
+watch(() => route.fullPath, async () => {
+  await initPageData()
+})
+
 onMounted(async () => {
-  await getFlowCodeOptions()
-  if (pageType.value !== "add") {
-    await getInfo()
-  }
-  await getApprovalTaskInfo()
+  await initPageData()
 })
 </script>
 
@@ -431,27 +589,27 @@ onMounted(async () => {
           </template>
           <template v-if="pageType === 'approval'">
             <div class="action-group action-group-primary">
-              <el-button type="primary" :loading="buttonLoading" :disabled="!taskId" @click="handleApprove">
+              <el-button type="primary" :loading="buttonLoading" :disabled="!canSubmitApproval" @click="handleApprove">
                 同意
               </el-button>
-              <el-button v-if="showTaskButton('back')" type="warning" :loading="buttonLoading" :disabled="!taskId" @click="openBackDialog">
+              <el-button v-if="showTaskButton('back')" type="warning" :loading="buttonLoading" :disabled="!canSubmitApproval" @click="openBackDialog">
                 退回
               </el-button>
-              <el-button v-if="showTaskButton('termination')" type="danger" plain :loading="buttonLoading" :disabled="!taskId" @click="handleTerminationTask">
+              <el-button v-if="showTaskButton('termination')" type="danger" plain :loading="buttonLoading" :disabled="!canSubmitApproval" @click="handleTerminationTask">
                 终止
               </el-button>
             </div>
             <div class="action-group">
-              <el-button v-if="showTaskButton('trust')" :loading="operationLoading" :disabled="!taskId" @click="delegateDialog.visible = true">
+              <el-button v-if="showTaskButton('trust')" :loading="operationLoading" :disabled="!canSubmitApproval" @click="openOperationDialog('delegateTask')">
                 委派
               </el-button>
-              <el-button v-if="showTaskButton('transfer')" :loading="operationLoading" :disabled="!taskId" @click="transferDialog.visible = true">
+              <el-button v-if="showTaskButton('transfer')" :loading="operationLoading" :disabled="!canSubmitApproval" @click="openOperationDialog('transferTask')">
                 转办
               </el-button>
-              <el-button v-if="showTaskButton('addSign') && canHandleSignature" :loading="operationLoading" :disabled="!taskId" @click="addSignatureDialog.visible = true">
+              <el-button v-if="showTaskButton('addSign') && canHandleSignature" :loading="operationLoading" :disabled="!canSubmitApproval" @click="openOperationDialog('addSignature')">
                 加签
               </el-button>
-              <el-button v-if="showTaskButton('subSign') && canHandleSignature" :loading="operationLoading" :disabled="!taskId" @click="openReductionDialog">
+              <el-button v-if="showTaskButton('subSign') && canHandleSignature" :loading="operationLoading" :disabled="!canSubmitApproval" @click="openOperationDialog('reductionSignature')">
                 减签
               </el-button>
             </div>
@@ -491,8 +649,35 @@ onMounted(async () => {
             class="approval-alert"
           />
           <el-form label-width="120px">
+            <el-form-item label="消息提醒">
+              <el-checkbox-group v-model="messageType">
+                <el-checkbox value="1" disabled>站内信</el-checkbox>
+                <el-checkbox value="2">邮件</el-checkbox>
+                <el-checkbox value="3">短信</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
             <el-form-item label="审批意见">
               <el-input v-model="approvalComment" type="textarea" :rows="3" placeholder="请输入审批意见" />
+            </el-form-item>
+            <el-form-item v-if="showTaskButton('copy')" label="抄送人员">
+              <el-select
+                v-model="copyUserIds"
+                multiple
+                filterable
+                remote
+                clearable
+                :remote-method="remoteSearchUsers"
+                :loading="userLoading"
+                placeholder="请选择抄送人员"
+                class="w-full"
+              >
+                <el-option
+                  v-for="item in userOptions"
+                  :key="item.userId"
+                  :label="`${item.nickName} (${item.userName})`"
+                  :value="item.userId"
+                />
+              </el-select>
             </el-form-item>
             <template v-if="showNextNodeAssignee">
               <el-form-item v-for="node in nextNodeList" :key="node.nodeCode" :label="node.nodeName || node.nodeCode || '下一节点'">
@@ -523,94 +708,109 @@ onMounted(async () => {
     </el-card>
 
     <el-dialog v-model="transferDialog.visible" title="转办" width="420px">
-    <el-form label-width="90px">
-      <el-form-item label="办理人">
-        <el-select v-model="transferUserId" filterable remote clearable :remote-method="remoteSearchUsers" :loading="userLoading" placeholder="请选择办理人" class="w-full">
-          <el-option v-for="item in userOptions" :key="item.userId" :label="`${item.nickName} (${item.userName})`" :value="item.userId" />
-        </el-select>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="transferDialog.visible = false">
-        取消
-      </el-button>
-      <el-button type="primary" :loading="operationLoading" @click="handleTaskOperation('transferTask')">
-        确认
-      </el-button>
-    </template>
-  </el-dialog>
+      <el-form label-width="90px">
+        <el-form-item label="办理人">
+          <el-select v-model="transferUserId" filterable remote clearable :remote-method="remoteSearchUsers" :loading="userLoading" placeholder="请选择办理人" class="w-full">
+            <el-option v-for="item in userOptions" :key="item.userId" :label="`${item.nickName} (${item.userName})`" :value="item.userId" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="处理意见">
+          <el-input v-model="approvalComment" type="textarea" :rows="3" placeholder="请输入处理意见" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="transferDialog.visible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="operationLoading" @click="handleTaskOperation('transferTask')">
+          确认
+        </el-button>
+      </template>
+    </el-dialog>
 
-  <el-dialog v-model="delegateDialog.visible" title="委派" width="420px">
-    <el-form label-width="90px">
-      <el-form-item label="办理人">
-        <el-select v-model="delegateUserId" filterable remote clearable :remote-method="remoteSearchUsers" :loading="userLoading" placeholder="请选择办理人" class="w-full">
-          <el-option v-for="item in userOptions" :key="item.userId" :label="`${item.nickName} (${item.userName})`" :value="item.userId" />
-        </el-select>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="delegateDialog.visible = false">
-        取消
-      </el-button>
-      <el-button type="primary" :loading="operationLoading" @click="handleTaskOperation('delegateTask')">
-        确认
-      </el-button>
-    </template>
-  </el-dialog>
+    <el-dialog v-model="delegateDialog.visible" title="委派" width="420px">
+      <el-form label-width="90px">
+        <el-form-item label="办理人">
+          <el-select v-model="delegateUserId" filterable remote clearable :remote-method="remoteSearchUsers" :loading="userLoading" placeholder="请选择办理人" class="w-full">
+            <el-option v-for="item in userOptions" :key="item.userId" :label="`${item.nickName} (${item.userName})`" :value="item.userId" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="处理意见">
+          <el-input v-model="approvalComment" type="textarea" :rows="3" placeholder="请输入处理意见" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="delegateDialog.visible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="operationLoading" @click="handleTaskOperation('delegateTask')">
+          确认
+        </el-button>
+      </template>
+    </el-dialog>
 
-  <el-dialog v-model="addSignatureDialog.visible" title="加签" width="420px">
-    <el-form label-width="90px">
-      <el-form-item label="办理人">
-        <el-select v-model="addSignatureUserIds" multiple filterable remote clearable :remote-method="remoteSearchUsers" :loading="userLoading" placeholder="请选择办理人" class="w-full">
-          <el-option v-for="item in userOptions" :key="item.userId" :label="`${item.nickName} (${item.userName})`" :value="item.userId" />
-        </el-select>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="addSignatureDialog.visible = false">
-        取消
-      </el-button>
-      <el-button type="primary" :loading="operationLoading" @click="handleTaskOperation('addSignature')">
-        确认
-      </el-button>
-    </template>
-  </el-dialog>
+    <el-dialog v-model="addSignatureDialog.visible" title="加签" width="420px">
+      <el-form label-width="90px">
+        <el-form-item label="办理人">
+          <el-select v-model="addSignatureUserIds" multiple filterable remote clearable :remote-method="remoteSearchUsers" :loading="userLoading" placeholder="请选择办理人" class="w-full">
+            <el-option v-for="item in addSignatureUserOptions" :key="item.userId" :label="`${item.nickName} (${item.userName})`" :value="item.userId" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="处理意见">
+          <el-input v-model="approvalComment" type="textarea" :rows="3" placeholder="请输入处理意见" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="addSignatureDialog.visible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="operationLoading" @click="handleTaskOperation('addSignature')">
+          确认
+        </el-button>
+      </template>
+    </el-dialog>
 
-  <el-dialog v-model="reductionDialog.visible" title="减签" width="520px">
-    <el-form v-loading="reductionDialog.loading" label-width="90px">
-      <el-form-item label="办理人">
-        <el-select v-model="reductionUserIds" multiple clearable placeholder="请选择减签办理人" class="w-full">
-          <el-option v-for="item in currentTaskUsers" :key="item.userId" :label="item.nickName || item.userName || String(item.userId)" :value="item.userId" />
-        </el-select>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="reductionDialog.visible = false">
-        取消
-      </el-button>
-      <el-button type="primary" :loading="operationLoading" @click="handleTaskOperation('reductionSignature')">
-        确认
-      </el-button>
-    </template>
-  </el-dialog>
+    <el-dialog v-model="reductionDialog.visible" title="减签" width="520px">
+      <el-form v-loading="reductionDialog.loading" label-width="90px">
+        <el-form-item label="办理人">
+          <el-select v-model="reductionUserIds" multiple clearable placeholder="请选择减签办理人" class="w-full">
+            <el-option v-for="item in currentTaskUsers" :key="item.userId" :label="item.nickName || item.userName || String(item.userId)" :value="item.userId" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="处理意见">
+          <el-input v-model="approvalComment" type="textarea" :rows="3" placeholder="请输入处理意见" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="reductionDialog.visible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="operationLoading" @click="handleTaskOperation('reductionSignature')">
+          确认
+        </el-button>
+      </template>
+    </el-dialog>
 
-  <el-dialog v-model="backDialog.visible" title="退回" width="460px">
-    <el-form v-loading="backDialog.loading" label-width="90px">
-      <el-form-item label="退回节点">
-        <el-select v-model="backNodeCode" clearable placeholder="请选择退回节点" class="w-full">
-          <el-option v-for="item in backNodeList" :key="item.nodeCode" :label="item.nodeName || item.nodeCode || '退回节点'" :value="item.nodeCode || ''" />
-        </el-select>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="backDialog.visible = false">
-        取消
-      </el-button>
-      <el-button type="primary" :loading="buttonLoading" @click="handleReject">
-        确认
-      </el-button>
-    </template>
-  </el-dialog>
+    <el-dialog v-model="backDialog.visible" title="退回" width="460px">
+      <el-form v-loading="backDialog.loading" label-width="90px">
+        <el-form-item label="退回节点">
+          <el-select v-model="backNodeCode" clearable placeholder="请选择退回节点" class="w-full">
+            <el-option v-for="item in backNodeList" :key="item.nodeCode" :label="item.nodeName || item.nodeCode || '退回节点'" :value="item.nodeCode || ''" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="处理意见">
+          <el-input v-model="approvalComment" type="textarea" :rows="3" placeholder="请输入处理意见" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="backDialog.visible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="buttonLoading" @click="handleReject">
+          确认
+        </el-button>
+      </template>
+    </el-dialog>
 
   <ApprovalRecordDialog ref="approvalRecordDialogRef" />
   </div>
